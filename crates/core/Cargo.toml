@@ -1,0 +1,9 @@
+[package]
+name = "metamorphic_binary_transport_core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+thiserror = "=2.0.17"

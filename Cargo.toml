@@ -1,0 +1,22 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/core",
+    "crates/codegen",
+    "crates/projection",
+    "crates/metamorphose",
+    "crates/transponding",
+    "crates/adapters/json",
+    "crates/adapters/protobuf",
+    "crates/adapters/csv",
+    "crates/adapters/arrow",
+    "crates/adapters/arrow_ipc",
+    "crates/adapters/parquet",
+    "crates/benches",
+    "crates/schemas/test_compatibility_core",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["MATHILDE"]

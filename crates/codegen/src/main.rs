@@ -1,0 +1,22 @@
+use metamorphic_binary_transport_codegen::config::{Action, parse_args};
+use metamorphic_binary_transport_codegen::emit;
+
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("{err}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> metamorphic_binary_transport_codegen::error::Result<()> {
+    let config = parse_args(std::env::args().skip(1))?;
+    match config.action {
+        Action::Inspect => {
+            let output = emit::inspect(&config)?;
+            print!("{output}");
+            Ok(())
+        }
+        Action::Write => emit::write(&config),
+        Action::Check => emit::check(&config),
+    }
+}

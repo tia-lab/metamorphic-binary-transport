@@ -1,0 +1,10 @@
+[package]
+name = "metamorphic_binary_transport_schema_test_compatibility"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+metamorphic_binary_transport_core = { path = "../../core" }
+rkyv = "=0.8.16"

@@ -1,0 +1,8 @@
+[package]
+name = "metamorphic_binary_transport_benches"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
