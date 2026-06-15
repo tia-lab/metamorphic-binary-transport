@@ -3,17 +3,21 @@ mod test_descriptor;
 mod test_model;
 mod test_options;
 mod test_rust_emit_core;
+mod test_rust_emit_metamorphose;
+mod test_rust_emit_projection_direct_writer;
 
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::config::{Action, CodegenConfig, Surface};
+use crate::config::{Action, Adapter, CodegenConfig, Surface};
 use crate::descriptor::load_schema_model;
 use crate::emit::format_rust;
 use crate::error::{CodegenError, Result};
-use crate::rust_emit::generated_schema;
+use crate::rust_emit::{
+    generated_metamorphose_adapter_schema, generated_projection_schema, generated_schema,
+};
 
 static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -42,13 +46,18 @@ fn write_proto(root: &Path, relative_path: &str, contents: &str) -> Result<PathB
 }
 
 fn config(root: &Path, schema: &str, module: &str) -> CodegenConfig {
+    config_with_surface(root, schema, module, Surface::Core)
+}
+
+fn config_with_surface(root: &Path, schema: &str, module: &str, surface: Surface) -> CodegenConfig {
     CodegenConfig {
         action: Action::Inspect,
         proto_roots: vec![root.to_path_buf()],
         schema: PathBuf::from(schema),
         root: "test.fixture.v1.TestPayloadV1".to_string(),
         module: module.to_string(),
-        surface: Surface::Core,
+        surface,
+        adapter: None,
         out: None,
     }
 }
@@ -63,6 +72,16 @@ fn model_for(proto: &str) -> Result<crate::model::SchemaModel> {
 fn run_codegen_to_string(proto: &str) -> Result<String> {
     let model = model_for(proto)?;
     format_rust(&generated_schema(&model)?)
+}
+
+fn run_projection_codegen_to_string(proto: &str) -> Result<String> {
+    let model = model_for(proto)?;
+    format_rust(&generated_projection_schema(&model)?)
+}
+
+fn run_metamorphose_codegen_to_string(proto: &str, adapter: Adapter) -> Result<String> {
+    let model = model_for(proto)?;
+    format_rust(&generated_metamorphose_adapter_schema(&model, adapter)?)
 }
 
 fn assert_forbidden_absent(source: &str) {

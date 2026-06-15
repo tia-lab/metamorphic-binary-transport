@@ -1,8 +1,8 @@
 #![forbid(unsafe_code)]
 //! Codegen ownership boundary.
 //!
-//! This crate owns descriptor parsing and core-only Rust emission for MBT
-//! schemas. Runtime transport code remains in `metamorphic_binary_transport_core`.
+//! This crate owns descriptor parsing and Rust emission for MBT schema surfaces.
+//! Runtime transport code remains in `metamorphic_binary_transport_core`.
 
 pub mod config;
 pub mod descriptor;

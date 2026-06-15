@@ -4,19 +4,25 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::config::CodegenConfig;
+use crate::config::{CodegenConfig, Surface};
 use crate::descriptor::load_schema_model;
 use crate::error::{CodegenError, Result};
 use crate::model::SchemaModel;
-use crate::rust_emit::generated_schema;
+use crate::rust_emit::{
+    generated_metamorphose_adapter_schema, generated_projection_schema, generated_schema,
+};
 
 static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 pub fn inspect(config: &CodegenConfig) -> Result<String> {
     let request = config.schema_request();
     let model = load_schema_model(&request)?;
-    let generated = generated_schema(&model)?;
-    Ok(inspect_text(&model, generated.lines().count()))
+    let generated = generated_unformatted(config, &model)?;
+    Ok(inspect_text(
+        &model,
+        generated.lines().count(),
+        config.surface == Surface::Projection,
+    ))
 }
 
 pub fn write(config: &CodegenConfig) -> Result<()> {
@@ -134,11 +140,26 @@ pub fn temp_dir(label: &str) -> Result<PathBuf> {
 fn generated_formatted(config: &CodegenConfig) -> Result<String> {
     let request = config.schema_request();
     let model = load_schema_model(&request)?;
-    let source = generated_schema(&model)?;
+    let source = generated_unformatted(config, &model)?;
     format_rust(&source)
 }
 
-fn inspect_text(model: &SchemaModel, generated_lines: usize) -> String {
+fn generated_unformatted(config: &CodegenConfig, model: &SchemaModel) -> Result<String> {
+    match config.surface {
+        Surface::Core => generated_schema(model),
+        Surface::Projection => generated_projection_schema(model),
+        Surface::Metamorphose => generated_metamorphose_adapter_schema(
+            model,
+            config.adapter.ok_or_else(|| {
+                CodegenError::UnsupportedArgument(
+                    "--adapter is required with --surface metamorphose".to_string(),
+                )
+            })?,
+        ),
+    }
+}
+
+fn inspect_text(model: &SchemaModel, generated_lines: usize, include_projections: bool) -> String {
     let mut out = String::new();
     out.push_str(&format!("module={}\n", model.module));
     out.push_str(&format!("proto={}\n", model.proto.display()));
@@ -151,6 +172,14 @@ fn inspect_text(model: &SchemaModel, generated_lines: usize) -> String {
     out.push_str(&format!("payload_type={}\n", model.payload_type));
     out.push_str(&format!("row_type={}\n", model.row_type));
     out.push_str(&format!("generated_lines={generated_lines}\n"));
+    if include_projections {
+        for projection in &model.projections {
+            out.push_str(&format!(
+                "projection={} marker={}\n",
+                projection.definition.name, projection.marker_type
+            ));
+        }
+    }
     for dictionary in &model.dictionaries {
         out.push_str(&format!(
             "dictionary={} values={}\n",

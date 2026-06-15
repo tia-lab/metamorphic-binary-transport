@@ -2,7 +2,10 @@
 // Do not edit by hand.
 // schema_id=40001 schema_version=1 schema_hash=3233278346470496550
 
-use rkyv::{Archive, Serialize as RkyvSerialize, rancor::Error as RkyvError};
+use rkyv::rancor::{Error as RkyvError, Fallible, Source};
+use rkyv::ser::{Allocator, Writer};
+use rkyv::vec::{ArchivedVec, VecResolver};
+use rkyv::{Archive, Place, Serialize as RkyvSerialize};
 
 use metamorphic_binary_transport_core::envelope::{
     HEADER_LEN, SchemaHeaderSpec, TransportHeader, decode_header, encode_header, fnv1a64,
@@ -955,4 +958,1443 @@ fn inspect_archived_rows(
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+struct DirectI64ArrayRef<'a> {
+    values: &'a ArchivedVec<rkyv::primitive::ArchivedI64>,
+}
+
+impl<'a> Archive for DirectI64ArrayRef<'a> {
+    type Archived = ArchivedVec<rkyv::primitive::ArchivedI64>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for DirectI64ArrayRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+    }
+}
+
+struct DirectI32ArrayRef<'a> {
+    values: &'a ArchivedVec<rkyv::primitive::ArchivedI32>,
+}
+
+impl<'a> Archive for DirectI32ArrayRef<'a> {
+    type Archived = ArchivedVec<rkyv::primitive::ArchivedI32>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for DirectI32ArrayRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+    }
+}
+
+struct DirectU32ArrayRef<'a> {
+    values: &'a ArchivedVec<rkyv::primitive::ArchivedU32>,
+}
+
+impl<'a> Archive for DirectU32ArrayRef<'a> {
+    type Archived = ArchivedVec<rkyv::primitive::ArchivedU32>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for DirectU32ArrayRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+    }
+}
+
+struct DirectF64ArrayRef<'a> {
+    values: &'a ArchivedVec<rkyv::primitive::ArchivedF64>,
+}
+
+impl<'a> Archive for DirectF64ArrayRef<'a> {
+    type Archived = ArchivedVec<rkyv::primitive::ArchivedF64>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for DirectF64ArrayRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+    }
+}
+
+struct DirectF32ArrayRef<'a> {
+    values: &'a ArchivedVec<rkyv::primitive::ArchivedF32>,
+}
+
+impl<'a> Archive for DirectF32ArrayRef<'a> {
+    type Archived = ArchivedVec<rkyv::primitive::ArchivedF32>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for DirectF32ArrayRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+    }
+}
+
+const NO_OPTIONAL_SCHEMA_ID: u32 = 40001;
+const NO_OPTIONAL_SCHEMA_VERSION_VALUE: u16 = 1;
+const NO_OPTIONAL_SCHEMA_VERSION: u16 = NO_OPTIONAL_SCHEMA_VERSION_VALUE;
+const NO_OPTIONAL_GENERATED_SCHEMA_HASH: u64 = 13547916532161945662;
+const NO_OPTIONAL_TRANSPORT_NAME: &str = "mathilde.test_compatibility.v1.no_optional";
+const NO_OPTIONAL_SCHEMA_HEADER: SchemaHeaderSpec = SchemaHeaderSpec {
+    schema_id: NO_OPTIONAL_SCHEMA_ID,
+    schema_version: NO_OPTIONAL_SCHEMA_VERSION,
+    schema_hash: NO_OPTIONAL_GENERATED_SCHEMA_HASH,
+};
+
+#[derive(Clone, Archive, RkyvSerialize)]
+pub struct TestCompatibilityResponseV1PayloadNoOptional {
+    pub schema_version: u16,
+    pub rows: Vec<TestCompatibilityRowV1NoOptional>,
+}
+
+#[derive(Clone, Archive, RkyvSerialize)]
+pub struct TestCompatibilityRowV1NoOptional {
+    pub schema_version: u16,
+    pub tenant_ordinal: u16,
+    pub entity_ordinal: u16,
+    pub close_ms: i64,
+    pub status_ordinal: u16,
+    pub venues_mask: u64,
+    pub required_i64: i64,
+    pub required_i32: i32,
+    pub required_u32: u32,
+    pub required_f64: f64,
+    pub required_f32: f32,
+    pub required_bool: bool,
+    pub required_text: String,
+    pub required_bytes: Vec<u8>,
+    pub uuid_text: String,
+    pub jsonb_text: String,
+    pub timestamptz_text: String,
+    pub numeric_text: String,
+    pub required_i64_array: Vec<i64>,
+    pub required_i32_array: Vec<i32>,
+    pub required_u32_array: Vec<u32>,
+    pub required_f64_array: Vec<f64>,
+    pub required_f32_array: Vec<f32>,
+}
+
+fn no_optional_validate_rows(rows: &[TestCompatibilityRowV1NoOptional]) -> Result<()> {
+    let mut previous = None;
+    for row in rows {
+        no_optional_validate_row(row, previous)?;
+        previous = Some(row);
+    }
+    Ok(())
+}
+
+fn no_optional_validate_row(
+    row: &TestCompatibilityRowV1NoOptional,
+    previous: Option<&TestCompatibilityRowV1NoOptional>,
+) -> Result<()> {
+    if row.schema_version != 1 {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: row.schema_version,
+            expected: 1,
+        });
+    }
+    tenant_symbol(row.tenant_ordinal)?;
+    entity_symbol(row.entity_ordinal)?;
+    status_symbol(row.status_ordinal)?;
+    if row.venues_mask & !VALID_VENUE_MASK != 0 {
+        return Err(TransportError::InvalidBitmask {
+            field: "venues",
+            value: row.venues_mask,
+        });
+    }
+    validate_finite_f64("required_f64", row.required_f64)?;
+    validate_finite_f32("required_f32", row.required_f32)?;
+    for value in &row.required_f64_array {
+        validate_finite_f64("required_f64_array", *value)?;
+    }
+    for value in &row.required_f32_array {
+        validate_finite_f32("required_f32_array", *value)?;
+    }
+    if previous.is_some_and(|prev| {
+        (row.tenant_ordinal, row.entity_ordinal, row.close_ms)
+            < (prev.tenant_ordinal, prev.entity_ordinal, prev.close_ms)
+    }) {
+        return Err(TransportError::InvalidTimeGrid(
+            "key order regression".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn no_optional_checksum_archived_row(
+    mut checksum: u64,
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.tenant_ordinal.to_native());
+    checksum = update_u16(checksum, row.entity_ordinal.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_u16(checksum, row.status_ordinal.to_native());
+    checksum = update_u64(checksum, row.venues_mask.to_native());
+    checksum = update_i64(checksum, row.required_i64.to_native());
+    checksum = update_i32(checksum, row.required_i32.to_native());
+    checksum = update_u32(checksum, row.required_u32.to_native());
+    checksum = update_f64(checksum, row.required_f64.to_native());
+    checksum = update_f32(checksum, row.required_f32.to_native());
+    checksum = update_bool(checksum, row.required_bool);
+    checksum = update_bytes(checksum, row.required_text.as_bytes());
+    checksum = update_bytes(checksum, row.required_bytes.as_slice());
+    checksum = update_bytes(checksum, row.uuid_text.as_bytes());
+    checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
+    checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
+    checksum = update_bytes(checksum, row.numeric_text.as_bytes());
+    checksum = update_archived_i64_array(checksum, row.required_i64_array.iter());
+    checksum = update_archived_i32_array(checksum, row.required_i32_array.iter());
+    checksum = update_archived_u32_array(checksum, row.required_u32_array.iter());
+    checksum = update_archived_f64_array(checksum, row.required_f64_array.iter());
+    checksum = update_archived_f32_array(checksum, row.required_f32_array.iter());
+    checksum
+}
+
+pub struct TestCompatibilityV1NoOptional;
+
+impl TestCompatibilityV1NoOptional {
+    pub const SCHEMA_ID: u32 = NO_OPTIONAL_SCHEMA_ID;
+    pub const SCHEMA_VERSION: u16 = NO_OPTIONAL_SCHEMA_VERSION;
+    pub const SCHEMA_HASH: u64 = NO_OPTIONAL_GENERATED_SCHEMA_HASH;
+    pub const TRANSPORT_NAME: &'static str = NO_OPTIONAL_TRANSPORT_NAME;
+
+    pub fn header_spec() -> SchemaHeaderSpec {
+        NO_OPTIONAL_SCHEMA_HEADER
+    }
+
+    pub fn encode(
+        rows: &[TestCompatibilityRowV1NoOptional],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        Self::encode_owned(rows.to_vec(), max_response_bytes)
+    }
+
+    pub fn encode_owned(
+        rows: Vec<TestCompatibilityRowV1NoOptional>,
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        no_optional_validate_rows(&rows)?;
+        let row_count = rows.len();
+        let payload = TestCompatibilityResponseV1PayloadNoOptional {
+            schema_version: NO_OPTIONAL_SCHEMA_VERSION_VALUE,
+            rows,
+        };
+        let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload)
+            .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+        let payload_len = payload_bytes.len();
+        let total_len =
+            HEADER_LEN
+                .checked_add(payload_len)
+                .ok_or(TransportError::ResponseTooLarge {
+                    observed: usize::MAX,
+                    cap: max_response_bytes,
+                })?;
+        if total_len > max_response_bytes {
+            return Err(TransportError::ResponseTooLarge {
+                observed: total_len,
+                cap: max_response_bytes,
+            });
+        }
+        let header = TransportHeader::new_with_schema(
+            Self::header_spec(),
+            row_count as u64,
+            payload_len as u64,
+            fnv1a64(&payload_bytes),
+        );
+        let mut header_bytes = [0_u8; HEADER_LEN];
+        encode_header(&header, &mut header_bytes);
+        let mut out = Vec::with_capacity(total_len);
+        out.extend_from_slice(&header_bytes);
+        out.extend_from_slice(&payload_bytes);
+        Ok(out)
+    }
+
+    pub fn access(bytes: &[u8]) -> Result<TestCompatibilityV1NoOptionalView<'_>> {
+        Ok(TestCompatibilityV1NoOptionalView {
+            archived: Self::access_archived(bytes)?,
+        })
+    }
+
+    pub(crate) fn access_archived(
+        bytes: &[u8],
+    ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNoOptional> {
+        let (header, payload) = decode_payload(bytes, Self::header_spec())?;
+        let archived = rkyv::access::<
+            ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+            RkyvError,
+        >(payload)
+        .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+        no_optional_validate_archived_payload(archived, header.row_count)?;
+        Ok(archived)
+    }
+
+    /// Returns an archived payload view for immutable bytes already validated for this schema.
+    ///
+    /// # Safety
+    /// The caller guarantees that bytes were previously accepted by checked MBT access
+    /// for this schema and then stored or transported without mutation.
+    pub unsafe fn access_archived_trusted_unchecked(
+        bytes: &[u8],
+    ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNoOptional> {
+        let header = decode_header(bytes)?;
+        let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
+        let archived = unsafe {
+            rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1PayloadNoOptional>(payload)
+        };
+        no_optional_validate_archived_payload(archived, header.row_count)?;
+        Ok(archived)
+    }
+
+    pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
+        no_optional_inspect_archived_rows(Self::access_archived(bytes)?)
+    }
+}
+
+impl MbtSchema for TestCompatibilityV1NoOptional {
+    type Row = TestCompatibilityRowV1NoOptional;
+    type View<'a> = TestCompatibilityV1NoOptionalView<'a>;
+
+    fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::encode(rows, max_response_bytes)
+    }
+    fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::encode_owned(rows, max_response_bytes)
+    }
+    fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
+        Self::access(bytes)
+    }
+    fn inspect_bytes(bytes: &[u8]) -> Result<BinaryInspection> {
+        Self::inspect(bytes)
+    }
+}
+
+pub struct TestCompatibilityV1NoOptionalView<'a> {
+    archived: &'a ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+}
+
+impl<'a> TestCompatibilityV1NoOptionalView<'a> {
+    pub fn len(&self) -> usize {
+        self.archived.rows.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.archived.rows.is_empty()
+    }
+    pub fn rows(&self) -> TestCompatibilityV1NoOptionalRows<'a> {
+        TestCompatibilityV1NoOptionalRows {
+            inner: self.archived.rows.iter(),
+        }
+    }
+}
+
+pub struct TestCompatibilityV1NoOptionalRows<'a> {
+    inner: core::slice::Iter<'a, <TestCompatibilityRowV1NoOptional as Archive>::Archived>,
+}
+
+impl<'a> Iterator for TestCompatibilityV1NoOptionalRows<'a> {
+    type Item = ArchivedTestCompatibilityV1NoOptionalRow<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner
+            .next()
+            .map(|row| ArchivedTestCompatibilityV1NoOptionalRow { row })
+    }
+}
+
+pub struct ArchivedTestCompatibilityV1NoOptionalRow<'a> {
+    row: &'a <TestCompatibilityRowV1NoOptional as Archive>::Archived,
+}
+
+impl<'a> ArchivedTestCompatibilityV1NoOptionalRow<'a> {
+    pub fn schema_version(&self) -> u16 {
+        self.row.schema_version.to_native()
+    }
+    pub fn tenant_ordinal(&self) -> u16 {
+        self.row.tenant_ordinal.to_native()
+    }
+    pub fn tenant(&self) -> Result<&'static str> {
+        tenant_symbol(self.row.tenant_ordinal.to_native())
+    }
+    pub fn entity_ordinal(&self) -> u16 {
+        self.row.entity_ordinal.to_native()
+    }
+    pub fn entity(&self) -> Result<&'static str> {
+        entity_symbol(self.row.entity_ordinal.to_native())
+    }
+    pub fn close_ms(&self) -> i64 {
+        self.row.close_ms.to_native()
+    }
+    pub fn status_ordinal(&self) -> u16 {
+        self.row.status_ordinal.to_native()
+    }
+    pub fn status(&self) -> Result<&'static str> {
+        status_symbol(self.row.status_ordinal.to_native())
+    }
+    pub fn venues_mask(&self) -> u64 {
+        self.row.venues_mask.to_native()
+    }
+    pub fn required_i64(&self) -> i64 {
+        self.row.required_i64.to_native()
+    }
+    pub fn required_i32(&self) -> i32 {
+        self.row.required_i32.to_native()
+    }
+    pub fn required_u32(&self) -> u32 {
+        self.row.required_u32.to_native()
+    }
+    pub fn required_f64(&self) -> f64 {
+        self.row.required_f64.to_native()
+    }
+    pub fn required_f32(&self) -> f32 {
+        self.row.required_f32.to_native()
+    }
+    pub fn required_bool(&self) -> bool {
+        self.row.required_bool
+    }
+    pub fn required_text(&self) -> &'a str {
+        self.row.required_text.as_str()
+    }
+    pub fn required_bytes(&self) -> &'a [u8] {
+        self.row.required_bytes.as_slice()
+    }
+    pub fn uuid_text(&self) -> &'a str {
+        self.row.uuid_text.as_str()
+    }
+    pub fn jsonb_text(&self) -> &'a str {
+        self.row.jsonb_text.as_str()
+    }
+    pub fn timestamptz_text(&self) -> &'a str {
+        self.row.timestamptz_text.as_str()
+    }
+    pub fn numeric_text(&self) -> &'a str {
+        self.row.numeric_text.as_str()
+    }
+    pub fn required_i64_array(&self) -> impl Iterator<Item = i64> + '_ {
+        self.row
+            .required_i64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_i32_array(&self) -> impl Iterator<Item = i32> + '_ {
+        self.row
+            .required_i32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_u32_array(&self) -> impl Iterator<Item = u32> + '_ {
+        self.row
+            .required_u32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_f64_array(&self) -> impl Iterator<Item = f64> + '_ {
+        self.row
+            .required_f64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_f32_array(&self) -> impl Iterator<Item = f32> + '_ {
+        self.row
+            .required_f32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+}
+
+fn no_optional_validate_archived_payload(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+    expected_rows: u64,
+) -> Result<()> {
+    if archived.schema_version.to_native() != NO_OPTIONAL_SCHEMA_VERSION_VALUE {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: archived.schema_version.to_native(),
+            expected: NO_OPTIONAL_SCHEMA_VERSION_VALUE,
+        });
+    }
+    let expected = usize::try_from(expected_rows)
+        .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+    if archived.rows.len() != expected {
+        return Err(TransportError::RowCountMismatch {
+            observed: archived.rows.len(),
+            expected: expected_rows,
+        });
+    }
+    Ok(())
+}
+
+fn no_optional_inspect_archived_rows(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+) -> Result<BinaryInspection> {
+    let mut semantic_checksum = fnv1a64("mathilde.test_compatibility.v1.no_optional".as_bytes());
+    let mut minimal_projection_checksum = semantic_checksum;
+    for row in archived.rows.iter() {
+        semantic_checksum = no_optional_checksum_archived_row(semantic_checksum, row);
+        minimal_projection_checksum =
+            no_optional_checksum_archived_row(minimal_projection_checksum, row);
+    }
+    Ok(BinaryInspection {
+        row_count: archived.rows.len(),
+        semantic_checksum,
+        minimal_projection_checksum,
+    })
+}
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityV1NoOptionalProjectionPayloadRef<'a> {
+    schema_version: u16,
+    rows: TestCompatibilityV1NoOptionalProjectionRowsRef<'a>,
+}
+
+struct TestCompatibilityV1NoOptionalProjectionRowsRef<'a> {
+    rows: &'a ArchivedVec<<TestCompatibilityRowV1 as Archive>::Archived>,
+}
+
+impl<'a> Archive for TestCompatibilityV1NoOptionalProjectionRowsRef<'a> {
+    type Archived =
+        ArchivedVec<<TestCompatibilityV1NoOptionalProjectionRowRef<'a> as Archive>::Archived>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.rows.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for TestCompatibilityV1NoOptionalProjectionRowsRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+    S::Error: Source,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_iter::<TestCompatibilityV1NoOptionalProjectionRowRef<'a>, _, _>(
+            TestCompatibilityV1NoOptionalProjectionRowsIter {
+                inner: self.rows.as_slice().iter(),
+            },
+            serializer,
+        )
+    }
+}
+
+#[derive(Clone)]
+struct TestCompatibilityV1NoOptionalProjectionRowsIter<'a> {
+    inner: core::slice::Iter<'a, <TestCompatibilityRowV1 as Archive>::Archived>,
+}
+
+impl<'a> Iterator for TestCompatibilityV1NoOptionalProjectionRowsIter<'a> {
+    type Item = TestCompatibilityV1NoOptionalProjectionRowRef<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        let source = self.inner.next()?;
+        Some(TestCompatibilityV1NoOptionalProjectionRowRef {
+            schema_version: source.schema_version.to_native(),
+            tenant_ordinal: source.tenant_ordinal.to_native(),
+            entity_ordinal: source.entity_ordinal.to_native(),
+            close_ms: source.close_ms.to_native(),
+            status_ordinal: source.status_ordinal.to_native(),
+            venues_mask: source.venues_mask.to_native(),
+            required_i64: source.required_i64.to_native(),
+            required_i32: source.required_i32.to_native(),
+            required_u32: source.required_u32.to_native(),
+            required_f64: source.required_f64.to_native(),
+            required_f32: source.required_f32.to_native(),
+            required_bool: source.required_bool,
+            required_text: source.required_text.as_str(),
+            required_bytes: source.required_bytes.as_slice(),
+            uuid_text: source.uuid_text.as_str(),
+            jsonb_text: source.jsonb_text.as_str(),
+            timestamptz_text: source.timestamptz_text.as_str(),
+            numeric_text: source.numeric_text.as_str(),
+            required_i64_array: DirectI64ArrayRef {
+                values: &source.required_i64_array,
+            },
+            required_i32_array: DirectI32ArrayRef {
+                values: &source.required_i32_array,
+            },
+            required_u32_array: DirectU32ArrayRef {
+                values: &source.required_u32_array,
+            },
+            required_f64_array: DirectF64ArrayRef {
+                values: &source.required_f64_array,
+            },
+            required_f32_array: DirectF32ArrayRef {
+                values: &source.required_f32_array,
+            },
+        })
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<'a> ExactSizeIterator for TestCompatibilityV1NoOptionalProjectionRowsIter<'a> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityV1NoOptionalProjectionRowRef<'a> {
+    schema_version: u16,
+    tenant_ordinal: u16,
+    entity_ordinal: u16,
+    close_ms: i64,
+    status_ordinal: u16,
+    venues_mask: u64,
+    required_i64: i64,
+    required_i32: i32,
+    required_u32: u32,
+    required_f64: f64,
+    required_f32: f32,
+    required_bool: bool,
+    #[rkyv(with = rkyv::with::AsString)]
+    required_text: &'a str,
+    #[rkyv(with = rkyv::with::AsVec)]
+    required_bytes: &'a [u8],
+    #[rkyv(with = rkyv::with::AsString)]
+    uuid_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    jsonb_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    timestamptz_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    numeric_text: &'a str,
+    required_i64_array: DirectI64ArrayRef<'a>,
+    required_i32_array: DirectI32ArrayRef<'a>,
+    required_u32_array: DirectU32ArrayRef<'a>,
+    required_f64_array: DirectF64ArrayRef<'a>,
+    required_f32_array: DirectF32ArrayRef<'a>,
+}
+
+const _: fn(&ArchivedTestCompatibilityResponseV1Payload, usize) -> Result<Vec<u8>> =
+    project_no_optional_archived_direct;
+
+impl TestCompatibilityV1 {
+    pub fn project_no_optional(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        project_no_optional_archived_direct(archived, max_response_bytes)
+    }
+
+    /// Projects immutable source bytes already validated for this schema.
+    ///
+    /// # Safety
+    /// The caller guarantees that bytes were previously accepted by checked MBT access
+    /// for the source schema and then stored or transported without mutation.
+    pub unsafe fn project_no_optional_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        project_no_optional_archived_direct(archived, max_response_bytes)
+    }
+}
+
+fn project_no_optional_archived_direct(
+    archived: &ArchivedTestCompatibilityResponseV1Payload,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let row_count = archived.rows.len() as u64;
+    let payload = TestCompatibilityV1NoOptionalProjectionPayloadRef {
+        schema_version: NO_OPTIONAL_SCHEMA_VERSION_VALUE,
+        rows: TestCompatibilityV1NoOptionalProjectionRowsRef {
+            rows: &archived.rows,
+        },
+    };
+    let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload)
+        .map_err(|_err| TransportError::MalformedArchive(String::new()))?;
+    let payload_len = payload_bytes.len();
+    let total_len =
+        HEADER_LEN
+            .checked_add(payload_len)
+            .ok_or(TransportError::ResponseTooLarge {
+                observed: usize::MAX,
+                cap: max_response_bytes,
+            })?;
+    if total_len > max_response_bytes {
+        return Err(TransportError::ResponseTooLarge {
+            observed: total_len,
+            cap: max_response_bytes,
+        });
+    }
+    let header = TransportHeader::new_with_schema(
+        TestCompatibilityV1NoOptional::header_spec(),
+        row_count,
+        payload_len as u64,
+        fnv1a64(&payload_bytes),
+    );
+    let mut header_bytes = [0_u8; HEADER_LEN];
+    encode_header(&header, &mut header_bytes);
+    let mut out = Vec::with_capacity(total_len);
+    out.extend_from_slice(&header_bytes);
+    out.extend_from_slice(&payload_bytes);
+    Ok(out)
+}
+
+const NUMERIC_ONLY_SCHEMA_ID: u32 = 40001;
+const NUMERIC_ONLY_SCHEMA_VERSION_VALUE: u16 = 1;
+const NUMERIC_ONLY_SCHEMA_VERSION: u16 = NUMERIC_ONLY_SCHEMA_VERSION_VALUE;
+const NUMERIC_ONLY_GENERATED_SCHEMA_HASH: u64 = 16641227246485521317;
+const NUMERIC_ONLY_TRANSPORT_NAME: &str = "mathilde.test_compatibility.v1.numeric_only";
+const NUMERIC_ONLY_SCHEMA_HEADER: SchemaHeaderSpec = SchemaHeaderSpec {
+    schema_id: NUMERIC_ONLY_SCHEMA_ID,
+    schema_version: NUMERIC_ONLY_SCHEMA_VERSION,
+    schema_hash: NUMERIC_ONLY_GENERATED_SCHEMA_HASH,
+};
+
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I64: u64 = 1 << 0;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I32: u64 = 1 << 1;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_U32: u64 = 1 << 2;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F64: u64 = 1 << 3;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F32: u64 = 1 << 4;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY: u64 = 1 << 5;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY: u64 = 1 << 6;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY: u64 = 1 << 7;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY: u64 = 1 << 8;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY: u64 = 1 << 9;
+const NUMERIC_ONLY_PRESENCE_ALLOWED_MASK: u64 = (1 << 10) - 1;
+
+#[derive(Clone, Archive, RkyvSerialize)]
+pub struct TestCompatibilityResponseV1PayloadNumericOnly {
+    pub schema_version: u16,
+    pub rows: Vec<TestCompatibilityRowV1NumericOnly>,
+}
+
+#[derive(Clone, Archive, RkyvSerialize)]
+pub struct TestCompatibilityRowV1NumericOnly {
+    pub schema_version: u16,
+    pub tenant_ordinal: u16,
+    pub entity_ordinal: u16,
+    pub close_ms: i64,
+    pub required_i64: i64,
+    pub optional_i64: i64,
+    pub required_i32: i32,
+    pub optional_i32: i32,
+    pub required_u32: u32,
+    pub optional_u32: u32,
+    pub required_f64: f64,
+    pub optional_f64: f64,
+    pub required_f32: f32,
+    pub optional_f32: f32,
+    pub required_i64_array: Vec<i64>,
+    pub nullable_i64_array: Vec<i64>,
+    pub required_i32_array: Vec<i32>,
+    pub nullable_i32_array: Vec<i32>,
+    pub required_u32_array: Vec<u32>,
+    pub nullable_u32_array: Vec<u32>,
+    pub required_f64_array: Vec<f64>,
+    pub nullable_f64_array: Vec<f64>,
+    pub required_f32_array: Vec<f32>,
+    pub nullable_f32_array: Vec<f32>,
+    pub presence_bits: u64,
+}
+
+fn numeric_only_validate_rows(rows: &[TestCompatibilityRowV1NumericOnly]) -> Result<()> {
+    let mut previous = None;
+    for row in rows {
+        numeric_only_validate_row(row, previous)?;
+        previous = Some(row);
+    }
+    Ok(())
+}
+
+fn numeric_only_validate_row(
+    row: &TestCompatibilityRowV1NumericOnly,
+    previous: Option<&TestCompatibilityRowV1NumericOnly>,
+) -> Result<()> {
+    if row.schema_version != 1 {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: row.schema_version,
+            expected: 1,
+        });
+    }
+    tenant_symbol(row.tenant_ordinal)?;
+    entity_symbol(row.entity_ordinal)?;
+    validate_finite_f64("required_f64", row.required_f64)?;
+    validate_finite_f64("optional_f64", row.optional_f64)?;
+    validate_finite_f32("required_f32", row.required_f32)?;
+    validate_finite_f32("optional_f32", row.optional_f32)?;
+    for value in &row.required_f64_array {
+        validate_finite_f64("required_f64_array", *value)?;
+    }
+    for value in &row.nullable_f64_array {
+        validate_finite_f64("nullable_f64_array", *value)?;
+    }
+    for value in &row.required_f32_array {
+        validate_finite_f32("required_f32_array", *value)?;
+    }
+    for value in &row.nullable_f32_array {
+        validate_finite_f32("nullable_f32_array", *value)?;
+    }
+    if row.presence_bits & !NUMERIC_ONLY_PRESENCE_ALLOWED_MASK != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 == 0 && row.optional_i64 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 == 0 && row.optional_i32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 == 0 && row.optional_u32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 == 0 && row.optional_f64 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 == 0 && row.optional_f32 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY == 0
+        && !row.nullable_i64_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY == 0
+        && !row.nullable_i32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY == 0
+        && !row.nullable_u32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY == 0
+        && !row.nullable_f64_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY == 0
+        && !row.nullable_f32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if previous.is_some_and(|prev| {
+        (row.tenant_ordinal, row.entity_ordinal, row.close_ms)
+            < (prev.tenant_ordinal, prev.entity_ordinal, prev.close_ms)
+    }) {
+        return Err(TransportError::InvalidTimeGrid(
+            "key order regression".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn numeric_only_checksum_archived_row(
+    mut checksum: u64,
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.tenant_ordinal.to_native());
+    checksum = update_u16(checksum, row.entity_ordinal.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_i64(checksum, row.required_i64.to_native());
+    checksum = update_i64(checksum, row.optional_i64.to_native());
+    checksum = update_i32(checksum, row.required_i32.to_native());
+    checksum = update_i32(checksum, row.optional_i32.to_native());
+    checksum = update_u32(checksum, row.required_u32.to_native());
+    checksum = update_u32(checksum, row.optional_u32.to_native());
+    checksum = update_f64(checksum, row.required_f64.to_native());
+    checksum = update_f64(checksum, row.optional_f64.to_native());
+    checksum = update_f32(checksum, row.required_f32.to_native());
+    checksum = update_f32(checksum, row.optional_f32.to_native());
+    checksum = update_archived_i64_array(checksum, row.required_i64_array.iter());
+    checksum = update_archived_i64_array(checksum, row.nullable_i64_array.iter());
+    checksum = update_archived_i32_array(checksum, row.required_i32_array.iter());
+    checksum = update_archived_i32_array(checksum, row.nullable_i32_array.iter());
+    checksum = update_archived_u32_array(checksum, row.required_u32_array.iter());
+    checksum = update_archived_u32_array(checksum, row.nullable_u32_array.iter());
+    checksum = update_archived_f64_array(checksum, row.required_f64_array.iter());
+    checksum = update_archived_f64_array(checksum, row.nullable_f64_array.iter());
+    checksum = update_archived_f32_array(checksum, row.required_f32_array.iter());
+    checksum = update_archived_f32_array(checksum, row.nullable_f32_array.iter());
+    checksum = update_u64(checksum, row.presence_bits.to_native());
+    checksum
+}
+
+pub struct TestCompatibilityV1NumericOnly;
+
+impl TestCompatibilityV1NumericOnly {
+    pub const SCHEMA_ID: u32 = NUMERIC_ONLY_SCHEMA_ID;
+    pub const SCHEMA_VERSION: u16 = NUMERIC_ONLY_SCHEMA_VERSION;
+    pub const SCHEMA_HASH: u64 = NUMERIC_ONLY_GENERATED_SCHEMA_HASH;
+    pub const TRANSPORT_NAME: &'static str = NUMERIC_ONLY_TRANSPORT_NAME;
+
+    pub fn header_spec() -> SchemaHeaderSpec {
+        NUMERIC_ONLY_SCHEMA_HEADER
+    }
+
+    pub fn encode(
+        rows: &[TestCompatibilityRowV1NumericOnly],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        Self::encode_owned(rows.to_vec(), max_response_bytes)
+    }
+
+    pub fn encode_owned(
+        rows: Vec<TestCompatibilityRowV1NumericOnly>,
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        numeric_only_validate_rows(&rows)?;
+        let row_count = rows.len();
+        let payload = TestCompatibilityResponseV1PayloadNumericOnly {
+            schema_version: NUMERIC_ONLY_SCHEMA_VERSION_VALUE,
+            rows,
+        };
+        let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload)
+            .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+        let payload_len = payload_bytes.len();
+        let total_len =
+            HEADER_LEN
+                .checked_add(payload_len)
+                .ok_or(TransportError::ResponseTooLarge {
+                    observed: usize::MAX,
+                    cap: max_response_bytes,
+                })?;
+        if total_len > max_response_bytes {
+            return Err(TransportError::ResponseTooLarge {
+                observed: total_len,
+                cap: max_response_bytes,
+            });
+        }
+        let header = TransportHeader::new_with_schema(
+            Self::header_spec(),
+            row_count as u64,
+            payload_len as u64,
+            fnv1a64(&payload_bytes),
+        );
+        let mut header_bytes = [0_u8; HEADER_LEN];
+        encode_header(&header, &mut header_bytes);
+        let mut out = Vec::with_capacity(total_len);
+        out.extend_from_slice(&header_bytes);
+        out.extend_from_slice(&payload_bytes);
+        Ok(out)
+    }
+
+    pub fn access(bytes: &[u8]) -> Result<TestCompatibilityV1NumericOnlyView<'_>> {
+        Ok(TestCompatibilityV1NumericOnlyView {
+            archived: Self::access_archived(bytes)?,
+        })
+    }
+
+    pub(crate) fn access_archived(
+        bytes: &[u8],
+    ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNumericOnly> {
+        let (header, payload) = decode_payload(bytes, Self::header_spec())?;
+        let archived = rkyv::access::<
+            ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+            RkyvError,
+        >(payload)
+        .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+        numeric_only_validate_archived_payload(archived, header.row_count)?;
+        Ok(archived)
+    }
+
+    /// Returns an archived payload view for immutable bytes already validated for this schema.
+    ///
+    /// # Safety
+    /// The caller guarantees that bytes were previously accepted by checked MBT access
+    /// for this schema and then stored or transported without mutation.
+    pub unsafe fn access_archived_trusted_unchecked(
+        bytes: &[u8],
+    ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNumericOnly> {
+        let header = decode_header(bytes)?;
+        let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
+        let archived = unsafe {
+            rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1PayloadNumericOnly>(payload)
+        };
+        numeric_only_validate_archived_payload(archived, header.row_count)?;
+        Ok(archived)
+    }
+
+    pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
+        numeric_only_inspect_archived_rows(Self::access_archived(bytes)?)
+    }
+}
+
+impl MbtSchema for TestCompatibilityV1NumericOnly {
+    type Row = TestCompatibilityRowV1NumericOnly;
+    type View<'a> = TestCompatibilityV1NumericOnlyView<'a>;
+
+    fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::encode(rows, max_response_bytes)
+    }
+    fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::encode_owned(rows, max_response_bytes)
+    }
+    fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
+        Self::access(bytes)
+    }
+    fn inspect_bytes(bytes: &[u8]) -> Result<BinaryInspection> {
+        Self::inspect(bytes)
+    }
+}
+
+pub struct TestCompatibilityV1NumericOnlyView<'a> {
+    archived: &'a ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+}
+
+impl<'a> TestCompatibilityV1NumericOnlyView<'a> {
+    pub fn len(&self) -> usize {
+        self.archived.rows.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.archived.rows.is_empty()
+    }
+    pub fn rows(&self) -> TestCompatibilityV1NumericOnlyRows<'a> {
+        TestCompatibilityV1NumericOnlyRows {
+            inner: self.archived.rows.iter(),
+        }
+    }
+}
+
+pub struct TestCompatibilityV1NumericOnlyRows<'a> {
+    inner: core::slice::Iter<'a, <TestCompatibilityRowV1NumericOnly as Archive>::Archived>,
+}
+
+impl<'a> Iterator for TestCompatibilityV1NumericOnlyRows<'a> {
+    type Item = ArchivedTestCompatibilityV1NumericOnlyRow<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner
+            .next()
+            .map(|row| ArchivedTestCompatibilityV1NumericOnlyRow { row })
+    }
+}
+
+pub struct ArchivedTestCompatibilityV1NumericOnlyRow<'a> {
+    row: &'a <TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+}
+
+impl<'a> ArchivedTestCompatibilityV1NumericOnlyRow<'a> {
+    pub fn schema_version(&self) -> u16 {
+        self.row.schema_version.to_native()
+    }
+    pub fn tenant_ordinal(&self) -> u16 {
+        self.row.tenant_ordinal.to_native()
+    }
+    pub fn tenant(&self) -> Result<&'static str> {
+        tenant_symbol(self.row.tenant_ordinal.to_native())
+    }
+    pub fn entity_ordinal(&self) -> u16 {
+        self.row.entity_ordinal.to_native()
+    }
+    pub fn entity(&self) -> Result<&'static str> {
+        entity_symbol(self.row.entity_ordinal.to_native())
+    }
+    pub fn close_ms(&self) -> i64 {
+        self.row.close_ms.to_native()
+    }
+    pub fn required_i64(&self) -> i64 {
+        self.row.required_i64.to_native()
+    }
+    pub fn has_optional_i64(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0
+    }
+    pub fn optional_i64(&self) -> i64 {
+        self.row.optional_i64.to_native()
+    }
+    pub fn required_i32(&self) -> i32 {
+        self.row.required_i32.to_native()
+    }
+    pub fn has_optional_i32(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0
+    }
+    pub fn optional_i32(&self) -> i32 {
+        self.row.optional_i32.to_native()
+    }
+    pub fn required_u32(&self) -> u32 {
+        self.row.required_u32.to_native()
+    }
+    pub fn has_optional_u32(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0
+    }
+    pub fn optional_u32(&self) -> u32 {
+        self.row.optional_u32.to_native()
+    }
+    pub fn required_f64(&self) -> f64 {
+        self.row.required_f64.to_native()
+    }
+    pub fn has_optional_f64(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0
+    }
+    pub fn optional_f64(&self) -> f64 {
+        self.row.optional_f64.to_native()
+    }
+    pub fn required_f32(&self) -> f32 {
+        self.row.required_f32.to_native()
+    }
+    pub fn has_optional_f32(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0
+    }
+    pub fn optional_f32(&self) -> f32 {
+        self.row.optional_f32.to_native()
+    }
+    pub fn required_i64_array(&self) -> impl Iterator<Item = i64> + '_ {
+        self.row
+            .required_i64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn has_nullable_i64_array(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0
+    }
+    pub fn nullable_i64_array(&self) -> impl Iterator<Item = i64> + '_ {
+        self.row
+            .nullable_i64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_i32_array(&self) -> impl Iterator<Item = i32> + '_ {
+        self.row
+            .required_i32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn has_nullable_i32_array(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0
+    }
+    pub fn nullable_i32_array(&self) -> impl Iterator<Item = i32> + '_ {
+        self.row
+            .nullable_i32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_u32_array(&self) -> impl Iterator<Item = u32> + '_ {
+        self.row
+            .required_u32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn has_nullable_u32_array(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0
+    }
+    pub fn nullable_u32_array(&self) -> impl Iterator<Item = u32> + '_ {
+        self.row
+            .nullable_u32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_f64_array(&self) -> impl Iterator<Item = f64> + '_ {
+        self.row
+            .required_f64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn has_nullable_f64_array(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0
+    }
+    pub fn nullable_f64_array(&self) -> impl Iterator<Item = f64> + '_ {
+        self.row
+            .nullable_f64_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn required_f32_array(&self) -> impl Iterator<Item = f32> + '_ {
+        self.row
+            .required_f32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn has_nullable_f32_array(&self) -> bool {
+        self.row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0
+    }
+    pub fn nullable_f32_array(&self) -> impl Iterator<Item = f32> + '_ {
+        self.row
+            .nullable_f32_array
+            .iter()
+            .map(|value| value.to_native())
+    }
+    pub fn presence_bits(&self) -> u64 {
+        self.row.presence_bits.to_native()
+    }
+}
+
+fn numeric_only_validate_archived_payload(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+    expected_rows: u64,
+) -> Result<()> {
+    if archived.schema_version.to_native() != NUMERIC_ONLY_SCHEMA_VERSION_VALUE {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: archived.schema_version.to_native(),
+            expected: NUMERIC_ONLY_SCHEMA_VERSION_VALUE,
+        });
+    }
+    let expected = usize::try_from(expected_rows)
+        .map_err(|err| TransportError::MalformedArchive(err.to_string()))?;
+    if archived.rows.len() != expected {
+        return Err(TransportError::RowCountMismatch {
+            observed: archived.rows.len(),
+            expected: expected_rows,
+        });
+    }
+    Ok(())
+}
+
+fn numeric_only_inspect_archived_rows(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+) -> Result<BinaryInspection> {
+    let mut semantic_checksum = fnv1a64("mathilde.test_compatibility.v1.numeric_only".as_bytes());
+    let mut minimal_projection_checksum = semantic_checksum;
+    for row in archived.rows.iter() {
+        semantic_checksum = numeric_only_checksum_archived_row(semantic_checksum, row);
+        minimal_projection_checksum =
+            numeric_only_checksum_archived_row(minimal_projection_checksum, row);
+    }
+    Ok(BinaryInspection {
+        row_count: archived.rows.len(),
+        semantic_checksum,
+        minimal_projection_checksum,
+    })
+}
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityV1NumericOnlyProjectionPayloadRef<'a> {
+    schema_version: u16,
+    rows: TestCompatibilityV1NumericOnlyProjectionRowsRef<'a>,
+}
+
+struct TestCompatibilityV1NumericOnlyProjectionRowsRef<'a> {
+    rows: &'a ArchivedVec<<TestCompatibilityRowV1 as Archive>::Archived>,
+}
+
+impl<'a> Archive for TestCompatibilityV1NumericOnlyProjectionRowsRef<'a> {
+    type Archived =
+        ArchivedVec<<TestCompatibilityV1NumericOnlyProjectionRowRef<'a> as Archive>::Archived>;
+    type Resolver = VecResolver;
+    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
+        ArchivedVec::resolve_from_len(self.rows.len(), resolver, out);
+    }
+}
+
+impl<'a, S> RkyvSerialize<S> for TestCompatibilityV1NumericOnlyProjectionRowsRef<'a>
+where
+    S: Fallible + Allocator + Writer + ?Sized,
+    S::Error: Source,
+{
+    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
+        ArchivedVec::serialize_from_iter::<TestCompatibilityV1NumericOnlyProjectionRowRef<'a>, _, _>(
+            TestCompatibilityV1NumericOnlyProjectionRowsIter {
+                inner: self.rows.as_slice().iter(),
+            },
+            serializer,
+        )
+    }
+}
+
+#[derive(Clone)]
+struct TestCompatibilityV1NumericOnlyProjectionRowsIter<'a> {
+    inner: core::slice::Iter<'a, <TestCompatibilityRowV1 as Archive>::Archived>,
+}
+
+impl<'a> Iterator for TestCompatibilityV1NumericOnlyProjectionRowsIter<'a> {
+    type Item = TestCompatibilityV1NumericOnlyProjectionRowRef<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        let source = self.inner.next()?;
+        let mut presence_bits = 0_u64;
+        if source.presence_bits.to_native() & PRESENCE_OPTIONAL_I64 != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_OPTIONAL_I64;
+        }
+        if source.presence_bits.to_native() & PRESENCE_OPTIONAL_I32 != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_OPTIONAL_I32;
+        }
+        if source.presence_bits.to_native() & PRESENCE_OPTIONAL_U32 != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_OPTIONAL_U32;
+        }
+        if source.presence_bits.to_native() & PRESENCE_OPTIONAL_F64 != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_OPTIONAL_F64;
+        }
+        if source.presence_bits.to_native() & PRESENCE_OPTIONAL_F32 != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_OPTIONAL_F32;
+        }
+        if source.presence_bits.to_native() & PRESENCE_NULLABLE_I64_ARRAY != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY;
+        }
+        if source.presence_bits.to_native() & PRESENCE_NULLABLE_I32_ARRAY != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY;
+        }
+        if source.presence_bits.to_native() & PRESENCE_NULLABLE_U32_ARRAY != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY;
+        }
+        if source.presence_bits.to_native() & PRESENCE_NULLABLE_F64_ARRAY != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY;
+        }
+        if source.presence_bits.to_native() & PRESENCE_NULLABLE_F32_ARRAY != 0 {
+            presence_bits |= NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY;
+        }
+        Some(TestCompatibilityV1NumericOnlyProjectionRowRef {
+            schema_version: source.schema_version.to_native(),
+            tenant_ordinal: source.tenant_ordinal.to_native(),
+            entity_ordinal: source.entity_ordinal.to_native(),
+            close_ms: source.close_ms.to_native(),
+            required_i64: source.required_i64.to_native(),
+            optional_i64: source.optional_i64.to_native(),
+            required_i32: source.required_i32.to_native(),
+            optional_i32: source.optional_i32.to_native(),
+            required_u32: source.required_u32.to_native(),
+            optional_u32: source.optional_u32.to_native(),
+            required_f64: source.required_f64.to_native(),
+            optional_f64: source.optional_f64.to_native(),
+            required_f32: source.required_f32.to_native(),
+            optional_f32: source.optional_f32.to_native(),
+            required_i64_array: DirectI64ArrayRef {
+                values: &source.required_i64_array,
+            },
+            nullable_i64_array: DirectI64ArrayRef {
+                values: &source.nullable_i64_array,
+            },
+            required_i32_array: DirectI32ArrayRef {
+                values: &source.required_i32_array,
+            },
+            nullable_i32_array: DirectI32ArrayRef {
+                values: &source.nullable_i32_array,
+            },
+            required_u32_array: DirectU32ArrayRef {
+                values: &source.required_u32_array,
+            },
+            nullable_u32_array: DirectU32ArrayRef {
+                values: &source.nullable_u32_array,
+            },
+            required_f64_array: DirectF64ArrayRef {
+                values: &source.required_f64_array,
+            },
+            nullable_f64_array: DirectF64ArrayRef {
+                values: &source.nullable_f64_array,
+            },
+            required_f32_array: DirectF32ArrayRef {
+                values: &source.required_f32_array,
+            },
+            nullable_f32_array: DirectF32ArrayRef {
+                values: &source.nullable_f32_array,
+            },
+            presence_bits,
+        })
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<'a> ExactSizeIterator for TestCompatibilityV1NumericOnlyProjectionRowsIter<'a> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityV1NumericOnlyProjectionRowRef<'a> {
+    schema_version: u16,
+    tenant_ordinal: u16,
+    entity_ordinal: u16,
+    close_ms: i64,
+    required_i64: i64,
+    optional_i64: i64,
+    required_i32: i32,
+    optional_i32: i32,
+    required_u32: u32,
+    optional_u32: u32,
+    required_f64: f64,
+    optional_f64: f64,
+    required_f32: f32,
+    optional_f32: f32,
+    required_i64_array: DirectI64ArrayRef<'a>,
+    nullable_i64_array: DirectI64ArrayRef<'a>,
+    required_i32_array: DirectI32ArrayRef<'a>,
+    nullable_i32_array: DirectI32ArrayRef<'a>,
+    required_u32_array: DirectU32ArrayRef<'a>,
+    nullable_u32_array: DirectU32ArrayRef<'a>,
+    required_f64_array: DirectF64ArrayRef<'a>,
+    nullable_f64_array: DirectF64ArrayRef<'a>,
+    required_f32_array: DirectF32ArrayRef<'a>,
+    nullable_f32_array: DirectF32ArrayRef<'a>,
+    presence_bits: u64,
+}
+
+const _: fn(&ArchivedTestCompatibilityResponseV1Payload, usize) -> Result<Vec<u8>> =
+    project_numeric_only_archived_direct;
+
+impl TestCompatibilityV1 {
+    pub fn project_numeric_only(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        project_numeric_only_archived_direct(archived, max_response_bytes)
+    }
+
+    /// Projects immutable source bytes already validated for this schema.
+    ///
+    /// # Safety
+    /// The caller guarantees that bytes were previously accepted by checked MBT access
+    /// for the source schema and then stored or transported without mutation.
+    pub unsafe fn project_numeric_only_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        project_numeric_only_archived_direct(archived, max_response_bytes)
+    }
+}
+
+fn project_numeric_only_archived_direct(
+    archived: &ArchivedTestCompatibilityResponseV1Payload,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let row_count = archived.rows.len() as u64;
+    let payload = TestCompatibilityV1NumericOnlyProjectionPayloadRef {
+        schema_version: NUMERIC_ONLY_SCHEMA_VERSION_VALUE,
+        rows: TestCompatibilityV1NumericOnlyProjectionRowsRef {
+            rows: &archived.rows,
+        },
+    };
+    let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload)
+        .map_err(|_err| TransportError::MalformedArchive(String::new()))?;
+    let payload_len = payload_bytes.len();
+    let total_len =
+        HEADER_LEN
+            .checked_add(payload_len)
+            .ok_or(TransportError::ResponseTooLarge {
+                observed: usize::MAX,
+                cap: max_response_bytes,
+            })?;
+    if total_len > max_response_bytes {
+        return Err(TransportError::ResponseTooLarge {
+            observed: total_len,
+            cap: max_response_bytes,
+        });
+    }
+    let header = TransportHeader::new_with_schema(
+        TestCompatibilityV1NumericOnly::header_spec(),
+        row_count,
+        payload_len as u64,
+        fnv1a64(&payload_bytes),
+    );
+    let mut header_bytes = [0_u8; HEADER_LEN];
+    encode_header(&header, &mut header_bytes);
+    let mut out = Vec::with_capacity(total_len);
+    out.extend_from_slice(&header_bytes);
+    out.extend_from_slice(&payload_bytes);
+    Ok(out)
 }

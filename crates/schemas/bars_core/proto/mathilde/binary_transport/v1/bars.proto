@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package mathilde.binary_transport.v1;
+
+import "mathilde/options.proto";
+
+option (mathilde.dictionary_values) = {
+  name: "pair"
+  value: "ADAUSDT"
+  value: "BTCUSDT"
+  value: "ETHUSDT"
+  value: "LTCUSDT"
+  value: "XRPUSDT"
+  alias {
+    value: "ADAUSDT"
+    alias: "ADA"
+  }
+  alias {
+    value: "BTCUSDT"
+    alias: "BTC"
+  }
+  alias {
+    value: "ETHUSDT"
+    alias: "ETH"
+  }
+  alias {
+    value: "LTCUSDT"
+    alias: "LTC"
+  }
+  alias {
+    value: "XRPUSDT"
+    alias: "XRP"
+  }
+};
+
+option (mathilde.dictionary_values) = {
+  name: "timeframe"
+  value: "1m"
+};
+
+option (mathilde.dictionary_values) = {
+  name: "source"
+  value: "frontier"
+  value: "api"
+  value: "synthetic"
+  value: "fix_data"
+};
+
+option (mathilde.dictionary_values) = {
+  name: "process"
+  value: "frontier"
+  value: "derived"
+  value: "repair"
+};
+
+option (mathilde.dictionary_values) = {
+  name: "recomputed_reason"
+  value: "canonical_repair"
+};
+
+option (mathilde.dictionary_values) = {
+  name: "venue"
+  value: "binance"
+  value: "bybit"
+  value: "okx"
+};
+
+message MathildeTransportResponseV1 {
+  option (mathilde.schema_id) = 1;
+  option (mathilde.schema_version) = 1;
+  option (mathilde.transport_name) = "mathilde.bar.v1";
+  option (mathilde.payload_root) = true;
+  option (mathilde.projection) = {
+    name: "no_metadata"
+    rust_marker: "BarsV1NoMetadata"
+    exclude_group: "metadata"
+  };
+  option (mathilde.projection) = {
+    name: "ohlcv_only"
+    rust_marker: "BarsV1OhlcvOnly"
+    include_field: "open_ms"
+    include_field: "o"
+    include_field: "h"
+    include_field: "l"
+    include_field: "c"
+    include_field: "v"
+  };
+
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  repeated MathildeBarRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+}
+
+message MathildeBarRowV1 {
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  string pair = 2 [
+    (mathilde.dictionary) = "pair",
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 1
+  ];
+  string tf = 3 [
+    (mathilde.dictionary) = "timeframe",
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 2
+  ];
+  int64 open_ms = 4;
+  int64 close_ms = 5 [
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 3
+  ];
+  string open_utc = 6 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "open_ms"
+  ];
+  string close_utc = 7 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "close_ms"
+  ];
+  double o = 8;
+  double h = 9;
+  double l = 10;
+  double c = 11;
+  double v = 12;
+  double quote_v = 13;
+  double taker_known_v = 14;
+  double taker_signed_v = 15;
+  double taker_known_quote_v = 16;
+  double taker_signed_quote_v = 17;
+  int64 taker_known_n = 18;
+  int64 taker_signed_n = 19;
+  optional double vw = 20 [(mathilde.presence_bit) = 0];
+  optional int64 n = 21 [(mathilde.presence_bit) = 1];
+  MathildeBarMetadataV1 metadata = 22 [(mathilde.projection_group) = "metadata"];
+  optional int64 age_ms = 23 [(mathilde.presence_bit) = 23];
+}
+
+message MathildeBarMetadataV1 {
+  string source = 1 [(mathilde.dictionary) = "source"];
+  optional string process = 2 [
+    (mathilde.dictionary) = "process",
+    (mathilde.presence_bit) = 2
+  ];
+  repeated string venues_expected = 3 [(mathilde.bitmask_dictionary) = "venue"];
+  repeated string venues_with_trades = 4 [(mathilde.bitmask_dictionary) = "venue"];
+  optional int64 ingested_at_ms = 5 [(mathilde.presence_bit) = 3];
+  optional string ingested_at_utc = 6 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "ingested_at_ms"
+  ];
+  optional int64 target_ingested_at_ms = 7 [(mathilde.presence_bit) = 4];
+  optional string target_ingested_at_utc = 8 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "target_ingested_at_ms"
+  ];
+  optional int64 built_at_ms = 9 [(mathilde.presence_bit) = 5];
+  optional string built_at_utc = 10 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "built_at_ms"
+  ];
+  optional int64 committed_at_ms = 11 [(mathilde.presence_bit) = 6];
+  optional string committed_at_utc = 12 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "committed_at_ms"
+  ];
+  optional int64 harmonized_at_ms = 13 [(mathilde.presence_bit) = 7];
+  optional string harmonized_at_utc = 14 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "harmonized_at_ms"
+  ];
+  optional int64 recomputed_at_ms = 15 [(mathilde.presence_bit) = 8];
+  optional string recomputed_at_utc = 16 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "recomputed_at_ms"
+  ];
+  optional string recomputed_reason = 17 [
+    (mathilde.dictionary) = "recomputed_reason",
+    (mathilde.presence_bit) = 9
+  ];
+  optional int64 covered_1m_count = 18 [(mathilde.presence_bit) = 10];
+  optional int64 expected_1m_count = 19 [(mathilde.presence_bit) = 11];
+  optional double coverage_ratio = 20 [(mathilde.presence_bit) = 12];
+  optional int64 inputs_source_counts_frontier = 21 [(mathilde.presence_bit) = 13];
+  optional int64 inputs_source_counts_api = 22 [(mathilde.presence_bit) = 14];
+  optional int64 inputs_source_counts_synthetic = 23 [(mathilde.presence_bit) = 15];
+  optional int64 inputs_source_counts_fix_data = 24 [(mathilde.presence_bit) = 16];
+  optional double frontier_5s_inputs_coverage_ratio = 25 [(mathilde.presence_bit) = 17];
+  optional int64 frontier_5s_expected = 26 [(mathilde.presence_bit) = 18];
+  optional int64 frontier_5s_synth_n = 27 [(mathilde.presence_bit) = 19];
+  optional double frontier_5s_synth_ratio = 28 [(mathilde.presence_bit) = 20];
+  optional int64 frontier_5s_trade_n = 29 [(mathilde.presence_bit) = 21];
+  optional double frontier_5s_trade_ratio = 30 [(mathilde.presence_bit) = 22];
+}

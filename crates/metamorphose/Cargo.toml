@@ -6,3 +6,4 @@ authors.workspace = true
 publish = false
 
 [dependencies]
+metamorphic_binary_transport_core = { path = "../core" }

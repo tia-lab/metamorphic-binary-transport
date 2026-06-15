@@ -1,23 +1,1265 @@
+use crate::config::Adapter;
 use crate::error::{CodegenError, Result};
-use crate::model::{Dictionary, FieldKind, PhysicalField, SchemaModel, const_name, dict_prefix};
+use crate::model::{
+    Dictionary, FieldKind, PhysicalField, ProjectionModel, SchemaModel, const_name, dict_prefix,
+};
+
+struct EmitScope<'a> {
+    model: &'a SchemaModel,
+    symbol_prefix: String,
+    fn_prefix: String,
+    public_free_items: bool,
+}
+
+impl<'a> EmitScope<'a> {
+    fn source(model: &'a SchemaModel) -> Self {
+        Self {
+            model,
+            symbol_prefix: String::new(),
+            fn_prefix: String::new(),
+            public_free_items: true,
+        }
+    }
+
+    fn projection(model: &'a SchemaModel, projection_name: &str) -> Self {
+        Self {
+            model,
+            symbol_prefix: format!("{}_", const_name(projection_name)),
+            fn_prefix: format!("{projection_name}_"),
+            public_free_items: false,
+        }
+    }
+
+    fn item_vis(&self) -> &'static str {
+        if self.public_free_items { "pub " } else { "" }
+    }
+
+    fn const_name(&self, name: &str) -> String {
+        format!("{}{}", self.symbol_prefix, name)
+    }
+
+    fn fn_name(&self, name: &str) -> String {
+        format!("{}{}", self.fn_prefix, name)
+    }
+}
 
 pub fn generated_schema(model: &SchemaModel) -> Result<String> {
     validate_model(model)?;
+    let scope = EmitScope::source(model);
     let mut out = String::new();
     emit_header(&mut out, model);
     emit_imports(&mut out);
-    emit_schema_constants(&mut out, model);
+    emit_schema_constants(&mut out, &scope);
     emit_dictionary_constants(&mut out, model)?;
-    emit_presence_constants(&mut out, model)?;
+    emit_presence_constants(&mut out, &scope)?;
     emit_structs(&mut out, model);
-    emit_validation(&mut out, model)?;
-    emit_checksums(&mut out, model);
+    emit_validation(&mut out, &scope)?;
+    emit_checksums(&mut out, &scope);
     emit_dictionary_helpers(&mut out, model)?;
-    emit_runtime_api(&mut out, model);
+    emit_runtime_api(&mut out, &scope);
     emit_runtime_trait(&mut out, model);
-    emit_view_types(&mut out, model);
-    emit_decode_helpers(&mut out, model);
+    emit_view_types(&mut out, &scope);
+    emit_decode_helpers(&mut out, &scope, true);
     Ok(out)
+}
+
+pub fn generated_projection_schema(model: &SchemaModel) -> Result<String> {
+    validate_model(model)?;
+    let source_scope = EmitScope::source(model);
+    let projection_sections = model
+        .projections
+        .iter()
+        .map(|projection| projection_schema_model(model, projection))
+        .collect::<Vec<_>>();
+    for projection in &projection_sections {
+        validate_model(projection)?;
+    }
+
+    let mut out = String::new();
+    emit_header(&mut out, model);
+    emit_imports(&mut out);
+    emit_schema_constants(&mut out, &source_scope);
+    emit_dictionary_constants(&mut out, model)?;
+    emit_presence_constants(&mut out, &source_scope)?;
+    emit_structs(&mut out, model);
+    emit_validation(&mut out, &source_scope)?;
+    emit_checksums(&mut out, &source_scope);
+    emit_dictionary_helpers(&mut out, model)?;
+    emit_runtime_api(&mut out, &source_scope);
+    emit_runtime_trait(&mut out, model);
+    emit_view_types(&mut out, &source_scope);
+    emit_decode_helpers(&mut out, &source_scope, true);
+    emit_direct_projection_array_wrappers(&mut out, &projection_sections);
+
+    for (projection, projection_model) in model.projections.iter().zip(projection_sections.iter()) {
+        let scope = EmitScope::projection(projection_model, &projection.definition.name);
+        emit_schema_constants(&mut out, &scope);
+        emit_presence_constants(&mut out, &scope)?;
+        emit_structs(&mut out, projection_model);
+        emit_validation(&mut out, &scope)?;
+        emit_checksums(&mut out, &scope);
+        emit_runtime_api(&mut out, &scope);
+        emit_runtime_trait(&mut out, projection_model);
+        emit_view_types(&mut out, &scope);
+        emit_decode_helpers(&mut out, &scope, false);
+        emit_source_projection_api(&mut out, model, projection, projection_model);
+    }
+    Ok(out)
+}
+
+pub fn generated_metamorphose_adapter_schema(
+    model: &SchemaModel,
+    adapter: Adapter,
+) -> Result<String> {
+    validate_model(model)?;
+    let mut out = String::new();
+    emit_header(&mut out, model);
+    match adapter {
+        Adapter::Json => emit_metamorphose_json(&mut out, model),
+        Adapter::Protobuf => emit_metamorphose_protobuf(&mut out, model),
+        Adapter::Csv => emit_metamorphose_csv(&mut out, model),
+        Adapter::Transponding => emit_metamorphose_transponding(&mut out, model),
+        Adapter::Arrow => emit_metamorphose_arrow(&mut out, model),
+        Adapter::ArrowIpc => emit_metamorphose_arrow_ipc(&mut out, model),
+        Adapter::Parquet => emit_metamorphose_parquet(&mut out, model),
+    }
+    Ok(out)
+}
+
+fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, true);
+    out.push_str("use metamorphic_binary_transport_adapter_json::JsonWriter;\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, JsonMetamorphoseSchema};\n\n");
+    emit_json_field_constants(out, model);
+    emit_json_inherent_api(out, model);
+    out.push_str(&format!(
+        "impl JsonMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_json(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_json_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        unsafe { Self::metamorphose_json_trusted_unchecked(bytes, max_response_bytes) }\n",
+    );
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_json_writer_helpers(out, model);
+}
+
+fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, true);
+    out.push_str(
+        "use metamorphic_binary_transport_adapter_protobuf::{self as proto, ProtoWriter};\n",
+    );
+    out.push_str("use metamorphic_binary_transport_core::output;\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ProtobufMetamorphoseSchema};\n\n");
+    emit_protobuf_inherent_api(out, model);
+    out.push_str(&format!(
+        "impl ProtobufMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_protobuf(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_protobuf_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
+    out.push_str("        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_protobuf_writer_helpers(out, model);
+}
+
+fn emit_metamorphose_csv(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, true);
+    out.push_str("use metamorphic_binary_transport_adapter_csv::CsvWriter;\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, CsvMetamorphoseSchema};\n\n");
+    emit_csv_header(out, model);
+    emit_csv_inherent_api(out, model);
+    out.push_str(&format!(
+        "impl CsvMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_csv(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_csv_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        unsafe { Self::metamorphose_csv_trusted_unchecked(bytes, max_response_bytes) }\n",
+    );
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_csv_writer_helpers(out, model);
+}
+
+fn emit_adapter_prelude(out: &mut String, model: &SchemaModel, include_archive: bool) {
+    out.push_str(&format!("use crate::{}::*;\n", model.module));
+    if include_archive {
+        out.push_str("use rkyv::Archive;\n");
+    }
+    out.push_str("use metamorphic_binary_transport_core::error::Result;\n");
+}
+
+fn emit_json_field_constants(out: &mut String, model: &SchemaModel) {
+    out.push_str("const JSON_SCHEMA_VERSION_FIELD: &[u8] = b\"\\\"schema_version\\\":\";\n");
+    out.push_str(&format!(
+        "const JSON_ROWS_FIELD: &[u8] = b\"\\\"{}\\\":\";\n",
+        model.row_field_name
+    ));
+    for field in &model.fields {
+        out.push_str(&format!(
+            "const JSON_FIELD_{}: &[u8] = b\"\\\"{}\\\":\";\n",
+            const_name(&field.rust_name),
+            json_field_name(field)
+        ));
+    }
+    out.push('\n');
+}
+
+fn emit_json_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        write_json_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into JSON.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_json_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        write_json_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_json_writer_helpers(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!(
+        "fn write_json_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        model.payload_type
+    ));
+    out.push_str("    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
+    out.push_str("    writer.begin_object()?;\n");
+    out.push_str("    writer.raw_static(JSON_SCHEMA_VERSION_FIELD)?;\n");
+    out.push_str(&format!(
+        "    writer.u32_value(u32::from({}_VALUE))?;\n",
+        "SCHEMA_VERSION"
+    ));
+    out.push_str("    writer.comma()?;\n");
+    out.push_str("    writer.raw_static(JSON_ROWS_FIELD)?;\n");
+    out.push_str("    writer.begin_array()?;\n");
+    out.push_str("    let mut first_row = true;\n");
+    out.push_str(&format!(
+        "    for row in archived.{}.iter() {{\n",
+        model.row_field_name
+    ));
+    out.push_str("        if first_row { first_row = false; } else { writer.comma()?; }\n");
+    out.push_str("        write_json_row(row, &mut writer)?;\n");
+    out.push_str("    }\n");
+    out.push_str("    writer.end_array()?;\n");
+    out.push_str("    writer.end_object()?;\n");
+    out.push_str("    Ok(writer.finish())\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "fn write_json_row(row: &<{} as Archive>::Archived, writer: &mut JsonWriter) -> Result<()> {{\n",
+        model.row_type
+    ));
+    out.push_str("    writer.begin_object()?;\n");
+    out.push_str("    let mut first = true;\n");
+    for field in &model.fields {
+        if let Some(condition) = archived_optional_condition(model, field) {
+            out.push_str(&format!("    if {condition} {{\n"));
+            emit_json_field_write(out, model, field, "        ");
+            out.push_str("    }\n");
+        } else {
+            emit_json_field_write(out, model, field, "    ");
+        }
+    }
+    out.push_str("    writer.end_object()\n");
+    out.push_str("}\n\n");
+    emit_json_bitmask_helpers(out, model);
+    emit_json_field_prefix_helper(out);
+}
+
+fn emit_json_field_write(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+    indent: &str,
+) {
+    out.push_str(&format!(
+        "{indent}write_json_field_prefix(writer, &mut first, JSON_FIELD_{})?;\n",
+        const_name(&field.rust_name)
+    ));
+    emit_json_value_write(out, model, field, indent);
+}
+
+fn emit_json_value_write(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+    indent: &str,
+) {
+    let value = archived_value_access_for("row", field);
+    match &field.kind {
+        FieldKind::ConstU16 { value } => out.push_str(&format!(
+            "{indent}writer.u32_value(u32::from({value}_u16))?;\n"
+        )),
+        FieldKind::U16Dictionary { dictionary, .. } => out.push_str(&format!(
+            "{indent}writer.string_value({}_symbol(row.{}.to_native())?)?;\n",
+            dictionary_helper_stem(model, dictionary),
+            field.rust_name
+        )),
+        FieldKind::U64BitmaskDictionary { dictionary } => out.push_str(&format!(
+            "{indent}write_json_{}_bitmask(row.{}.to_native(), writer)?;\n",
+            const_name(dictionary).to_ascii_lowercase(),
+            field.rust_name
+        )),
+        FieldKind::I32 => out.push_str(&format!("{indent}writer.i32_value({value})?;\n")),
+        FieldKind::U32 => out.push_str(&format!("{indent}writer.u32_value({value})?;\n")),
+        FieldKind::I64 => out.push_str(&format!("{indent}writer.i64_value({value})?;\n")),
+        FieldKind::F32 => out.push_str(&format!(
+            "{indent}writer.f32_value({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::F64 => out.push_str(&format!(
+            "{indent}writer.f64_value({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::Bool => out.push_str(&format!("{indent}writer.bool_value({value})?;\n")),
+        FieldKind::Bytes => out.push_str(&format!("{indent}writer.bytes_value({value})?;\n")),
+        FieldKind::RawString => out.push_str(&format!("{indent}writer.string_value({value})?;\n")),
+        FieldKind::I64Array => {
+            out.push_str(&format!("{indent}writer.i64_array_value({value})?;\n"))
+        }
+        FieldKind::I32Array => {
+            out.push_str(&format!("{indent}writer.i32_array_value({value})?;\n"))
+        }
+        FieldKind::U32Array => {
+            out.push_str(&format!("{indent}writer.u32_array_value({value})?;\n"))
+        }
+        FieldKind::F64Array => out.push_str(&format!(
+            "{indent}writer.f64_array_value({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "{indent}writer.f32_array_value({:?}, {value})?;\n",
+            field.logical_path
+        )),
+    }
+}
+
+fn emit_json_bitmask_helpers(out: &mut String, model: &SchemaModel) {
+    for dictionary in &model.dictionaries {
+        if !dictionary_is_bitmask(model, &dictionary.name) {
+            continue;
+        }
+        out.push_str(&format!(
+            "fn write_json_{}_bitmask(mask: u64, writer: &mut JsonWriter) -> Result<()> {{\n",
+            const_name(&dictionary.name).to_ascii_lowercase()
+        ));
+        out.push_str("    writer.begin_array()?;\n");
+        out.push_str("    let mut first = true;\n");
+        for (idx, value) in dictionary.values.iter().enumerate() {
+            out.push_str(&format!("    if mask & (1_u64 << {idx}) != 0 {{\n"));
+            out.push_str("        if first { first = false; } else { writer.comma()?; }\n");
+            out.push_str(&format!("        writer.string_value({value:?})?;\n"));
+            out.push_str("    }\n");
+        }
+        out.push_str("    let _ = first;\n");
+        out.push_str("    writer.end_array()\n");
+        out.push_str("}\n\n");
+    }
+}
+
+fn emit_json_field_prefix_helper(out: &mut String) {
+    out.push_str("fn write_json_field_prefix(writer: &mut JsonWriter, first: &mut bool, field: &'static [u8]) -> Result<()> {\n");
+    out.push_str("    if *first { *first = false; } else { writer.comma()?; }\n");
+    out.push_str("    writer.raw_static(field)\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_protobuf_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        write_protobuf_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into protobuf.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_protobuf_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        write_protobuf_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_protobuf_writer_helpers(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!(
+        "fn write_protobuf_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        model.payload_type
+    ));
+    out.push_str("    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
+    out.push_str(&format!(
+        "    writer.uint32(1, u32::from({}))?;\n",
+        "SCHEMA_VERSION_VALUE"
+    ));
+    out.push_str(&format!(
+        "    for row in archived.{}.iter() {{\n",
+        model.row_field_name
+    ));
+    out.push_str("        let row_len = encoded_len_row(row, max_response_bytes)?;\n");
+    out.push_str(&format!(
+        "        writer.message_prefix({}, row_len)?;\n",
+        model.row_field_number
+    ));
+    out.push_str("        write_protobuf_row(row, &mut writer)?;\n");
+    out.push_str("    }\n");
+    out.push_str("    Ok(writer.finish())\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "fn encoded_len_row(row: &<{} as Archive>::Archived, max_response_bytes: usize) -> Result<usize> {{\n",
+        model.row_type
+    ));
+    out.push_str("    let mut len = 0_usize;\n");
+    for field in &model.fields {
+        if let Some(condition) = archived_optional_condition(model, field) {
+            out.push_str(&format!("    if {condition} {{\n"));
+            emit_protobuf_len_line(out, model, field, "        ");
+            out.push_str("    }\n");
+        } else {
+            emit_protobuf_len_line(out, model, field, "    ");
+        }
+    }
+    out.push_str("    Ok(len)\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "fn write_protobuf_row(row: &<{} as Archive>::Archived, writer: &mut ProtoWriter) -> Result<()> {{\n",
+        model.row_type
+    ));
+    for field in &model.fields {
+        if let Some(condition) = archived_optional_condition(model, field) {
+            out.push_str(&format!("    if {condition} {{\n"));
+            emit_protobuf_write_line(out, model, field, "        ");
+            out.push_str("    }\n");
+        } else {
+            emit_protobuf_write_line(out, model, field, "    ");
+        }
+    }
+    out.push_str("    Ok(())\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_protobuf_len_line(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+    indent: &str,
+) {
+    let value = archived_value_access_for("row", field);
+    let tag = field.proto_number;
+    match &field.kind {
+        FieldKind::ConstU16 { value } => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_uint32({tag}, u32::from({value}_u16)), max_response_bytes)?;\n"
+        )),
+        FieldKind::U16Dictionary { dictionary, .. } => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, output::encoded_len_string({tag}, {}_symbol(row.{}.to_native())?), max_response_bytes)?;\n",
+            dictionary_helper_stem(model, dictionary),
+            field.rust_name
+        )),
+        FieldKind::U64BitmaskDictionary { dictionary } => {
+            if let Some(dict) = model.dictionaries.iter().find(|dict| dict.name == *dictionary) {
+                for (idx, value) in dict.values.iter().enumerate() {
+                    out.push_str(&format!(
+                        "{indent}if row.{}.to_native() & (1_u64 << {idx}) != 0 {{ len = output::checked_len_add(len, output::encoded_len_string({tag}, {value:?}), max_response_bytes)?; }}\n",
+                        field.rust_name
+                    ));
+                }
+            }
+        }
+        FieldKind::I32 => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_int32({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::U32 => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_uint32({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::I64 => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_int64({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::F32 => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_float({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::F64 => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_double({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::Bool => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, proto::encoded_len_bool({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::Bytes => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, output::encoded_len_message({tag}, {value}.len()), max_response_bytes)?;\n"
+        )),
+        FieldKind::RawString => out.push_str(&format!(
+            "{indent}len = output::checked_len_add(len, output::encoded_len_string({tag}, {value}), max_response_bytes)?;\n"
+        )),
+        FieldKind::I64Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ len = output::checked_len_add(len, proto::encoded_len_int64({tag}, value), max_response_bytes)?; }}\n"
+        )),
+        FieldKind::I32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ len = output::checked_len_add(len, proto::encoded_len_int32({tag}, value), max_response_bytes)?; }}\n"
+        )),
+        FieldKind::U32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ len = output::checked_len_add(len, proto::encoded_len_uint32({tag}, value), max_response_bytes)?; }}\n"
+        )),
+        FieldKind::F64Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ len = output::checked_len_add(len, proto::encoded_len_double({tag}, value), max_response_bytes)?; }}\n"
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ len = output::checked_len_add(len, proto::encoded_len_float({tag}, value), max_response_bytes)?; }}\n"
+        )),
+    }
+}
+
+fn emit_protobuf_write_line(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+    indent: &str,
+) {
+    let value = archived_value_access_for("row", field);
+    let tag = field.proto_number;
+    match &field.kind {
+        FieldKind::ConstU16 { value } => out.push_str(&format!(
+            "{indent}writer.uint32({tag}, u32::from({value}_u16))?;\n"
+        )),
+        FieldKind::U16Dictionary { dictionary, .. } => out.push_str(&format!(
+            "{indent}writer.string({tag}, {}_symbol(row.{}.to_native())?)?;\n",
+            dictionary_helper_stem(model, dictionary),
+            field.rust_name
+        )),
+        FieldKind::U64BitmaskDictionary { dictionary } => {
+            if let Some(dict) = model
+                .dictionaries
+                .iter()
+                .find(|dict| dict.name == *dictionary)
+            {
+                for (idx, value) in dict.values.iter().enumerate() {
+                    out.push_str(&format!(
+                        "{indent}if row.{}.to_native() & (1_u64 << {idx}) != 0 {{ writer.string({tag}, {value:?})?; }}\n",
+                        field.rust_name
+                    ));
+                }
+            }
+        }
+        FieldKind::I32 => out.push_str(&format!("{indent}writer.int32({tag}, {value})?;\n")),
+        FieldKind::U32 => out.push_str(&format!("{indent}writer.uint32({tag}, {value})?;\n")),
+        FieldKind::I64 => out.push_str(&format!("{indent}writer.int64({tag}, {value})?;\n")),
+        FieldKind::F32 => out.push_str(&format!(
+            "{indent}writer.float({tag}, {:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::F64 => out.push_str(&format!(
+            "{indent}writer.double({tag}, {:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::Bool => out.push_str(&format!("{indent}writer.bool({tag}, {value})?;\n")),
+        FieldKind::Bytes => out.push_str(&format!("{indent}writer.bytes({tag}, {value})?;\n")),
+        FieldKind::RawString => out.push_str(&format!("{indent}writer.string({tag}, {value})?;\n")),
+        FieldKind::I64Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ writer.int64({tag}, value)?; }}\n"
+        )),
+        FieldKind::I32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ writer.int32({tag}, value)?; }}\n"
+        )),
+        FieldKind::U32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ writer.uint32({tag}, value)?; }}\n"
+        )),
+        FieldKind::F64Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ writer.double({tag}, {:?}, value)?; }}\n",
+            field.logical_path
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "{indent}for value in {value} {{ writer.float({tag}, {:?}, value)?; }}\n",
+            field.logical_path
+        )),
+    }
+}
+
+fn emit_csv_header(out: &mut String, model: &SchemaModel) {
+    let header = model
+        .fields
+        .iter()
+        .map(csv_field_name)
+        .collect::<Vec<_>>()
+        .join(",");
+    out.push_str(&format!("const CSV_HEADER: &[u8] = b{header:?};\n\n"));
+}
+
+fn emit_csv_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        write_csv_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into CSV.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_csv_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        write_csv_response(archived, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_csv_writer_helpers(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!(
+        "fn write_csv_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        model.payload_type
+    ));
+    out.push_str("    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
+    out.push_str("    writer.raw_static(CSV_HEADER)?;\n");
+    out.push_str("    writer.newline()?;\n");
+    out.push_str(&format!(
+        "    for row in archived.{}.iter() {{\n",
+        model.row_field_name
+    ));
+    out.push_str("        write_csv_row(row, &mut writer)?;\n");
+    out.push_str("    }\n");
+    out.push_str("    Ok(writer.finish())\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "fn write_csv_row(row: &<{} as Archive>::Archived, writer: &mut CsvWriter) -> Result<()> {{\n",
+        model.row_type
+    ));
+    for (idx, field) in model.fields.iter().enumerate() {
+        if idx > 0 {
+            out.push_str("    writer.comma()?;\n");
+        }
+        if let Some(condition) = archived_optional_condition(model, field) {
+            out.push_str(&format!("    if {condition} {{\n"));
+            emit_csv_value_write(out, model, field, "        ");
+            out.push_str("    }\n");
+        } else {
+            emit_csv_value_write(out, model, field, "    ");
+        }
+    }
+    out.push_str("    writer.newline()\n");
+    out.push_str("}\n\n");
+    emit_csv_bitmask_helpers(out, model);
+}
+
+fn emit_csv_value_write(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+    indent: &str,
+) {
+    let value = archived_value_access_for("row", field);
+    match &field.kind {
+        FieldKind::ConstU16 { value } => out.push_str(&format!(
+            "{indent}writer.u32_cell(u32::from({value}_u16))?;\n"
+        )),
+        FieldKind::U16Dictionary { dictionary, .. } => out.push_str(&format!(
+            "{indent}writer.string_cell({}_symbol(row.{}.to_native())?)?;\n",
+            dictionary_helper_stem(model, dictionary),
+            field.rust_name
+        )),
+        FieldKind::U64BitmaskDictionary { dictionary } => out.push_str(&format!(
+            "{indent}write_csv_{}_bitmask(row.{}.to_native(), writer)?;\n",
+            const_name(dictionary).to_ascii_lowercase(),
+            field.rust_name
+        )),
+        FieldKind::I32 => out.push_str(&format!("{indent}writer.i32_cell({value})?;\n")),
+        FieldKind::U32 => out.push_str(&format!("{indent}writer.u32_cell({value})?;\n")),
+        FieldKind::I64 => out.push_str(&format!("{indent}writer.i64_cell({value})?;\n")),
+        FieldKind::F32 => out.push_str(&format!(
+            "{indent}writer.f32_cell({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::F64 => out.push_str(&format!(
+            "{indent}writer.f64_cell({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::Bool => out.push_str(&format!("{indent}writer.bool_cell({value})?;\n")),
+        FieldKind::Bytes => out.push_str(&format!("{indent}writer.bytes_cell({value})?;\n")),
+        FieldKind::RawString => out.push_str(&format!("{indent}writer.string_cell({value})?;\n")),
+        FieldKind::I64Array => out.push_str(&format!("{indent}writer.i64_array_cell({value})?;\n")),
+        FieldKind::I32Array => out.push_str(&format!("{indent}writer.i32_array_cell({value})?;\n")),
+        FieldKind::U32Array => out.push_str(&format!("{indent}writer.u32_array_cell({value})?;\n")),
+        FieldKind::F64Array => out.push_str(&format!(
+            "{indent}writer.f64_array_cell({:?}, {value})?;\n",
+            field.logical_path
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "{indent}writer.f32_array_cell({:?}, {value})?;\n",
+            field.logical_path
+        )),
+    }
+}
+
+fn emit_csv_bitmask_helpers(out: &mut String, model: &SchemaModel) {
+    for dictionary in &model.dictionaries {
+        if !dictionary_is_bitmask(model, &dictionary.name) {
+            continue;
+        }
+        out.push_str(&format!(
+            "fn write_csv_{}_bitmask(mask: u64, writer: &mut CsvWriter) -> Result<()> {{\n",
+            const_name(&dictionary.name).to_ascii_lowercase()
+        ));
+        out.push_str("    writer.begin_array_cell()?;\n");
+        out.push_str("    let mut first = true;\n");
+        for (idx, value) in dictionary.values.iter().enumerate() {
+            out.push_str(&format!("    if mask & (1_u64 << {idx}) != 0 {{\n"));
+            out.push_str(
+                "        if first { first = false; } else { writer.array_cell_comma()?; }\n",
+            );
+            out.push_str(&format!("        writer.string_cell({value:?})?;\n"));
+            out.push_str("    }\n");
+        }
+        out.push_str("    let _ = first;\n");
+        out.push_str("    writer.end_array_cell()\n");
+        out.push_str("}\n\n");
+    }
+}
+
+fn emit_metamorphose_transponding(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, false);
+    out.push_str("use metamorphic_binary_transport_transponding::*;\n\n");
+    emit_column_batch(out, model);
+    emit_transponding_inherent_api(out, model);
+}
+
+fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, false);
+    out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
+    out.push_str("use metamorphic_binary_transport_adapter_arrow::{\n");
+    out.push_str("    field_metadata, record_batch, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
+    out.push_str("};\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ArrowMetamorphoseSchema};\n");
+    out.push_str("use std::sync::Arc;\n\n");
+    emit_arrow_inherent_api(out, model, "arrow");
+    out.push_str(&format!(
+        "impl ArrowMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    type RecordBatch = ArrowRecordBatch;\n");
+    out.push_str("    fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<Self::RecordBatch> { Self::metamorphose_arrow(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_arrow_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Self::RecordBatch> {\n");
+    out.push_str("        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_arrow");
+}
+
+fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, false);
+    out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
+    out.push_str("use metamorphic_binary_transport_adapter_arrow_ipc::{\n");
+    out.push_str("    field_metadata, record_batch, write_ipc_stream, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
+    out.push_str("};\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ArrowIpcMetamorphoseSchema};\n\n");
+    out.push_str("use std::sync::Arc;\n\n");
+    emit_arrow_ipc_inherent_api(out, model);
+    out.push_str(&format!(
+        "impl ArrowIpcMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    fn metamorphose_arrow_ipc(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_arrow_ipc(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_arrow_ipc_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
+    out.push_str("        unsafe { Self::metamorphose_arrow_ipc_trusted_unchecked(bytes, max_response_bytes) }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_arrow_ipc");
+}
+
+fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
+    emit_adapter_prelude(out, model, false);
+    out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
+    out.push_str("use metamorphic_binary_transport_adapter_parquet::{\n");
+    out.push_str("    field_metadata, record_batch, write_uncompressed_parquet, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
+    out.push_str("};\n");
+    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ParquetMetamorphoseSchema};\n\n");
+    out.push_str("use std::sync::Arc;\n\n");
+    emit_parquet_inherent_api(out, model);
+    out.push_str(&format!(
+        "impl ParquetMetamorphoseSchema for {} {{\n",
+        model.marker_type
+    ));
+    out.push_str("    fn metamorphose_parquet(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_parquet(bytes, max_response_bytes) }\n");
+    out.push_str("    fn metamorphose_parquet_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
+    out.push_str("        unsafe { Self::metamorphose_parquet_trusted_unchecked(bytes, max_response_bytes) }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_parquet");
+}
+
+fn emit_column_batch(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!(
+        "pub(crate) struct {}ColumnBatch {{\n",
+        model.marker_type
+    ));
+    for field in &model.fields {
+        out.push_str(&format!(
+            "    pub(crate) {}: {},\n",
+            field.rust_name,
+            column_type(field)
+        ));
+    }
+    out.push_str("}\n\n");
+    out.push_str(&format!("impl {}ColumnBatch {{\n", model.marker_type));
+    out.push_str("    pub(crate) fn byte_len(&self) -> usize {\n");
+    out.push_str("        let mut len = 0_usize;\n");
+    for field in &model.fields {
+        out.push_str(&format!(
+            "        len = len.saturating_add(self.{}.byte_len());\n",
+            field.rust_name
+        ));
+    }
+    out.push_str("        len\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_transponding_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str(&format!(
+        "    pub(crate) fn transpond_archived(archived: &Archived{}, max_columnar_bytes: usize) -> Result<{}ColumnBatch> {{\n",
+        model.payload_type, model.marker_type
+    ));
+    out.push_str(&format!(
+        "        let row_count = archived.{}.len();\n",
+        model.row_field_name
+    ));
+    for field in &model.fields {
+        out.push_str(&format!(
+            "        let {}{} = {};\n",
+            if matches!(field.kind, FieldKind::ConstU16 { .. }) {
+                ""
+            } else {
+                "mut "
+            },
+            field.rust_name,
+            column_init(field, "row_count")
+        ));
+    }
+    out.push_str(&format!(
+        "        for row in archived.{}.iter() {{\n",
+        model.row_field_name
+    ));
+    for field in &model.fields {
+        emit_column_push(out, model, field, "            ");
+    }
+    out.push_str("        }\n");
+    out.push_str(&format!(
+        "        let batch = {}ColumnBatch {{",
+        model.marker_type
+    ));
+    for field in &model.fields {
+        out.push_str(&format!(" {}", field.rust_name));
+        out.push(',');
+    }
+    out.push_str(" };\n");
+    out.push_str("        ensure_columnar_size(batch.byte_len(), max_columnar_bytes)?;\n");
+    out.push_str("        Ok(batch)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_arrow_inherent_api(out: &mut String, model: &SchemaModel, _label: &str) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        arrow_record_batch(batch, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into Arrow.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_arrow_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        arrow_record_batch(batch, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_arrow_record_batch_helper(out: &mut String, model: &SchemaModel, adapter_crate: &str) {
+    out.push_str(&format!(
+        "fn arrow_record_batch(batch: {}ColumnBatch, max_response_bytes: usize) -> Result<ArrowRecordBatch> {{\n",
+        model.marker_type
+    ));
+    out.push_str("    let schema = Arc::new(ArrowSchema::new(vec![\n");
+    for field in &model.fields {
+        out.push_str(&format!(
+            "        ArrowField::new({:?}, {}, {}).with_metadata(field_metadata({:?}, {:?}, {}, {})),\n",
+            csv_field_name(field),
+            arrow_data_type(field),
+            field.presence_bit.is_some(),
+            field.logical_path,
+            field.rust_name,
+            dictionary_metadata_expr(field),
+            bitmask_metadata_expr(field)
+        ));
+    }
+    out.push_str("    ]));\n");
+    out.push_str("    let columns: Vec<ArrowArrayRef> = vec![\n");
+    for field in &model.fields {
+        out.push_str(&format!(
+            "        {}::{}(batch.{})?,\n",
+            adapter_crate,
+            arrow_array_fn(field),
+            field.rust_name
+        ));
+    }
+    out.push_str("    ];\n");
+    out.push_str("    record_batch(schema, columns, max_response_bytes)\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_arrow_ipc_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_arrow_ipc(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str("        write_ipc_stream(&arrow, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into Arrow IPC.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_arrow_ipc_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str("        write_ipc_stream(&arrow, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_parquet_inherent_api(out: &mut String, model: &SchemaModel) {
+    out.push_str(&format!("impl {} {{\n", model.marker_type));
+    out.push_str("    pub fn metamorphose_parquet(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str("        write_uncompressed_parquet(&arrow, max_response_bytes)\n");
+    out.push_str("    }\n\n");
+    out.push_str(
+        "    /// Metamorphoses immutable bytes already validated for this schema into Parquet.\n",
+    );
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str("    /// The caller guarantees checked schema validation happened before immutable storage or transport.\n");
+    out.push_str("    pub unsafe fn metamorphose_parquet_trusted_unchecked(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
+    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str("        write_uncompressed_parquet(&arrow, max_response_bytes)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn archived_optional_condition(model: &SchemaModel, field: &PhysicalField) -> Option<String> {
+    field
+        .presence_bit
+        .map(|_| archived_presence_has_expr(&EmitScope::source(model), "row.presence_bits", field))
+}
+
+fn archived_value_access_for(row: &str, field: &PhysicalField) -> String {
+    let access = format!("{row}.{}", field.rust_name);
+    match field.kind {
+        FieldKind::ConstU16 { .. }
+        | FieldKind::U16Dictionary { .. }
+        | FieldKind::U64BitmaskDictionary { .. }
+        | FieldKind::I32
+        | FieldKind::U32
+        | FieldKind::I64
+        | FieldKind::F32
+        | FieldKind::F64 => format!("{access}.to_native()"),
+        FieldKind::Bool => access,
+        FieldKind::Bytes => format!("{access}.as_slice()"),
+        FieldKind::RawString => format!("{access}.as_str()"),
+        FieldKind::I64Array
+        | FieldKind::I32Array
+        | FieldKind::U32Array
+        | FieldKind::F64Array
+        | FieldKind::F32Array => format!("{access}.iter().map(|value| value.to_native())"),
+    }
+}
+
+fn json_field_name(field: &PhysicalField) -> &str {
+    &field.logical_path
+}
+
+fn csv_field_name(field: &PhysicalField) -> &str {
+    &field.logical_path
+}
+
+fn column_type(field: &PhysicalField) -> &'static str {
+    match field.kind {
+        FieldKind::ConstU16 { .. } => "ConstU16Column",
+        FieldKind::U16Dictionary { optional: true, .. } => "OptionalU16Column",
+        FieldKind::U16Dictionary {
+            optional: false, ..
+        } => "U16Column",
+        FieldKind::U64BitmaskDictionary { .. } => "U64Column",
+        FieldKind::I32 if field.presence_bit.is_some() => "OptionalI32Column",
+        FieldKind::U32 if field.presence_bit.is_some() => "OptionalU32Column",
+        FieldKind::I64 if field.presence_bit.is_some() => "OptionalI64Column",
+        FieldKind::F32 if field.presence_bit.is_some() => "OptionalF32Column",
+        FieldKind::F64 if field.presence_bit.is_some() => "OptionalF64Column",
+        FieldKind::I32 => "I32Column",
+        FieldKind::U32 => "U32Column",
+        FieldKind::I64 => "I64Column",
+        FieldKind::F32 => "F32Column",
+        FieldKind::F64 => "F64Column",
+        FieldKind::Bool => "BoolColumn",
+        FieldKind::Bytes => "BinaryColumn",
+        FieldKind::RawString => "Utf8Column",
+        FieldKind::I64Array => "I64ListColumn",
+        FieldKind::I32Array => "I32ListColumn",
+        FieldKind::U32Array => "U32ListColumn",
+        FieldKind::F64Array => "F64ListColumn",
+        FieldKind::F32Array => "F32ListColumn",
+    }
+}
+
+fn column_init(field: &PhysicalField, row_count: &str) -> String {
+    match field.kind {
+        FieldKind::ConstU16 { value } => format!("ConstU16Column::new({value}, {row_count})"),
+        FieldKind::U16Dictionary { optional: true, .. } => {
+            format!("OptionalU16Column::new({row_count})")
+        }
+        FieldKind::U16Dictionary {
+            optional: false, ..
+        } => format!("U16Column::new({row_count})"),
+        FieldKind::U64BitmaskDictionary { .. } => format!("U64Column::new({row_count})"),
+        FieldKind::I32 if field.presence_bit.is_some() => {
+            format!("OptionalI32Column::new({row_count})")
+        }
+        FieldKind::U32 if field.presence_bit.is_some() => {
+            format!("OptionalU32Column::new({row_count})")
+        }
+        FieldKind::I64 if field.presence_bit.is_some() => {
+            format!("OptionalI64Column::new({row_count})")
+        }
+        FieldKind::F32 if field.presence_bit.is_some() => {
+            format!("OptionalF32Column::new({row_count})")
+        }
+        FieldKind::F64 if field.presence_bit.is_some() => {
+            format!("OptionalF64Column::new({row_count})")
+        }
+        FieldKind::I32 => format!("I32Column::new({row_count})"),
+        FieldKind::U32 => format!("U32Column::new({row_count})"),
+        FieldKind::I64 => format!("I64Column::new({row_count})"),
+        FieldKind::F32 => format!("F32Column::new({row_count})"),
+        FieldKind::F64 => format!("F64Column::new({row_count})"),
+        FieldKind::Bool if field.presence_bit.is_some() => {
+            format!("BoolColumn::optional({row_count})")
+        }
+        FieldKind::Bool => format!("BoolColumn::required({row_count})"),
+        FieldKind::Bytes if field.presence_bit.is_some() => {
+            format!("BinaryColumn::optional({row_count})")
+        }
+        FieldKind::Bytes => format!("BinaryColumn::required({row_count})"),
+        FieldKind::RawString if field.presence_bit.is_some() => {
+            format!("Utf8Column::optional({row_count})")
+        }
+        FieldKind::RawString => format!("Utf8Column::required({row_count})"),
+        FieldKind::I64Array if field.presence_bit.is_some() => {
+            format!("I64ListColumn::optional({row_count})")
+        }
+        FieldKind::I64Array => format!("I64ListColumn::required({row_count})"),
+        FieldKind::I32Array if field.presence_bit.is_some() => {
+            format!("I32ListColumn::optional({row_count})")
+        }
+        FieldKind::I32Array => format!("I32ListColumn::required({row_count})"),
+        FieldKind::U32Array if field.presence_bit.is_some() => {
+            format!("U32ListColumn::optional({row_count})")
+        }
+        FieldKind::U32Array => format!("U32ListColumn::required({row_count})"),
+        FieldKind::F64Array if field.presence_bit.is_some() => {
+            format!("F64ListColumn::optional({row_count})")
+        }
+        FieldKind::F64Array => format!("F64ListColumn::required({row_count})"),
+        FieldKind::F32Array if field.presence_bit.is_some() => {
+            format!("F32ListColumn::optional({row_count})")
+        }
+        FieldKind::F32Array => format!("F32ListColumn::required({row_count})"),
+    }
+}
+
+fn emit_column_push(out: &mut String, model: &SchemaModel, field: &PhysicalField, indent: &str) {
+    let value = archived_value_access_for("row", field);
+    if matches!(field.kind, FieldKind::ConstU16 { .. }) {
+        return;
+    }
+    if field.presence_bit.is_some() {
+        let present =
+            archived_presence_has_expr(&EmitScope::source(model), "row.presence_bits", field);
+        out.push_str(&format!(
+            "{indent}{}.push_optional({present}, {value})?;\n",
+            field.rust_name
+        ));
+        return;
+    }
+    match field.kind {
+        FieldKind::U16Dictionary { .. }
+        | FieldKind::U64BitmaskDictionary { .. }
+        | FieldKind::I32
+        | FieldKind::U32
+        | FieldKind::I64
+        | FieldKind::F32
+        | FieldKind::F64
+        | FieldKind::Bool => {
+            out.push_str(&format!(
+                "{indent}{}.push_required({value});\n",
+                field.rust_name
+            ));
+        }
+        FieldKind::Bytes
+        | FieldKind::RawString
+        | FieldKind::I64Array
+        | FieldKind::I32Array
+        | FieldKind::U32Array
+        | FieldKind::F64Array
+        | FieldKind::F32Array => {
+            out.push_str(&format!(
+                "{indent}{}.push_required({value})?;\n",
+                field.rust_name
+            ));
+        }
+        FieldKind::ConstU16 { .. } => {}
+    }
+}
+
+fn arrow_data_type(field: &PhysicalField) -> &'static str {
+    match field.kind {
+        FieldKind::ConstU16 { .. } | FieldKind::U16Dictionary { .. } => "ArrowDataType::UInt16",
+        FieldKind::U64BitmaskDictionary { .. } => "ArrowDataType::UInt64",
+        FieldKind::I32 => "ArrowDataType::Int32",
+        FieldKind::U32 => "ArrowDataType::UInt32",
+        FieldKind::I64 => "ArrowDataType::Int64",
+        FieldKind::F32 => "ArrowDataType::Float32",
+        FieldKind::F64 => "ArrowDataType::Float64",
+        FieldKind::Bool => "ArrowDataType::Boolean",
+        FieldKind::Bytes => "ArrowDataType::Binary",
+        FieldKind::RawString => "ArrowDataType::Utf8",
+        FieldKind::I64Array => {
+            "ArrowDataType::List(Arc::new(ArrowField::new(\"item\", ArrowDataType::Int64, false)))"
+        }
+        FieldKind::I32Array => {
+            "ArrowDataType::List(Arc::new(ArrowField::new(\"item\", ArrowDataType::Int32, false)))"
+        }
+        FieldKind::U32Array => {
+            "ArrowDataType::List(Arc::new(ArrowField::new(\"item\", ArrowDataType::UInt32, false)))"
+        }
+        FieldKind::F64Array => {
+            "ArrowDataType::List(Arc::new(ArrowField::new(\"item\", ArrowDataType::Float64, false)))"
+        }
+        FieldKind::F32Array => {
+            "ArrowDataType::List(Arc::new(ArrowField::new(\"item\", ArrowDataType::Float32, false)))"
+        }
+    }
+}
+
+fn arrow_array_fn(field: &PhysicalField) -> &'static str {
+    match field.kind {
+        FieldKind::ConstU16 { .. } => "const_u16_array",
+        FieldKind::U16Dictionary { optional: true, .. } => "optional_u16_array",
+        FieldKind::U16Dictionary {
+            optional: false, ..
+        } => "u16_array",
+        FieldKind::U64BitmaskDictionary { .. } => "u64_array",
+        FieldKind::I32 if field.presence_bit.is_some() => "optional_i32_array",
+        FieldKind::U32 if field.presence_bit.is_some() => "optional_u32_array",
+        FieldKind::I64 if field.presence_bit.is_some() => "optional_i64_array",
+        FieldKind::F32 if field.presence_bit.is_some() => "optional_f32_array",
+        FieldKind::F64 if field.presence_bit.is_some() => "optional_f64_array",
+        FieldKind::I32 => "i32_array",
+        FieldKind::U32 => "u32_array",
+        FieldKind::I64 => "i64_array",
+        FieldKind::F32 => "f32_array",
+        FieldKind::F64 => "f64_array",
+        FieldKind::Bool => "bool_array",
+        FieldKind::Bytes => "binary_array",
+        FieldKind::RawString => "utf8_array",
+        FieldKind::I64Array if field.presence_bit.is_some() => "optional_i64_list_array",
+        FieldKind::I32Array if field.presence_bit.is_some() => "optional_i32_list_array",
+        FieldKind::U32Array if field.presence_bit.is_some() => "optional_u32_list_array",
+        FieldKind::F64Array if field.presence_bit.is_some() => "optional_f64_list_array",
+        FieldKind::F32Array if field.presence_bit.is_some() => "optional_f32_list_array",
+        FieldKind::I64Array => "i64_list_array",
+        FieldKind::I32Array => "i32_list_array",
+        FieldKind::U32Array => "u32_list_array",
+        FieldKind::F64Array => "f64_list_array",
+        FieldKind::F32Array => "f32_list_array",
+    }
+}
+
+fn dictionary_metadata_expr(field: &PhysicalField) -> String {
+    match &field.kind {
+        FieldKind::U16Dictionary { dictionary, .. } => format!("Some({dictionary:?})"),
+        _ => "None".to_string(),
+    }
+}
+
+fn bitmask_metadata_expr(field: &PhysicalField) -> String {
+    match &field.kind {
+        FieldKind::U64BitmaskDictionary { dictionary } => format!("Some({dictionary:?})"),
+        _ => "None".to_string(),
+    }
+}
+
+fn projection_schema_model(source: &SchemaModel, projection: &ProjectionModel) -> SchemaModel {
+    SchemaModel {
+        module: source.module.clone(),
+        proto: source.proto.clone(),
+        root: source.root.clone(),
+        root_type: source.root_type.clone(),
+        payload_type: projection.payload_type.clone(),
+        row_type: projection.row_type.clone(),
+        marker_type: projection.marker_type.clone(),
+        view_type: projection.view_type.clone(),
+        rows_iter_type: projection.rows_iter_type.clone(),
+        archived_row_type: projection.archived_row_type.clone(),
+        schema_id: source.schema_id,
+        schema_version: source.schema_version,
+        schema_version_value: source.schema_version_value,
+        transport_name: projection.transport_name.clone(),
+        payload_root: source.payload_root,
+        row_field_name: source.row_field_name.clone(),
+        row_field_number: source.row_field_number,
+        dictionaries: projection.dictionaries.clone(),
+        fields: projection.fields.clone(),
+        key_parts: projection.key_parts.clone(),
+        normalized_schema_hash: projection.normalized_schema_hash,
+        projections: Vec::new(),
+    }
 }
 
 fn validate_model(model: &SchemaModel) -> Result<()> {
@@ -49,7 +1291,10 @@ fn emit_header(out: &mut String, model: &SchemaModel) {
 
 fn emit_imports(out: &mut String) {
     out.push_str(
-        r#"use rkyv::{rancor::Error as RkyvError, Archive, Serialize as RkyvSerialize};
+        r#"use rkyv::{Archive, Place, Serialize as RkyvSerialize};
+use rkyv::rancor::{Error as RkyvError, Fallible, Source};
+use rkyv::ser::{Allocator, Writer};
+use rkyv::vec::{ArchivedVec, VecResolver};
 
 use metamorphic_binary_transport_core::envelope::{
     decode_header, encode_header, fnv1a64, trusted_payload_for_schema,
@@ -62,31 +1307,50 @@ use metamorphic_binary_transport_core::runtime::{BinaryInspection, MbtSchema};
     );
 }
 
-fn emit_schema_constants(out: &mut String, model: &SchemaModel) {
+fn emit_schema_constants(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     out.push_str(&format!(
-        "pub const SCHEMA_ID: u32 = {};\n",
+        "{}const {}: u32 = {};\n",
+        scope.item_vis(),
+        scope.const_name("SCHEMA_ID"),
         model.schema_id
     ));
     out.push_str(&format!(
-        "pub const SCHEMA_VERSION_VALUE: u16 = {};\n",
+        "{}const {}: u16 = {};\n",
+        scope.item_vis(),
+        scope.const_name("SCHEMA_VERSION_VALUE"),
         model.schema_version_value
     ));
-    out.push_str("pub const SCHEMA_VERSION: u16 = SCHEMA_VERSION_VALUE;\n");
     out.push_str(&format!(
-        "pub const GENERATED_SCHEMA_HASH: u64 = {};\n",
+        "{}const {}: u16 = {};\n",
+        scope.item_vis(),
+        scope.const_name("SCHEMA_VERSION"),
+        scope.const_name("SCHEMA_VERSION_VALUE")
+    ));
+    out.push_str(&format!(
+        "{}const {}: u64 = {};\n",
+        scope.item_vis(),
+        scope.const_name("GENERATED_SCHEMA_HASH"),
         model.normalized_schema_hash
     ));
     out.push_str(&format!(
-        "pub const TRANSPORT_NAME: &str = {:?};\n",
+        "{}const {}: &str = {:?};\n",
+        scope.item_vis(),
+        scope.const_name("TRANSPORT_NAME"),
         model.transport_name
     ));
-    out.push_str(
-        "pub const SCHEMA_HEADER: SchemaHeaderSpec = SchemaHeaderSpec {\n\
-         \tschema_id: SCHEMA_ID,\n\
-         \tschema_version: SCHEMA_VERSION,\n\
-         \tschema_hash: GENERATED_SCHEMA_HASH,\n\
-         };\n\n",
-    );
+    out.push_str(&format!(
+        "{}const {}: SchemaHeaderSpec = SchemaHeaderSpec {{\n\
+         \tschema_id: {},\n\
+         \tschema_version: {},\n\
+         \tschema_hash: {},\n\
+         }};\n\n",
+        scope.item_vis(),
+        scope.const_name("SCHEMA_HEADER"),
+        scope.const_name("SCHEMA_ID"),
+        scope.const_name("SCHEMA_VERSION"),
+        scope.const_name("GENERATED_SCHEMA_HASH")
+    ));
 }
 
 fn emit_dictionary_constants(out: &mut String, model: &SchemaModel) -> Result<()> {
@@ -146,7 +1410,8 @@ fn emit_bitmask_dictionary(out: &mut String, dictionary: &Dictionary, prefix: &s
     out.push_str(&format!("pub const VALID_{prefix}_MASK: u64 = {mask};\n"));
 }
 
-fn emit_presence_constants(out: &mut String, model: &SchemaModel) -> Result<()> {
+fn emit_presence_constants(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
     let fields = presence_fields(model);
     for field in &fields {
         let bit = field
@@ -154,24 +1419,27 @@ fn emit_presence_constants(out: &mut String, model: &SchemaModel) -> Result<()> 
             .ok_or_else(|| CodegenError::InvalidSchema("presence field without bit".to_string()))?;
         if presence_is_wide(model) {
             out.push_str(&format!(
-                "pub const {}: usize = {};\n",
-                presence_word_const(field),
+                "{}const {}: usize = {};\n",
+                scope.item_vis(),
+                presence_word_const(scope, field),
                 presence_word(bit)
             ));
             out.push_str(&format!(
-                "pub const {}: u64 = {};\n",
-                presence_mask_const(field),
+                "{}const {}: u64 = {};\n",
+                scope.item_vis(),
+                presence_mask_const(scope, field),
                 presence_mask(bit)
             ));
         } else {
             out.push_str(&format!(
-                "pub const {}: u64 = 1 << {bit};\n",
-                presence_const(field)
+                "{}const {}: u64 = 1 << {bit};\n",
+                scope.item_vis(),
+                presence_const(scope, field)
             ));
         }
     }
     if fields.is_empty() {
-        out.push_str("pub const PRESENCE_ALLOWED_MASK: u64 = 0;\n\n");
+        return Ok(());
     } else if presence_is_wide(model) {
         let masks = presence_allowed_masks(model)
             .iter()
@@ -179,15 +1447,22 @@ fn emit_presence_constants(out: &mut String, model: &SchemaModel) -> Result<()> 
             .collect::<Vec<_>>()
             .join(", ");
         out.push_str(&format!(
-            "pub const PRESENCE_WORDS: usize = {};\n",
+            "{}const {}: usize = {};\n",
+            scope.item_vis(),
+            scope.const_name("PRESENCE_WORDS"),
             presence_words(model)
         ));
         out.push_str(&format!(
-            "pub const PRESENCE_ALLOWED_MASKS: [u64; PRESENCE_WORDS] = [{masks}];\n\n"
+            "{}const {}: [u64; {}] = [{masks}];\n\n",
+            scope.item_vis(),
+            scope.const_name("PRESENCE_ALLOWED_MASKS"),
+            scope.const_name("PRESENCE_WORDS")
         ));
     } else {
         out.push_str(&format!(
-            "pub const PRESENCE_ALLOWED_MASK: u64 = (1 << {}) - 1;\n\n",
+            "{}const {}: u64 = (1 << {}) - 1;\n\n",
+            scope.item_vis(),
+            scope.const_name("PRESENCE_ALLOWED_MASK"),
             fields.len()
         ));
     }
@@ -222,33 +1497,44 @@ fn emit_structs(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 }
 
-fn emit_validation(out: &mut String, model: &SchemaModel) -> Result<()> {
+fn emit_validation(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
     out.push_str(&format!(
-        "pub fn validate_rows(rows: &[{}]) -> Result<()> {{\n",
+        "{}fn {}(rows: &[{}]) -> Result<()> {{\n",
+        scope.item_vis(),
+        scope.fn_name("validate_rows"),
         model.row_type
     ));
     out.push_str("    let mut previous = None;\n");
     out.push_str("    for row in rows {\n");
-    out.push_str("        validate_row(row, previous)?;\n");
+    out.push_str(&format!(
+        "        {}(row, previous)?;\n",
+        scope.fn_name("validate_row")
+    ));
     out.push_str("        previous = Some(row);\n");
     out.push_str("    }\n");
     out.push_str("    Ok(())\n");
     out.push_str("}\n\n");
 
     out.push_str(&format!(
-        "pub fn validate_row(row: &{}, previous: Option<&{}>) -> Result<()> {{\n",
-        model.row_type, model.row_type
+        "{}fn {}(row: &{}, previous: Option<&{}>) -> Result<()> {{\n",
+        scope.item_vis(),
+        scope.fn_name("validate_row"),
+        model.row_type,
+        model.row_type
     ));
     for field in &model.fields {
         emit_owned_field_validation(out, model, field)?;
     }
     if has_presence(model) {
-        emit_presence_validation(out, model);
+        emit_presence_validation(out, scope);
     }
     emit_order_validation(out, model);
     out.push_str("    Ok(())\n");
     out.push_str("}\n\n");
-    emit_validation_helpers(out);
+    if scope.public_free_items {
+        emit_validation_helpers(out, model);
+    }
     Ok(())
 }
 
@@ -312,24 +1598,29 @@ fn emit_owned_field_validation(
     Ok(())
 }
 
-fn emit_presence_validation(out: &mut String, model: &SchemaModel) {
+fn emit_presence_validation(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     if presence_is_wide(model) {
-        out.push_str(
-            "    for (word, allowed_mask) in PRESENCE_ALLOWED_MASKS.iter().enumerate() {\n",
-        );
+        out.push_str(&format!(
+            "    for (word, allowed_mask) in {}.iter().enumerate() {{\n",
+            scope.const_name("PRESENCE_ALLOWED_MASKS")
+        ));
         out.push_str("        let value = row.presence_bits[word];\n");
         out.push_str("        if value & !allowed_mask != 0 { return Err(TransportError::InvalidPresenceWord { word, value }); }\n");
         out.push_str("    }\n");
     } else {
-        out.push_str("    if row.presence_bits & !PRESENCE_ALLOWED_MASK != 0 { return Err(TransportError::InvalidPresenceBits(row.presence_bits)); }\n");
+        out.push_str(&format!(
+            "    if row.presence_bits & !{} != 0 {{ return Err(TransportError::InvalidPresenceBits(row.presence_bits)); }}\n",
+            scope.const_name("PRESENCE_ALLOWED_MASK")
+        ));
     }
     for field in model
         .fields
         .iter()
         .filter(|field| field.presence_bit.is_some())
     {
-        let predicate = owned_presence_absent_expr(model, "row.presence_bits", field);
-        let error = presence_error_expr(model, "row.presence_bits", field);
+        let predicate = owned_presence_absent_expr(scope, "row.presence_bits", field);
+        let error = presence_error_expr(scope, "row.presence_bits", field);
         match field.kind {
             FieldKind::F32 | FieldKind::F64 => out.push_str(&format!(
                 "    if {predicate} && row.{} != 0.0 {{ return Err({error}); }}\n",
@@ -385,17 +1676,14 @@ fn emit_order_validation(out: &mut String, model: &SchemaModel) {
     out.push_str("    }\n");
 }
 
-fn emit_validation_helpers(out: &mut String) {
-    out.push_str(
-        r#"fn validate_finite_f32(field: &'static str, value: f32) -> Result<()> {
-    if value.is_finite() {
-        Ok(())
-    } else {
-        Err(TransportError::NonFiniteNumeric(field))
-    }
-}
-
-fn validate_finite_f64(field: &'static str, value: f64) -> Result<()> {
+fn emit_validation_helpers(out: &mut String, model: &SchemaModel) {
+    if model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F32 | FieldKind::F32Array))
+    {
+        out.push_str(
+            r#"fn validate_finite_f32(field: &'static str, value: f32) -> Result<()> {
     if value.is_finite() {
         Ok(())
     } else {
@@ -404,50 +1692,83 @@ fn validate_finite_f64(field: &'static str, value: f64) -> Result<()> {
 }
 
 "#,
-    );
+        );
+    }
+    if model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F64 | FieldKind::F64Array))
+    {
+        out.push_str(
+            r#"fn validate_finite_f64(field: &'static str, value: f64) -> Result<()> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(TransportError::NonFiniteNumeric(field))
+    }
 }
 
-fn emit_checksums(out: &mut String, model: &SchemaModel) {
-    out.push_str(&format!(
-        "pub fn semantic_checksum(rows: &[{}]) -> u64 {{\n",
-        model.row_type
-    ));
-    out.push_str(&format!(
-        "    let mut checksum = fnv1a64({:?}.as_bytes());\n",
-        model.transport_name
-    ));
-    out.push_str("    for row in rows {\n");
-    out.push_str("        checksum = checksum_row(checksum, row);\n");
-    out.push_str("    }\n");
-    out.push_str("    checksum\n");
-    out.push_str("}\n\n");
-
-    out.push_str(&format!(
-        "pub fn minimal_projection_checksum(rows: &[{}]) -> u64 {{ semantic_checksum(rows) }}\n\n",
-        model.row_type
-    ));
-
-    out.push_str(&format!(
-        "pub fn checksum_row(mut checksum: u64, row: &{}) -> u64 {{\n",
-        model.row_type
-    ));
-    for field in &model.fields {
-        emit_owned_checksum_line(out, field, "row");
+"#,
+        );
     }
-    if has_presence(model) {
-        if presence_is_wide(model) {
-            out.push_str(
-                "    for value in row.presence_bits { checksum = update_u64(checksum, value); }\n",
-            );
-        } else {
-            out.push_str("    checksum = update_u64(checksum, row.presence_bits);\n");
+}
+
+fn emit_checksums(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    if scope.public_free_items {
+        out.push_str(&format!(
+            "{}fn {}(rows: &[{}]) -> u64 {{\n",
+            scope.item_vis(),
+            scope.fn_name("semantic_checksum"),
+            model.row_type
+        ));
+        out.push_str(&format!(
+            "    let mut checksum = fnv1a64({:?}.as_bytes());\n",
+            model.transport_name
+        ));
+        out.push_str("    for row in rows {\n");
+        out.push_str(&format!(
+            "        checksum = {}(checksum, row);\n",
+            scope.fn_name("checksum_row")
+        ));
+        out.push_str("    }\n");
+        out.push_str("    checksum\n");
+        out.push_str("}\n\n");
+
+        out.push_str(&format!(
+            "{}fn {}(rows: &[{}]) -> u64 {{ {}(rows) }}\n\n",
+            scope.item_vis(),
+            scope.fn_name("minimal_projection_checksum"),
+            model.row_type,
+            scope.fn_name("semantic_checksum")
+        ));
+
+        out.push_str(&format!(
+            "{}fn {}(mut checksum: u64, row: &{}) -> u64 {{\n",
+            scope.item_vis(),
+            scope.fn_name("checksum_row"),
+            model.row_type
+        ));
+        for field in &model.fields {
+            emit_owned_checksum_line(out, field, "row");
         }
+        if has_presence(model) {
+            if presence_is_wide(model) {
+                out.push_str(
+                    "    for value in row.presence_bits { checksum = update_u64(checksum, value); }\n",
+                );
+            } else {
+                out.push_str("    checksum = update_u64(checksum, row.presence_bits);\n");
+            }
+        }
+        out.push_str("    checksum\n");
+        out.push_str("}\n\n");
     }
-    out.push_str("    checksum\n");
-    out.push_str("}\n\n");
 
     out.push_str(&format!(
-        "pub fn checksum_archived_row(mut checksum: u64, row: &<{} as Archive>::Archived) -> u64 {{\n",
+        "{}fn {}(mut checksum: u64, row: &<{} as Archive>::Archived) -> u64 {{\n",
+        scope.item_vis(),
+        scope.fn_name("checksum_archived_row"),
         model.row_type
     ));
     for field in &model.fields {
@@ -463,7 +1784,9 @@ fn emit_checksums(out: &mut String, model: &SchemaModel) {
     out.push_str("    checksum\n");
     out.push_str("}\n\n");
 
-    emit_checksum_helpers(out);
+    if scope.public_free_items {
+        emit_checksum_helpers(out, model);
+    }
 }
 
 fn emit_owned_checksum_line(out: &mut String, field: &PhysicalField, row: &str) {
@@ -572,9 +1895,76 @@ fn emit_archived_checksum_line(out: &mut String, field: &PhysicalField, row: &st
     }
 }
 
-fn emit_checksum_helpers(out: &mut String) {
-    out.push_str(
-        r#"fn update_bytes(mut checksum: u64, bytes: &[u8]) -> u64 {
+fn emit_checksum_helpers(out: &mut String, model: &SchemaModel) {
+    let uses_bytes = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::Bytes | FieldKind::RawString));
+    let uses_bool = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::Bool));
+    let uses_i32 = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::I32 | FieldKind::I32Array));
+    let uses_u32 = model.fields.iter().any(|field| {
+        matches!(
+            field.kind,
+            FieldKind::U32 | FieldKind::U32Array | FieldKind::F32 | FieldKind::F32Array
+        )
+    });
+    let uses_i64 = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::I64 | FieldKind::I64Array));
+    let uses_u64 = has_presence(model)
+        || model.fields.iter().any(|field| {
+            matches!(
+                field.kind,
+                FieldKind::U64BitmaskDictionary { .. }
+                    | FieldKind::F64
+                    | FieldKind::F64Array
+                    | FieldKind::Bytes
+                    | FieldKind::RawString
+                    | FieldKind::I64Array
+                    | FieldKind::I32Array
+                    | FieldKind::U32Array
+                    | FieldKind::F32Array
+            )
+        });
+    let uses_f32 = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F32 | FieldKind::F32Array));
+    let uses_f64 = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F64 | FieldKind::F64Array));
+    let uses_i64_array = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::I64Array));
+    let uses_i32_array = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::I32Array));
+    let uses_u32_array = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::U32Array));
+    let uses_f64_array = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F64Array));
+    let uses_f32_array = model
+        .fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::F32Array));
+
+    if uses_bytes {
+        out.push_str(
+            r#"fn update_bytes(mut checksum: u64, bytes: &[u8]) -> u64 {
     checksum = update_u64(checksum, bytes.len() as u64);
     for byte in bytes {
         checksum = fnv1a64_update(checksum, *byte);
@@ -582,7 +1972,11 @@ fn emit_checksum_helpers(out: &mut String) {
     checksum
 }
 
-fn fnv1a64_update(mut checksum: u64, byte: u8) -> u64 {
+"#,
+        );
+    }
+    out.push_str(
+        r#"fn fnv1a64_update(mut checksum: u64, byte: u8) -> u64 {
     checksum ^= u64::from(byte);
     checksum.wrapping_mul(0x00000100000001B3)
 }
@@ -597,69 +1991,136 @@ fn update_fixed<const N: usize>(mut checksum: u64, bytes: [u8; N]) -> u64 {
     checksum
 }
 
-fn update_bool(checksum: u64, value: bool) -> u64 {
+"#,
+    );
+    if uses_bool {
+        out.push_str(
+            r#"fn update_bool(checksum: u64, value: bool) -> u64 {
     update_u64(checksum, u64::from(value))
 }
 
-fn update_u16(checksum: u64, value: u16) -> u64 {
+"#,
+        );
+    }
+    out.push_str(
+        r#"fn update_u16(checksum: u64, value: u16) -> u64 {
     update_fixed(checksum, value.to_le_bytes())
 }
 
-fn update_i32(checksum: u64, value: i32) -> u64 {
+"#,
+    );
+    if uses_i32 {
+        out.push_str(
+            r#"fn update_i32(checksum: u64, value: i32) -> u64 {
     update_fixed(checksum, value.to_le_bytes())
 }
 
-fn update_u32(checksum: u64, value: u32) -> u64 {
+"#,
+        );
+    }
+    if uses_u32 {
+        out.push_str(
+            r#"fn update_u32(checksum: u64, value: u32) -> u64 {
     update_fixed(checksum, value.to_le_bytes())
 }
 
-fn update_i64(checksum: u64, value: i64) -> u64 {
+"#,
+        );
+    }
+    if uses_i64 {
+        out.push_str(
+            r#"fn update_i64(checksum: u64, value: i64) -> u64 {
     update_fixed(checksum, value.to_le_bytes())
 }
 
-fn update_u64(checksum: u64, value: u64) -> u64 {
+"#,
+        );
+    }
+    if uses_u64 {
+        out.push_str(
+            r#"fn update_u64(checksum: u64, value: u64) -> u64 {
     update_fixed(checksum, value.to_le_bytes())
 }
 
-fn update_f32(checksum: u64, value: f32) -> u64 {
+"#,
+        );
+    }
+    if uses_f32 {
+        out.push_str(
+            r#"fn update_f32(checksum: u64, value: f32) -> u64 {
     update_u32(checksum, value.to_bits())
 }
 
-fn update_f64(checksum: u64, value: f64) -> u64 {
+"#,
+        );
+    }
+    if uses_f64 {
+        out.push_str(
+            r#"fn update_f64(checksum: u64, value: f64) -> u64 {
     update_u64(checksum, value.to_bits())
 }
 
-fn update_i64_array(mut checksum: u64, values: &[i64]) -> u64 {
+"#,
+        );
+    }
+    if uses_i64_array {
+        out.push_str(
+            r#"fn update_i64_array(mut checksum: u64, values: &[i64]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values { checksum = update_i64(checksum, *value); }
     checksum
 }
 
-fn update_i32_array(mut checksum: u64, values: &[i32]) -> u64 {
+"#,
+        );
+    }
+    if uses_i32_array {
+        out.push_str(
+            r#"fn update_i32_array(mut checksum: u64, values: &[i32]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values { checksum = update_i32(checksum, *value); }
     checksum
 }
 
-fn update_u32_array(mut checksum: u64, values: &[u32]) -> u64 {
+"#,
+        );
+    }
+    if uses_u32_array {
+        out.push_str(
+            r#"fn update_u32_array(mut checksum: u64, values: &[u32]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values { checksum = update_u32(checksum, *value); }
     checksum
 }
 
-fn update_f64_array(mut checksum: u64, values: &[f64]) -> u64 {
+"#,
+        );
+    }
+    if uses_f64_array {
+        out.push_str(
+            r#"fn update_f64_array(mut checksum: u64, values: &[f64]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values { checksum = update_f64(checksum, *value); }
     checksum
 }
 
-fn update_f32_array(mut checksum: u64, values: &[f32]) -> u64 {
+"#,
+        );
+    }
+    if uses_f32_array {
+        out.push_str(
+            r#"fn update_f32_array(mut checksum: u64, values: &[f32]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values { checksum = update_f32(checksum, *value); }
     checksum
 }
 
-fn update_archived_i64_array<'a, I>(mut checksum: u64, values: I) -> u64
+"#,
+        );
+    }
+    if uses_i64_array {
+        out.push_str(
+            r#"fn update_archived_i64_array<'a, I>(mut checksum: u64, values: I) -> u64
 where
     I: Iterator<Item = &'a rkyv::rend::i64_le>,
 {
@@ -667,7 +2128,12 @@ where
     checksum
 }
 
-fn update_archived_i32_array<'a, I>(mut checksum: u64, values: I) -> u64
+"#,
+        );
+    }
+    if uses_i32_array {
+        out.push_str(
+            r#"fn update_archived_i32_array<'a, I>(mut checksum: u64, values: I) -> u64
 where
     I: Iterator<Item = &'a rkyv::rend::i32_le>,
 {
@@ -675,7 +2141,12 @@ where
     checksum
 }
 
-fn update_archived_u32_array<'a, I>(mut checksum: u64, values: I) -> u64
+"#,
+        );
+    }
+    if uses_u32_array {
+        out.push_str(
+            r#"fn update_archived_u32_array<'a, I>(mut checksum: u64, values: I) -> u64
 where
     I: Iterator<Item = &'a rkyv::rend::u32_le>,
 {
@@ -683,7 +2154,12 @@ where
     checksum
 }
 
-fn update_archived_f64_array<'a, I>(mut checksum: u64, values: I) -> u64
+"#,
+        );
+    }
+    if uses_f64_array {
+        out.push_str(
+            r#"fn update_archived_f64_array<'a, I>(mut checksum: u64, values: I) -> u64
 where
     I: Iterator<Item = &'a rkyv::rend::f64_le>,
 {
@@ -691,7 +2167,12 @@ where
     checksum
 }
 
-fn update_archived_f32_array<'a, I>(mut checksum: u64, values: I) -> u64
+"#,
+        );
+    }
+    if uses_f32_array {
+        out.push_str(
+            r#"fn update_archived_f32_array<'a, I>(mut checksum: u64, values: I) -> u64
 where
     I: Iterator<Item = &'a rkyv::rend::f32_le>,
 {
@@ -700,7 +2181,8 @@ where
 }
 
 "#,
-    );
+        );
+    }
 }
 
 fn emit_dictionary_helpers(out: &mut String, model: &SchemaModel) -> Result<()> {
@@ -743,14 +2225,30 @@ fn emit_dictionary_helpers(out: &mut String, model: &SchemaModel) -> Result<()> 
     Ok(())
 }
 
-fn emit_runtime_api(out: &mut String, model: &SchemaModel) {
+fn emit_runtime_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     out.push_str(&format!("pub struct {};\n\n", model.marker_type));
     out.push_str(&format!("impl {} {{\n", model.marker_type));
-    out.push_str("    pub const SCHEMA_ID: u32 = SCHEMA_ID;\n");
-    out.push_str("    pub const SCHEMA_VERSION: u16 = SCHEMA_VERSION;\n");
-    out.push_str("    pub const SCHEMA_HASH: u64 = GENERATED_SCHEMA_HASH;\n");
-    out.push_str("    pub const TRANSPORT_NAME: &'static str = TRANSPORT_NAME;\n\n");
-    out.push_str("    pub fn header_spec() -> SchemaHeaderSpec { SCHEMA_HEADER }\n\n");
+    out.push_str(&format!(
+        "    pub const SCHEMA_ID: u32 = {};\n",
+        scope.const_name("SCHEMA_ID")
+    ));
+    out.push_str(&format!(
+        "    pub const SCHEMA_VERSION: u16 = {};\n",
+        scope.const_name("SCHEMA_VERSION")
+    ));
+    out.push_str(&format!(
+        "    pub const SCHEMA_HASH: u64 = {};\n",
+        scope.const_name("GENERATED_SCHEMA_HASH")
+    ));
+    out.push_str(&format!(
+        "    pub const TRANSPORT_NAME: &'static str = {};\n\n",
+        scope.const_name("TRANSPORT_NAME")
+    ));
+    out.push_str(&format!(
+        "    pub fn header_spec() -> SchemaHeaderSpec {{ {} }}\n\n",
+        scope.const_name("SCHEMA_HEADER")
+    ));
     out.push_str(&format!(
         "    pub fn encode(rows: &[{}], max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.row_type
@@ -761,17 +2259,23 @@ fn emit_runtime_api(out: &mut String, model: &SchemaModel) {
         "    pub fn encode_owned(rows: Vec<{}>, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.row_type
     ));
-    out.push_str("        validate_rows(&rows)?;\n");
+    out.push_str(&format!(
+        "        {}(&rows)?;\n",
+        scope.fn_name("validate_rows")
+    ));
     out.push_str("        let row_count = rows.len();\n");
     if model.row_field_name == "rows" {
         out.push_str(&format!(
-            "        let payload = {} {{ schema_version: SCHEMA_VERSION_VALUE, rows }};\n",
-            model.payload_type
+            "        let payload = {} {{ schema_version: {}, rows }};\n",
+            model.payload_type,
+            scope.const_name("SCHEMA_VERSION_VALUE")
         ));
     } else {
         out.push_str(&format!(
-            "        let payload = {} {{ schema_version: SCHEMA_VERSION_VALUE, {}: rows }};\n",
-            model.payload_type, model.row_field_name
+            "        let payload = {} {{ schema_version: {}, {}: rows }};\n",
+            model.payload_type,
+            scope.const_name("SCHEMA_VERSION_VALUE"),
+            model.row_field_name
         ));
     }
     out.push_str("        let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload).map_err(|err| TransportError::MalformedArchive(err.to_string()))?;\n");
@@ -804,7 +2308,10 @@ fn emit_runtime_api(out: &mut String, model: &SchemaModel) {
         "        let archived = rkyv::access::<Archived{}, RkyvError>(payload).map_err(|err| TransportError::MalformedArchive(err.to_string()))?;\n",
         model.payload_type
     ));
-    out.push_str("        validate_archived_payload(archived, header.row_count)?;\n");
+    out.push_str(&format!(
+        "        {}(archived, header.row_count)?;\n",
+        scope.fn_name("validate_archived_payload")
+    ));
     out.push_str("        Ok(archived)\n");
     out.push_str("    }\n\n");
     out.push_str("    /// Returns an archived payload view for immutable bytes already validated for this schema.\n");
@@ -826,11 +2333,17 @@ fn emit_runtime_api(out: &mut String, model: &SchemaModel) {
         "        let archived = unsafe {{ rkyv::access_unchecked::<Archived{}>(payload) }};\n",
         model.payload_type
     ));
-    out.push_str("        validate_archived_payload(archived, header.row_count)?;\n");
+    out.push_str(&format!(
+        "        {}(archived, header.row_count)?;\n",
+        scope.fn_name("validate_archived_payload")
+    ));
     out.push_str("        Ok(archived)\n");
     out.push_str("    }\n\n");
     out.push_str("    pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {\n");
-    out.push_str("        inspect_archived_rows(Self::access_archived(bytes)?)\n");
+    out.push_str(&format!(
+        "        {}(Self::access_archived(bytes)?)\n",
+        scope.fn_name("inspect_archived_rows")
+    ));
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
@@ -850,7 +2363,8 @@ fn emit_runtime_trait(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 }
 
-fn emit_view_types(out: &mut String, model: &SchemaModel) {
+fn emit_view_types(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     out.push_str(&format!(
         "pub struct {}<'a> {{\n    archived: &'a Archived{},\n}}\n\n",
         model.view_type, model.payload_type
@@ -894,7 +2408,7 @@ fn emit_view_types(out: &mut String, model: &SchemaModel) {
     ));
     out.push_str(&format!("impl<'a> {}<'a> {{\n", model.archived_row_type));
     for field in &model.fields {
-        emit_archived_getter(out, model, field);
+        emit_archived_getter(out, scope, field);
     }
     if has_presence(model) {
         if presence_is_wide(model) {
@@ -908,12 +2422,13 @@ fn emit_view_types(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 }
 
-fn emit_archived_getter(out: &mut String, model: &SchemaModel, field: &PhysicalField) {
+fn emit_archived_getter(out: &mut String, scope: &EmitScope<'_>, field: &PhysicalField) {
+    let model = scope.model;
     if field.presence_bit.is_some() {
         out.push_str(&format!(
             "    pub fn has_{}(&self) -> bool {{ {} }}\n",
             field.proto_name,
-            archived_presence_has_expr(model, "self.row.presence_bits", field)
+            archived_presence_has_expr(scope, "self.row.presence_bits", field)
         ));
     }
     let return_type = archived_getter_return_type(field);
@@ -933,22 +2448,32 @@ fn emit_archived_getter(out: &mut String, model: &SchemaModel, field: &PhysicalF
     }
 }
 
-fn emit_decode_helpers(out: &mut String, model: &SchemaModel) {
-    out.push_str(
-        "fn decode_payload(bytes: &[u8], schema: SchemaHeaderSpec) -> Result<(TransportHeader, &[u8])> {\n\
-         \tlet header = decode_header(bytes)?;\n\
-         \tlet payload = &bytes[HEADER_LEN..];\n\
-         \tvalidate_header_for_schema(&header, payload, schema)?;\n\
-         \tOk((header, payload))\n\
-         }\n\n",
-    );
+fn emit_decode_helpers(out: &mut String, scope: &EmitScope<'_>, emit_decode_payload: bool) {
+    let model = scope.model;
+    if emit_decode_payload {
+        out.push_str(
+            "fn decode_payload(bytes: &[u8], schema: SchemaHeaderSpec) -> Result<(TransportHeader, &[u8])> {\n\
+             \tlet header = decode_header(bytes)?;\n\
+             \tlet payload = &bytes[HEADER_LEN..];\n\
+             \tvalidate_header_for_schema(&header, payload, schema)?;\n\
+             \tOk((header, payload))\n\
+             }\n\n",
+        );
+    }
 
     out.push_str(&format!(
-        "fn validate_archived_payload(archived: &Archived{}, expected_rows: u64) -> Result<()> {{\n",
+        "fn {}(archived: &Archived{}, expected_rows: u64) -> Result<()> {{\n",
+        scope.fn_name("validate_archived_payload"),
         model.payload_type
     ));
-    out.push_str("    if archived.schema_version.to_native() != SCHEMA_VERSION_VALUE {\n");
-    out.push_str("        return Err(TransportError::SchemaVersionMismatch { observed: archived.schema_version.to_native(), expected: SCHEMA_VERSION_VALUE });\n");
+    out.push_str(&format!(
+        "    if archived.schema_version.to_native() != {} {{\n",
+        scope.const_name("SCHEMA_VERSION_VALUE")
+    ));
+    out.push_str(&format!(
+        "        return Err(TransportError::SchemaVersionMismatch {{ observed: archived.schema_version.to_native(), expected: {} }});\n",
+        scope.const_name("SCHEMA_VERSION_VALUE")
+    ));
     out.push_str("    }\n");
     out.push_str(&format!(
         "    let expected = usize::try_from(expected_rows).map_err(|err| TransportError::MalformedArchive(err.to_string()))?;\n    if archived.{}.len() != expected {{ return Err(TransportError::RowCountMismatch {{ observed: archived.{}.len(), expected: expected_rows }}); }}\n",
@@ -958,7 +2483,8 @@ fn emit_decode_helpers(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 
     out.push_str(&format!(
-        "fn inspect_archived_rows(archived: &Archived{}) -> Result<BinaryInspection> {{\n",
+        "fn {}(archived: &Archived{}) -> Result<BinaryInspection> {{\n",
+        scope.fn_name("inspect_archived_rows"),
         model.payload_type
     ));
     out.push_str(&format!(
@@ -970,14 +2496,404 @@ fn emit_decode_helpers(out: &mut String, model: &SchemaModel) {
         "    for row in archived.{}.iter() {{\n",
         model.row_field_name
     ));
-    out.push_str("        semantic_checksum = checksum_archived_row(semantic_checksum, row);\n");
-    out.push_str("        minimal_projection_checksum = checksum_archived_row(minimal_projection_checksum, row);\n");
+    out.push_str(&format!(
+        "        semantic_checksum = {}(semantic_checksum, row);\n",
+        scope.fn_name("checksum_archived_row")
+    ));
+    out.push_str(&format!(
+        "        minimal_projection_checksum = {}(minimal_projection_checksum, row);\n",
+        scope.fn_name("checksum_archived_row")
+    ));
     out.push_str("    }\n");
     out.push_str(&format!(
         "    Ok(BinaryInspection {{ row_count: archived.{}.len(), semantic_checksum, minimal_projection_checksum }})\n",
         model.row_field_name
     ));
     out.push_str("}\n");
+}
+
+fn emit_direct_projection_array_wrappers(out: &mut String, models: &[SchemaModel]) {
+    if models.iter().any(|model| {
+        model
+            .fields
+            .iter()
+            .any(|field| field.kind == FieldKind::I64Array)
+    }) {
+        emit_direct_projection_array_wrapper(out, "DirectI64ArrayRef", "ArchivedI64");
+    }
+    if models.iter().any(|model| {
+        model
+            .fields
+            .iter()
+            .any(|field| field.kind == FieldKind::I32Array)
+    }) {
+        emit_direct_projection_array_wrapper(out, "DirectI32ArrayRef", "ArchivedI32");
+    }
+    if models.iter().any(|model| {
+        model
+            .fields
+            .iter()
+            .any(|field| field.kind == FieldKind::U32Array)
+    }) {
+        emit_direct_projection_array_wrapper(out, "DirectU32ArrayRef", "ArchivedU32");
+    }
+    if models.iter().any(|model| {
+        model
+            .fields
+            .iter()
+            .any(|field| field.kind == FieldKind::F64Array)
+    }) {
+        emit_direct_projection_array_wrapper(out, "DirectF64ArrayRef", "ArchivedF64");
+    }
+    if models.iter().any(|model| {
+        model
+            .fields
+            .iter()
+            .any(|field| field.kind == FieldKind::F32Array)
+    }) {
+        emit_direct_projection_array_wrapper(out, "DirectF32ArrayRef", "ArchivedF32");
+    }
+}
+
+fn emit_direct_projection_array_wrapper(out: &mut String, wrapper: &str, archived: &str) {
+    out.push_str(&format!(
+        "struct {wrapper}<'a> {{ values: &'a ArchivedVec<rkyv::primitive::{archived}> }}\n\n"
+    ));
+    out.push_str(&format!("impl<'a> Archive for {wrapper}<'a> {{\n"));
+    out.push_str(&format!(
+        "    type Archived = ArchivedVec<rkyv::primitive::{archived}>;\n"
+    ));
+    out.push_str("    type Resolver = VecResolver;\n");
+    out.push_str("    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {\n");
+    out.push_str("        ArchivedVec::resolve_from_len(self.values.len(), resolver, out);\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    out.push_str(&format!("impl<'a, S> RkyvSerialize<S> for {wrapper}<'a>\n"));
+    out.push_str("where\n");
+    out.push_str("    S: Fallible + Allocator + Writer + ?Sized,\n");
+    out.push_str("{\n");
+    out.push_str("    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {\n");
+    out.push_str("        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_source_projection_api(
+    out: &mut String,
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+    projection_model: &SchemaModel,
+) {
+    let project_fn = format!("project_{}", projection.definition.name);
+    let trusted_fn = format!("project_{}_trusted_unchecked", projection.definition.name);
+    let helper_fn = format!("project_{}_archived_direct", projection.definition.name);
+    emit_direct_projection_wrappers(out, source, projection, projection_model, &helper_fn);
+
+    out.push_str(&format!("impl {} {{\n", source.marker_type));
+    out.push_str(&format!(
+        "    pub fn {project_fn}(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {{\n"
+    ));
+    out.push_str("        let archived = Self::access_archived(bytes)?;\n");
+    out.push_str(&format!(
+        "        {helper_fn}(archived, max_response_bytes)\n"
+    ));
+    out.push_str("    }\n\n");
+    out.push_str("    /// Projects immutable source bytes already validated for this schema.\n");
+    out.push_str("    ///\n");
+    out.push_str("    /// # Safety\n");
+    out.push_str(
+        "    /// The caller guarantees that bytes were previously accepted by checked MBT access\n",
+    );
+    out.push_str(
+        "    /// for the source schema and then stored or transported without mutation.\n",
+    );
+    out.push_str(&format!(
+        "    pub unsafe fn {trusted_fn}(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {{\n"
+    ));
+    out.push_str(
+        "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
+    );
+    out.push_str(&format!(
+        "        {helper_fn}(archived, max_response_bytes)\n"
+    ));
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "fn {helper_fn}(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        source.payload_type
+    ));
+    out.push_str(&format!(
+        "    let row_count = archived.{}.len() as u64;\n",
+        source.row_field_name
+    ));
+    out.push_str(&format!(
+        "    let payload = {}ProjectionPayloadRef {{\n",
+        projection.marker_type
+    ));
+    let projection_scope = EmitScope::projection(projection_model, &projection.definition.name);
+    out.push_str(&format!(
+        "        schema_version: {},\n",
+        projection_scope.const_name("SCHEMA_VERSION_VALUE")
+    ));
+    out.push_str(&format!(
+        "        {}: {}ProjectionRowsRef {{ rows: &archived.{} }},\n",
+        projection_model.row_field_name, projection.marker_type, source.row_field_name
+    ));
+    out.push_str("    };\n");
+    out.push_str("    let payload_bytes = rkyv::to_bytes::<RkyvError>(&payload).map_err(|_err| TransportError::MalformedArchive(String::new()))?;\n");
+    out.push_str("    let payload_len = payload_bytes.len();\n");
+    out.push_str("    let total_len = HEADER_LEN.checked_add(payload_len).ok_or(TransportError::ResponseTooLarge { observed: usize::MAX, cap: max_response_bytes })?;\n");
+    out.push_str("    if total_len > max_response_bytes { return Err(TransportError::ResponseTooLarge { observed: total_len, cap: max_response_bytes }); }\n");
+    out.push_str(&format!(
+        "    let header = TransportHeader::new_with_schema({}::header_spec(), row_count, payload_len as u64, fnv1a64(&payload_bytes));\n",
+        projection.marker_type
+    ));
+    out.push_str("    let mut header_bytes = [0_u8; HEADER_LEN];\n");
+    out.push_str("    encode_header(&header, &mut header_bytes);\n");
+    out.push_str("    let mut out = Vec::with_capacity(total_len);\n");
+    out.push_str("    out.extend_from_slice(&header_bytes);\n");
+    out.push_str("    out.extend_from_slice(&payload_bytes);\n");
+    out.push_str("    Ok(out)\n");
+    out.push_str("}\n\n");
+}
+
+fn emit_direct_projection_wrappers(
+    out: &mut String,
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+    projection_model: &SchemaModel,
+    helper_fn: &str,
+) {
+    let payload_ref = format!("{}ProjectionPayloadRef", projection.marker_type);
+    let rows_ref = format!("{}ProjectionRowsRef", projection.marker_type);
+    let rows_iter = format!("{}ProjectionRowsIter", projection.marker_type);
+    let row_ref = format!("{}ProjectionRowRef", projection.marker_type);
+    let row_ref_type = if has_direct_borrowed_fields(projection_model) {
+        format!("{row_ref}<'a>")
+    } else {
+        row_ref.clone()
+    };
+
+    out.push_str("#[derive(Archive, RkyvSerialize)]\n");
+    out.push_str(&format!("struct {payload_ref}<'a> {{\n"));
+    out.push_str("    schema_version: u16,\n");
+    out.push_str(&format!(
+        "    {}: {rows_ref}<'a>,\n",
+        projection_model.row_field_name
+    ));
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "struct {rows_ref}<'a> {{ rows: &'a ArchivedVec<<{} as Archive>::Archived> }}\n\n",
+        source.row_type
+    ));
+    out.push_str(&format!("impl<'a> Archive for {rows_ref}<'a> {{\n"));
+    out.push_str(&format!(
+        "    type Archived = ArchivedVec<<{row_ref_type} as Archive>::Archived>;\n"
+    ));
+    out.push_str("    type Resolver = VecResolver;\n");
+    out.push_str("    fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {\n");
+    out.push_str("        ArchivedVec::resolve_from_len(self.rows.len(), resolver, out);\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+    out.push_str(&format!(
+        "impl<'a, S> RkyvSerialize<S> for {rows_ref}<'a>\n"
+    ));
+    out.push_str("where\n");
+    out.push_str("    S: Fallible + Allocator + Writer + ?Sized,\n");
+    out.push_str("    S::Error: Source,\n");
+    out.push_str("{\n");
+    out.push_str("    fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {\n");
+    out.push_str(&format!(
+        "        ArchivedVec::serialize_from_iter::<{row_ref_type}, _, _>({rows_iter} {{ inner: self.rows.as_slice().iter() }}, serializer)\n"
+    ));
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
+
+    out.push_str("#[derive(Clone)]\n");
+    out.push_str(&format!("struct {rows_iter}<'a> {{\n"));
+    out.push_str(&format!(
+        "    inner: core::slice::Iter<'a, <{} as Archive>::Archived>,\n",
+        source.row_type
+    ));
+    out.push_str("}\n\n");
+    out.push_str(&format!("impl<'a> Iterator for {rows_iter}<'a> {{\n"));
+    out.push_str(&format!("    type Item = {row_ref_type};\n"));
+    out.push_str("    fn next(&mut self) -> Option<Self::Item> {\n");
+    out.push_str("        let source = self.inner.next()?;\n");
+    if has_presence(projection_model) {
+        out.push_str(&format!(
+            "        let mut presence_bits = {};\n",
+            empty_presence_expr(projection_model)
+        ));
+        emit_projection_presence_repack(out, source, projection, projection_model, "        ");
+    }
+    out.push_str(&format!("        Some({row_ref} {{\n"));
+    for (field, mapping) in projection_model
+        .fields
+        .iter()
+        .zip(projection.field_mappings.iter())
+    {
+        let source_field = &source.fields[mapping.source_index];
+        out.push_str(&format!(
+            "            {}: {},\n",
+            field.rust_name,
+            archived_to_direct_value(source_field, "source")
+        ));
+    }
+    if has_presence(projection_model) {
+        out.push_str("            presence_bits,\n");
+    }
+    out.push_str("        })\n");
+    out.push_str("    }\n");
+    out.push_str("    fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }\n");
+    out.push_str("}\n\n");
+    out.push_str(&format!(
+        "impl<'a> ExactSizeIterator for {rows_iter}<'a> {{\n"
+    ));
+    out.push_str("    fn len(&self) -> usize { self.inner.len() }\n");
+    out.push_str("}\n\n");
+
+    out.push_str("#[derive(Archive, RkyvSerialize)]\n");
+    if has_direct_borrowed_fields(projection_model) {
+        out.push_str(&format!("struct {row_ref}<'a> {{\n"));
+    } else {
+        out.push_str(&format!("struct {row_ref} {{\n"));
+    }
+    for field in &projection_model.fields {
+        emit_direct_projection_row_field(out, field);
+    }
+    if has_presence(projection_model) {
+        out.push_str(&format!(
+            "    presence_bits: {},\n",
+            presence_storage_type(projection_model)
+        ));
+    }
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "const _: fn(&Archived{}, usize) -> Result<Vec<u8>> = {helper_fn};\n\n",
+        source.payload_type
+    ));
+}
+
+fn emit_projection_presence_repack(
+    out: &mut String,
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+    projection_model: &SchemaModel,
+    indent: &str,
+) {
+    let source_scope = EmitScope::source(source);
+    let projection_scope = EmitScope::projection(projection_model, &projection.definition.name);
+    for (field, mapping) in projection_model
+        .fields
+        .iter()
+        .zip(projection.field_mappings.iter())
+    {
+        if mapping.projected_presence_bit.is_none() {
+            continue;
+        }
+        let source_field = &source.fields[mapping.source_index];
+        let predicate =
+            archived_presence_has_expr(&source_scope, "source.presence_bits", source_field);
+        if presence_is_wide(projection_model) {
+            out.push_str(&format!(
+                "{indent}if {predicate} {{ presence_bits[{}] |= {}; }}\n",
+                presence_word_const(&projection_scope, field),
+                presence_mask_const(&projection_scope, field)
+            ));
+        } else {
+            out.push_str(&format!(
+                "{indent}if {predicate} {{ presence_bits |= {}; }}\n",
+                presence_const(&projection_scope, field)
+            ));
+        }
+    }
+}
+
+fn empty_presence_expr(model: &SchemaModel) -> String {
+    if presence_is_wide(model) {
+        format!("[0_u64; {}]", presence_words(model))
+    } else {
+        "0_u64".to_string()
+    }
+}
+
+fn emit_direct_projection_row_field(out: &mut String, field: &PhysicalField) {
+    match field.kind {
+        FieldKind::RawString => {
+            out.push_str("    #[rkyv(with = rkyv::with::AsString)]\n");
+            out.push_str(&format!("    {}: &'a str,\n", field.rust_name));
+        }
+        FieldKind::Bytes => {
+            out.push_str("    #[rkyv(with = rkyv::with::AsVec)]\n");
+            out.push_str(&format!("    {}: &'a [u8],\n", field.rust_name));
+        }
+        FieldKind::I64Array => out.push_str(&format!(
+            "    {}: DirectI64ArrayRef<'a>,\n",
+            field.rust_name
+        )),
+        FieldKind::I32Array => out.push_str(&format!(
+            "    {}: DirectI32ArrayRef<'a>,\n",
+            field.rust_name
+        )),
+        FieldKind::U32Array => out.push_str(&format!(
+            "    {}: DirectU32ArrayRef<'a>,\n",
+            field.rust_name
+        )),
+        FieldKind::F64Array => out.push_str(&format!(
+            "    {}: DirectF64ArrayRef<'a>,\n",
+            field.rust_name
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "    {}: DirectF32ArrayRef<'a>,\n",
+            field.rust_name
+        )),
+        _ => out.push_str(&format!(
+            "    {}: {},\n",
+            field.rust_name,
+            rust_field_type(field)
+        )),
+    }
+}
+
+fn has_direct_borrowed_fields(model: &SchemaModel) -> bool {
+    model.fields.iter().any(|field| {
+        matches!(
+            field.kind,
+            FieldKind::Bytes
+                | FieldKind::RawString
+                | FieldKind::I64Array
+                | FieldKind::I32Array
+                | FieldKind::U32Array
+                | FieldKind::F64Array
+                | FieldKind::F32Array
+        )
+    })
+}
+
+fn archived_to_direct_value(field: &PhysicalField, row: &str) -> String {
+    let access = format!("{row}.{}", field.rust_name);
+    match field.kind {
+        FieldKind::ConstU16 { .. }
+        | FieldKind::U16Dictionary { .. }
+        | FieldKind::U64BitmaskDictionary { .. }
+        | FieldKind::I32
+        | FieldKind::U32
+        | FieldKind::I64
+        | FieldKind::F32
+        | FieldKind::F64 => format!("{access}.to_native()"),
+        FieldKind::Bool => access,
+        FieldKind::Bytes => format!("{access}.as_slice()"),
+        FieldKind::RawString => format!("{access}.as_str()"),
+        FieldKind::I64Array => format!("DirectI64ArrayRef {{ values: &{access} }}"),
+        FieldKind::I32Array => format!("DirectI32ArrayRef {{ values: &{access} }}"),
+        FieldKind::U32Array => format!("DirectU32ArrayRef {{ values: &{access} }}"),
+        FieldKind::F64Array => format!("DirectF64ArrayRef {{ values: &{access} }}"),
+        FieldKind::F32Array => format!("DirectF32ArrayRef {{ values: &{access} }}"),
+    }
 }
 
 fn presence_fields(model: &SchemaModel) -> Vec<&PhysicalField> {
@@ -1025,56 +2941,62 @@ fn presence_storage_type(model: &SchemaModel) -> String {
     }
 }
 
-fn presence_const(field: &PhysicalField) -> String {
-    format!("PRESENCE_{}", const_name(&field.rust_name))
+fn presence_const(scope: &EmitScope<'_>, field: &PhysicalField) -> String {
+    scope.const_name(&format!("PRESENCE_{}", const_name(&field.rust_name)))
 }
 
-fn presence_word_const(field: &PhysicalField) -> String {
-    format!("{}_WORD", presence_const(field))
+fn presence_word_const(scope: &EmitScope<'_>, field: &PhysicalField) -> String {
+    format!("{}_WORD", presence_const(scope, field))
 }
 
-fn presence_mask_const(field: &PhysicalField) -> String {
-    format!("{}_MASK", presence_const(field))
+fn presence_mask_const(scope: &EmitScope<'_>, field: &PhysicalField) -> String {
+    format!("{}_MASK", presence_const(scope, field))
 }
 
 fn owned_presence_absent_expr(
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     bits_expr: &str,
     field: &PhysicalField,
 ) -> String {
+    let model = scope.model;
     if presence_is_wide(model) {
         format!(
             "{bits_expr}[{}] & {} == 0",
-            presence_word_const(field),
-            presence_mask_const(field)
+            presence_word_const(scope, field),
+            presence_mask_const(scope, field)
         )
     } else {
-        format!("{bits_expr} & {} == 0", presence_const(field))
+        format!("{bits_expr} & {} == 0", presence_const(scope, field))
     }
 }
 
 fn archived_presence_has_expr(
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     bits_expr: &str,
     field: &PhysicalField,
 ) -> String {
+    let model = scope.model;
     if presence_is_wide(model) {
         format!(
             "{bits_expr}[{}].to_native() & {} != 0",
-            presence_word_const(field),
-            presence_mask_const(field)
+            presence_word_const(scope, field),
+            presence_mask_const(scope, field)
         )
     } else {
-        format!("{bits_expr}.to_native() & {} != 0", presence_const(field))
+        format!(
+            "{bits_expr}.to_native() & {} != 0",
+            presence_const(scope, field)
+        )
     }
 }
 
-fn presence_error_expr(model: &SchemaModel, bits_expr: &str, field: &PhysicalField) -> String {
+fn presence_error_expr(scope: &EmitScope<'_>, bits_expr: &str, field: &PhysicalField) -> String {
+    let model = scope.model;
     if presence_is_wide(model) {
         format!(
             "TransportError::InvalidPresenceWord {{ word: {}, value: {bits_expr}[{}] }}",
-            presence_word_const(field),
-            presence_word_const(field)
+            presence_word_const(scope, field),
+            presence_word_const(scope, field)
         )
     } else {
         format!("TransportError::InvalidPresenceBits({bits_expr})")

@@ -1,2 +1,1 @@
-#[test]
-fn skeleton_compiles() {}
+mod test_runtime;

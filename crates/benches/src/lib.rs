@@ -1,7 +1,10 @@
 #![forbid(unsafe_code)]
 //! Benchmark ownership boundary.
 //!
-//! Benchmark fixtures are implemented only by later approved specs.
+//! Benchmark fixtures and report writers live here so binaries only own timing
+//! boundaries and any required trusted-access calls.
+
+pub mod projection;
 
 #[cfg(test)]
 mod tests;

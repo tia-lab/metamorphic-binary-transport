@@ -13,6 +13,19 @@ pub enum Action {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Surface {
     Core,
+    Projection,
+    Metamorphose,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Adapter {
+    Json,
+    Protobuf,
+    Csv,
+    Transponding,
+    Arrow,
+    ArrowIpc,
+    Parquet,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,6 +36,7 @@ pub struct CodegenConfig {
     pub root: String,
     pub module: String,
     pub surface: Surface,
+    pub adapter: Option<Adapter>,
     pub out: Option<PathBuf>,
 }
 
@@ -56,6 +70,7 @@ where
     let mut root = None;
     let mut module = None;
     let mut surface = None;
+    let mut adapter = None;
     let mut out = None;
     let mut idx = 0;
 
@@ -97,12 +112,34 @@ where
             }
             "--surface" => {
                 let value = next_arg(&args, idx, "--surface")?;
-                if value != "core" {
-                    return Err(CodegenError::UnsupportedArgument(format!(
-                        "unsupported --surface {value}"
-                    )));
-                }
-                surface = Some(Surface::Core);
+                surface = Some(match value {
+                    "core" => Surface::Core,
+                    "projection" => Surface::Projection,
+                    "metamorphose" => Surface::Metamorphose,
+                    _ => {
+                        return Err(CodegenError::UnsupportedArgument(format!(
+                            "unsupported --surface {value}"
+                        )));
+                    }
+                });
+                idx += 2;
+            }
+            "--adapter" => {
+                let value = next_arg(&args, idx, "--adapter")?;
+                adapter = Some(match value {
+                    "json" => Adapter::Json,
+                    "protobuf" => Adapter::Protobuf,
+                    "csv" => Adapter::Csv,
+                    "transponding" => Adapter::Transponding,
+                    "arrow" => Adapter::Arrow,
+                    "arrow-ipc" => Adapter::ArrowIpc,
+                    "parquet" => Adapter::Parquet,
+                    _ => {
+                        return Err(CodegenError::UnsupportedArgument(format!(
+                            "unsupported --adapter {value}"
+                        )));
+                    }
+                });
                 idx += 2;
             }
             "--out" => {
@@ -128,8 +165,24 @@ where
     let module =
         module.ok_or_else(|| CodegenError::UnsupportedArgument("missing --module".to_string()))?;
     validate_module_name(&module)?;
-    let surface = surface
-        .ok_or_else(|| CodegenError::UnsupportedArgument("missing --surface core".to_string()))?;
+    let surface = surface.ok_or_else(|| {
+        CodegenError::UnsupportedArgument(
+            "missing --surface core|projection|metamorphose".to_string(),
+        )
+    })?;
+    match (surface, adapter) {
+        (Surface::Metamorphose, None) => {
+            return Err(CodegenError::UnsupportedArgument(
+                "--adapter is required with --surface metamorphose".to_string(),
+            ));
+        }
+        (Surface::Core | Surface::Projection, Some(_)) => {
+            return Err(CodegenError::UnsupportedArgument(
+                "--adapter is forbidden unless --surface metamorphose".to_string(),
+            ));
+        }
+        _ => {}
+    }
 
     match (action, out.as_ref()) {
         (Action::Inspect, Some(_)) => {
@@ -152,6 +205,7 @@ where
         root,
         module,
         surface,
+        adapter,
         out,
     })
 }

@@ -15,6 +15,35 @@ fn generated_core_source_is_deterministic_and_core_only() -> Result<()> {
 }
 
 #[test]
+fn core_surface_ignores_projection_declarations_and_emits_no_projection_symbols() -> Result<()> {
+    let source = run_codegen_to_string(valid_alias_and_projection_ignored_proto())?;
+    assert!(source.contains("pub struct FixtureV1;"));
+    assert!(source.contains("pub struct FixtureV1View<'a>"));
+    assert!(!source.contains("SmallProjection"));
+    assert!(!source.contains("project_small"));
+    assert_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn projection_surface_emits_projected_schema_and_source_projection_api() -> Result<()> {
+    let source = run_projection_codegen_to_string(valid_alias_and_projection_ignored_proto())?;
+    assert!(source.contains("pub struct FixtureV1;"));
+    assert!(source.contains("pub struct SmallProjection;"));
+    assert!(source.contains("pub fn project_small("));
+    assert!(source.contains("pub unsafe fn project_small_trusted_unchecked("));
+    assert!(source.contains("SMALL_SCHEMA_HEADER"));
+    assert!(source.contains("test.alias.v1.small"));
+    assert!(!source.contains("metamorphose"));
+    assert!(!source.contains("transpond"));
+    assert!(!source.contains("arrow"));
+    assert!(!source.contains("parquet"));
+    assert!(!source.contains("serde_json"));
+    assert!(!source.contains("prost"));
+    Ok(())
+}
+
+#[test]
 fn generated_wide_presence_source_has_presence_words() -> Result<()> {
     let source = run_codegen_to_string(&valid_wide_presence_proto())?;
     assert!(source.contains("pub fn presence_words(&self)"));

@@ -1,0 +1,57 @@
+module=test_compatibility_v1
+proto=mathilde/binary_transport/test_compatibility/v1/all_fields.proto
+root=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mathilde.test_compatibility.v1
+payload_root=true
+schema_hash=3233278346470496550
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=1531
+projection=no_optional marker=TestCompatibilityV1NoOptional
+projection=numeric_only marker=TestCompatibilityV1NumericOnly
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=venue values=binance,bybit,okx
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.close_ms rust_name=close_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.venues rust_name=venues_mask kind=U64BitmaskDictionary { dictionary: "venue" } presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mathilde.binary_transport.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=close_ms

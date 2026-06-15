@@ -24,10 +24,46 @@ pub struct SchemaModel {
     pub transport_name: String,
     pub payload_root: bool,
     pub row_field_name: String,
+    pub row_field_number: u32,
     pub dictionaries: Vec<Dictionary>,
     pub fields: Vec<PhysicalField>,
     pub key_parts: Vec<KeyPart>,
     pub normalized_schema_hash: u64,
+    pub projections: Vec<ProjectionModel>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectionDefinitionModel {
+    pub name: String,
+    pub rust_marker: String,
+    pub include_groups: Vec<String>,
+    pub exclude_groups: Vec<String>,
+    pub include_fields: Vec<String>,
+    pub exclude_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectionFieldMapping {
+    pub source_index: usize,
+    pub source_presence_bit: Option<u32>,
+    pub projected_presence_bit: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectionModel {
+    pub definition: ProjectionDefinitionModel,
+    pub marker_type: String,
+    pub payload_type: String,
+    pub row_type: String,
+    pub view_type: String,
+    pub rows_iter_type: String,
+    pub archived_row_type: String,
+    pub transport_name: String,
+    pub dictionaries: Vec<Dictionary>,
+    pub fields: Vec<PhysicalField>,
+    pub key_parts: Vec<KeyPart>,
+    pub normalized_schema_hash: u64,
+    pub field_mappings: Vec<ProjectionFieldMapping>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,6 +72,7 @@ pub struct PhysicalField {
     pub logical_path: String,
     pub proto_name: String,
     pub rust_name: String,
+    pub proto_number: u32,
     pub kind: FieldKind,
     pub presence_bit: Option<u32>,
     pub key_order: Option<u32>,

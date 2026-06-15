@@ -7,4 +7,42 @@ publish = false
 
 [dependencies]
 metamorphic_binary_transport_core = { path = "../../core" }
+metamorphic_binary_transport_metamorphose = { path = "../../metamorphose", optional = true }
+metamorphic_binary_transport_transponding = { path = "../../transponding", optional = true }
+metamorphic_binary_transport_adapter_json = { path = "../../adapters/json", optional = true }
+metamorphic_binary_transport_adapter_protobuf = { path = "../../adapters/protobuf", optional = true }
+metamorphic_binary_transport_adapter_csv = { path = "../../adapters/csv", optional = true }
+metamorphic_binary_transport_adapter_arrow = { path = "../../adapters/arrow", optional = true }
+metamorphic_binary_transport_adapter_arrow_ipc = { path = "../../adapters/arrow_ipc", optional = true }
+metamorphic_binary_transport_adapter_parquet = { path = "../../adapters/parquet", optional = true }
 rkyv = "=0.8.16"
+
+[features]
+default = []
+json = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_adapter_json",
+]
+protobuf = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_adapter_protobuf",
+]
+csv = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_adapter_csv",
+]
+arrow = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_transponding",
+    "dep:metamorphic_binary_transport_adapter_arrow",
+]
+arrow_ipc = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_transponding",
+    "dep:metamorphic_binary_transport_adapter_arrow_ipc",
+]
+parquet = [
+    "dep:metamorphic_binary_transport_metamorphose",
+    "dep:metamorphic_binary_transport_transponding",
+    "dep:metamorphic_binary_transport_adapter_parquet",
+]

@@ -8,8 +8,9 @@ use prost_reflect::{Cardinality, DescriptorPool, FieldDescriptor, Kind, MessageD
 use crate::config::SchemaRequest;
 use crate::error::{CodegenError, Result};
 use crate::model::{
-    Dictionary, FieldKind, KeyPart, PhysicalField, SchemaModel, field_kind_hash_name,
-    module_marker_type, payload_type_from_root, rust_type_name,
+    Dictionary, FieldKind, KeyPart, PhysicalField, ProjectionDefinitionModel,
+    ProjectionFieldMapping, ProjectionModel, SchemaModel, field_kind_hash_name, module_marker_type,
+    payload_type_from_root, rust_type_name,
 };
 use crate::options::{
     MbtExtensions, dictionary_from_value, extensions, optional_bool, optional_string, optional_u32,
@@ -80,12 +81,15 @@ pub fn load_schema_model(request: &SchemaRequest) -> Result<SchemaModel> {
         transport_name,
         payload_root,
         row_field_name: row_payload.field.name().to_string(),
+        row_field_number: row_payload.field.number(),
         dictionaries,
         fields,
         key_parts,
         normalized_schema_hash: 0,
+        projections: Vec::new(),
     };
     model.normalized_schema_hash = normalized_hash(&model);
+    model.projections = projection_models(&root_options, &extensions, &model)?;
     Ok(model)
 }
 
@@ -291,6 +295,7 @@ fn physical_field(
         logical_path: logical_path.to_string(),
         proto_name: field.name().to_string(),
         rust_name,
+        proto_number: field.number(),
         kind,
         presence_bit,
         key_order,
@@ -438,6 +443,473 @@ fn key_parts(fields: &[PhysicalField]) -> Vec<KeyPart> {
         .collect();
     out.sort_by_key(|part| part.order);
     out
+}
+
+fn projection_models(
+    root_options: &prost_reflect::DynamicMessage,
+    extensions: &MbtExtensions,
+    model: &SchemaModel,
+) -> Result<Vec<ProjectionModel>> {
+    let definitions = projection_definitions(root_options, extensions)?;
+    validate_projection_definitions(&definitions)?;
+    let mut projections = Vec::with_capacity(definitions.len());
+    for definition in definitions {
+        projections.push(build_projection_model(model, definition)?);
+    }
+    Ok(projections)
+}
+
+fn projection_definitions(
+    root_options: &prost_reflect::DynamicMessage,
+    extensions: &MbtExtensions,
+) -> Result<Vec<ProjectionDefinitionModel>> {
+    if !root_options.has_extension(&extensions.projection) {
+        return Ok(Vec::new());
+    }
+    match &*root_options.get_extension(&extensions.projection) {
+        Value::List(values) => {
+            let mut out = Vec::with_capacity(values.len());
+            for value in values {
+                out.push(projection_definition_from_value(value)?);
+            }
+            Ok(out)
+        }
+        other => Err(CodegenError::InvalidOption {
+            name: "projection",
+            reason: format!("unexpected value {other:?}"),
+        }),
+    }
+}
+
+fn projection_definition_from_value(value: &Value) -> Result<ProjectionDefinitionModel> {
+    let Value::Message(message) = value else {
+        return Err(CodegenError::InvalidOption {
+            name: "projection",
+            reason: format!("unexpected value {value:?}"),
+        });
+    };
+    Ok(ProjectionDefinitionModel {
+        name: required_projection_string(message, "name")?,
+        rust_marker: required_projection_string(message, "rust_marker")?,
+        include_groups: projection_string_list(message, "include_group")?,
+        exclude_groups: projection_string_list(message, "exclude_group")?,
+        include_fields: projection_string_list(message, "include_field")?,
+        exclude_fields: projection_string_list(message, "exclude_field")?,
+    })
+}
+
+fn required_projection_string(
+    message: &prost_reflect::DynamicMessage,
+    name: &'static str,
+) -> Result<String> {
+    let Some(value) = message.get_field_by_name(name) else {
+        return Err(CodegenError::MissingOption(name));
+    };
+    match &*value {
+        Value::String(value) if !value.is_empty() => Ok(value.clone()),
+        Value::String(_) => Err(CodegenError::InvalidOption {
+            name,
+            reason: "empty string".to_string(),
+        }),
+        other => Err(CodegenError::InvalidOption {
+            name,
+            reason: format!("unexpected value {other:?}"),
+        }),
+    }
+}
+
+fn projection_string_list(
+    message: &prost_reflect::DynamicMessage,
+    name: &'static str,
+) -> Result<Vec<String>> {
+    let Some(value) = message.get_field_by_name(name) else {
+        return Ok(Vec::new());
+    };
+    match &*value {
+        Value::List(values) => {
+            let mut out = Vec::with_capacity(values.len());
+            for value in values {
+                match value {
+                    Value::String(value) if !value.is_empty() => out.push(value.clone()),
+                    Value::String(_) => {
+                        return Err(CodegenError::InvalidOption {
+                            name,
+                            reason: "empty string".to_string(),
+                        });
+                    }
+                    other => {
+                        return Err(CodegenError::InvalidOption {
+                            name,
+                            reason: format!("unexpected value {other:?}"),
+                        });
+                    }
+                }
+            }
+            Ok(out)
+        }
+        other => Err(CodegenError::InvalidOption {
+            name,
+            reason: format!("unexpected value {other:?}"),
+        }),
+    }
+}
+
+fn validate_projection_definitions(definitions: &[ProjectionDefinitionModel]) -> Result<()> {
+    let mut names = Vec::new();
+    let mut markers = Vec::new();
+    for definition in definitions {
+        validate_projection_name(&definition.name)?;
+        validate_rust_marker(&definition.rust_marker)?;
+        if names.iter().any(|name| name == &definition.name) {
+            return Err(CodegenError::InvalidOption {
+                name: "projection.name",
+                reason: format!("duplicate projection {}", definition.name),
+            });
+        }
+        if markers
+            .iter()
+            .any(|marker| marker == &definition.rust_marker)
+        {
+            return Err(CodegenError::InvalidOption {
+                name: "projection.rust_marker",
+                reason: format!("duplicate marker {}", definition.rust_marker),
+            });
+        }
+        names.push(definition.name.clone());
+        markers.push(definition.rust_marker.clone());
+    }
+    Ok(())
+}
+
+fn validate_projection_name(name: &str) -> Result<()> {
+    if name.is_empty() {
+        return Err(CodegenError::InvalidOption {
+            name: "projection.name",
+            reason: "empty projection name".to_string(),
+        });
+    }
+    let mut previous_underscore = false;
+    for (idx, ch) in name.chars().enumerate() {
+        let valid = ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '_';
+        if !valid || (idx == 0 && (ch.is_ascii_digit() || ch == '_')) {
+            return Err(CodegenError::InvalidOption {
+                name: "projection.name",
+                reason: format!("invalid projection name {name}"),
+            });
+        }
+        if ch == '_' {
+            if previous_underscore {
+                return Err(CodegenError::InvalidOption {
+                    name: "projection.name",
+                    reason: format!("invalid projection name {name}"),
+                });
+            }
+            previous_underscore = true;
+        } else {
+            previous_underscore = false;
+        }
+    }
+    if previous_underscore {
+        return Err(CodegenError::InvalidOption {
+            name: "projection.name",
+            reason: format!("invalid projection name {name}"),
+        });
+    }
+    Ok(())
+}
+
+fn validate_rust_marker(marker: &str) -> Result<()> {
+    let mut chars = marker.chars();
+    let Some(first) = chars.next() else {
+        return Err(CodegenError::InvalidOption {
+            name: "projection.rust_marker",
+            reason: "empty marker".to_string(),
+        });
+    };
+    if !first.is_ascii_uppercase() {
+        return Err(CodegenError::InvalidOption {
+            name: "projection.rust_marker",
+            reason: format!("invalid marker {marker}"),
+        });
+    }
+    if !chars.all(|ch| ch.is_ascii_alphanumeric()) {
+        return Err(CodegenError::InvalidOption {
+            name: "projection.rust_marker",
+            reason: format!("invalid marker {marker}"),
+        });
+    }
+    Ok(())
+}
+
+fn build_projection_model(
+    model: &SchemaModel,
+    definition: ProjectionDefinitionModel,
+) -> Result<ProjectionModel> {
+    let selected_indices = selected_projection_indices(model, &definition)?;
+    let mut fields = Vec::with_capacity(selected_indices.len());
+    let mut field_mappings = Vec::with_capacity(selected_indices.len());
+    let mut next_presence = 0_u32;
+    for source_index in selected_indices {
+        let source = model.fields[source_index].clone();
+        let source_presence_bit = source.presence_bit;
+        let projected_presence_bit = if source_presence_bit.is_some() {
+            let bit = next_presence;
+            next_presence = next_presence.checked_add(1).ok_or_else(|| {
+                CodegenError::InvalidSchema("projection presence bit overflow".to_string())
+            })?;
+            Some(bit)
+        } else {
+            None
+        };
+        let mut projected = source;
+        projected.presence_bit = projected_presence_bit;
+        if let FieldKind::U16Dictionary { optional, .. } = &mut projected.kind {
+            *optional = projected_presence_bit.is_some();
+        }
+        fields.push(projected);
+        field_mappings.push(ProjectionFieldMapping {
+            source_index,
+            source_presence_bit,
+            projected_presence_bit,
+        });
+    }
+    validate_projection_fields(model, &fields)?;
+    let key_parts = key_parts(&fields);
+    let dictionaries = selected_dictionaries(&model.dictionaries, &fields);
+    let marker_type = definition.rust_marker.clone();
+    let suffix = projection_suffix(&model.marker_type, &marker_type);
+    let payload_type = format!("{}{}", model.payload_type, suffix);
+    let row_type = format!("{}{}", model.row_type, suffix);
+    let view_type = format!("{marker_type}View");
+    let rows_iter_type = format!("{marker_type}Rows");
+    let archived_row_type = format!("Archived{marker_type}Row");
+    let transport_name = format!("{}.{}", model.transport_name, definition.name);
+    let mut projection = ProjectionModel {
+        definition,
+        marker_type,
+        payload_type,
+        row_type,
+        view_type,
+        rows_iter_type,
+        archived_row_type,
+        transport_name,
+        dictionaries,
+        fields,
+        key_parts,
+        normalized_schema_hash: 0,
+        field_mappings,
+    };
+    projection.normalized_schema_hash = projection_hash(model, &projection);
+    Ok(projection)
+}
+
+fn selected_projection_indices(
+    model: &SchemaModel,
+    definition: &ProjectionDefinitionModel,
+) -> Result<Vec<usize>> {
+    for group in definition
+        .include_groups
+        .iter()
+        .chain(definition.exclude_groups.iter())
+    {
+        if !model
+            .fields
+            .iter()
+            .any(|field| field.projection_group.as_deref() == Some(group.as_str()))
+        {
+            return Err(CodegenError::InvalidOption {
+                name: "projection.group",
+                reason: format!("unknown projection group {group}"),
+            });
+        }
+    }
+
+    let mut selected = vec![false; model.fields.len()];
+    for (idx, field) in model.fields.iter().enumerate() {
+        if is_mandatory_projection_field(field) {
+            selected[idx] = true;
+        }
+    }
+
+    let has_includes =
+        !definition.include_groups.is_empty() || !definition.include_fields.is_empty();
+    if has_includes {
+        for group in &definition.include_groups {
+            for (idx, field) in model.fields.iter().enumerate() {
+                if field.projection_group.as_deref() == Some(group.as_str()) {
+                    selected[idx] = true;
+                }
+            }
+        }
+        for field_name in &definition.include_fields {
+            let idx = field_index_by_declared_name(&model.fields, field_name)?;
+            selected[idx] = true;
+        }
+    } else {
+        selected.fill(true);
+    }
+
+    for group in &definition.exclude_groups {
+        for (idx, field) in model.fields.iter().enumerate() {
+            if field.projection_group.as_deref() == Some(group.as_str()) {
+                selected[idx] = false;
+            }
+        }
+    }
+    for field_name in &definition.exclude_fields {
+        let idx = field_index_by_declared_name(&model.fields, field_name)?;
+        selected[idx] = false;
+    }
+
+    for (idx, field) in model.fields.iter().enumerate() {
+        if is_mandatory_projection_field(field) {
+            selected[idx] = true;
+        }
+    }
+
+    Ok(selected
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, keep)| keep.then_some(idx))
+        .collect())
+}
+
+fn field_index_by_declared_name(fields: &[PhysicalField], name: &str) -> Result<usize> {
+    let matches: Vec<usize> = fields
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, field)| {
+            (field.logical_path == name || field.proto_name == name || field.rust_name == name)
+                .then_some(idx)
+        })
+        .collect();
+    match matches.as_slice() {
+        [idx] => Ok(*idx),
+        [] => Err(CodegenError::InvalidOption {
+            name: "projection.field",
+            reason: format!("unknown projection field {name}"),
+        }),
+        _ => Err(CodegenError::InvalidOption {
+            name: "projection.field",
+            reason: format!("ambiguous projection field {name}"),
+        }),
+    }
+}
+
+fn is_mandatory_projection_field(field: &PhysicalField) -> bool {
+    matches!(field.kind, FieldKind::ConstU16 { .. }) || field.key_order.is_some()
+}
+
+fn validate_projection_fields(model: &SchemaModel, fields: &[PhysicalField]) -> Result<()> {
+    if !fields
+        .iter()
+        .any(|field| matches!(field.kind, FieldKind::ConstU16 { .. }))
+    {
+        return Err(CodegenError::InvalidSchema(
+            "projected schema has no const_u16 schema version field".to_string(),
+        ));
+    }
+    if !model.key_parts.is_empty() && !fields.iter().any(|field| field.key_order.is_some()) {
+        return Err(CodegenError::InvalidSchema(
+            "projected schema has no deterministic key field".to_string(),
+        ));
+    }
+    validate_physical_fields(fields)
+}
+
+fn selected_dictionaries(dictionaries: &[Dictionary], fields: &[PhysicalField]) -> Vec<Dictionary> {
+    dictionaries
+        .iter()
+        .filter(|dictionary| {
+            fields.iter().any(|field| match &field.kind {
+                FieldKind::U16Dictionary {
+                    dictionary: used, ..
+                }
+                | FieldKind::U64BitmaskDictionary { dictionary: used } => used == &dictionary.name,
+                _ => false,
+            })
+        })
+        .cloned()
+        .collect()
+}
+
+fn projection_suffix(source_marker: &str, projection_marker: &str) -> String {
+    projection_marker
+        .strip_prefix(source_marker)
+        .filter(|suffix| !suffix.is_empty())
+        .map_or_else(|| projection_marker.to_string(), ToString::to_string)
+}
+
+fn projection_hash(source: &SchemaModel, projection: &ProjectionModel) -> u64 {
+    let mut text = String::new();
+    text.push_str("projection_schema:\n");
+    text.push_str(&format!(
+        "source_schema_hash:{}\n",
+        source.normalized_schema_hash
+    ));
+    text.push_str(&format!("source_schema_id:{}\n", source.schema_id));
+    text.push_str(&format!(
+        "source_schema_version:{}\n",
+        source.schema_version
+    ));
+    text.push_str(&format!(
+        "source_schema_version_value:{}\n",
+        source.schema_version_value
+    ));
+    text.push_str(&format!(
+        "source_transport_name:{}\n",
+        source.transport_name
+    ));
+    text.push_str(&format!("projection_name:{}\n", projection.definition.name));
+    text.push_str(&format!(
+        "projection_rust_marker:{}\n",
+        projection.definition.rust_marker
+    ));
+    text.push_str(&format!(
+        "projected_transport_name:{}\n",
+        projection.transport_name
+    ));
+    text.push_str(&format!("projected_row_type:{}\n", projection.row_type));
+    for dictionary in &projection.dictionaries {
+        text.push_str(&format!("projection_dictionary:{}\n", dictionary.name));
+        for value in &dictionary.values {
+            text.push_str(&format!("dictionary_value:{value}\n"));
+        }
+    }
+    for field in &projection.fields {
+        let dictionary_name = match &field.kind {
+            FieldKind::U16Dictionary { dictionary, .. }
+            | FieldKind::U64BitmaskDictionary { dictionary } => dictionary.as_str(),
+            _ => "none",
+        };
+        let presence = field
+            .presence_bit
+            .map_or_else(|| "none".to_string(), |bit| bit.to_string());
+        let presence_word = field
+            .presence_bit
+            .map_or_else(|| "none".to_string(), |bit| (bit / 64).to_string());
+        let presence_mask = field.presence_bit.map_or_else(
+            || "none".to_string(),
+            |bit| (1_u64 << (bit % 64)).to_string(),
+        );
+        let key = field
+            .key_order
+            .map_or_else(|| "none".to_string(), |order| order.to_string());
+        text.push_str(&format!(
+            "projection_field:{}:{}:{}:{}:{}:{}:{}:{}:{}:{}\n",
+            field.proto_path,
+            field.logical_path,
+            field.proto_name,
+            field.rust_name,
+            field_kind_hash_name(&field.kind),
+            dictionary_name,
+            presence,
+            presence_word,
+            presence_mask,
+            key
+        ));
+    }
+    fnv1a64(text.as_bytes())
 }
 
 fn require_dictionary<'a>(name: &str, dictionaries: &'a [Dictionary]) -> Result<&'a Dictionary> {

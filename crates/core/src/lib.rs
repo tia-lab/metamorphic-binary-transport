@@ -5,6 +5,7 @@
 pub mod codec;
 pub mod envelope;
 pub mod error;
+pub mod output;
 pub mod runtime;
 
 pub use error::Result;
