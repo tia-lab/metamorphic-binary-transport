@@ -19,152 +19,76 @@ Legal Contact: massimo.nicora@wnlegal.ch
 
 Slug: `mbt_bars_regression_benchmark`
 Date: 2026-06-15
-Status: `BLOCKED_BEFORE_CODE`
-Repository: `/home/tia/_DEV/MATHILDE/metamorphic-binary-transport`
+Status: `AMENDED_PER_SPEC_PEER_AUDIT_V3_AWAITING_IMPLEMENTATION_PLAN_PEER_AUDIT_V3`
+
+Primary repository:
+
+```text
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport
+```
+
+Old implementation repository:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments
+```
+
+This plan does not authorize code changes. It must pass a separate
+implementation-plan peer audit and then be explicitly approved before any code
+edit starts.
 
 ## Source Chain
 
 | Artifact | Path | Status |
 |---|---|---|
 | Research brief | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | complete |
-| Spec | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | corrective amendment present |
-| Corrective peer audit | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit.md` | passed |
-| Existing implementation plan | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | superseded for old-baseline parity claims |
-| Existing result review | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md` | non-authoritative for old-baseline parity |
-
-This plan does not authorize code changes. It identifies one blocker that must
-be resolved before implementation can start.
+| Spec | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | corrective parity-port feature amendment present |
+| Corrective peer audit v2 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md` | passed |
+| Corrective peer audit v3 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v3.md` | passed |
+| Existing implementation plan | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | superseded for corrective parity claims |
+| Existing corrective implementation plan | this file before this amendment | superseded; prior status was `BLOCKED_BEFORE_CODE` |
+| Implementation plan peer audit v2 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v2.md` | blocked; spec-plan mismatch resolved by corrective peer audit v3 |
+| Existing result review | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md` | non-authoritative for old-vs-new parity |
 
 ## Goal
 
-Correct the Bars regression benchmark so old-baseline comparisons are
-apple-to-apple against the old tracked benchmark evidence.
+Correct the Bars regression benchmark comparison by adding an old-MBT parity
+benchmark that mirrors the current new split benchmark semantics.
 
-Required corrections:
-
-1. Replace the current projection Bars fixture with an exact bench-only port of
-   the old Bars fixture.
-2. Replace single-pass timing with the old row-label and iteration table.
-3. Parse old semantic checksums from the old markdown baseline and require
-   fixture semantic checksum parity before speed comparison.
-4. Match old timing boundaries for each old-baseline comparison lane.
-5. Mark prior `bars_regression_run_1..3` evidence as method-invalid for old
-   parity claims.
-
-## Blocking Finding
-
-Exact old archived adapter timing for CSV, Arrow IPC, and Parquet cannot be
-implemented with benchmark-crate-only edits.
-
-### Evidence
-
-Old archived lanes excluded archive access from measured total time:
+The accepted comparison is:
 
 ```text
-/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bench.rs
+old MBT implementation + new benchmark semantics
+vs
+new split MBT implementation + same benchmark semantics
 ```
 
-Code-read evidence:
+The plan intentionally does not:
 
-- `metamorphose_arrow_ipc_full_archived` encodes bytes, performs
-  `BarsV1::access_archived(&bytes)` before `total_start`, then times
-  transponding, Arrow, and IPC writing.
-- `metamorphose_parquet_full_archived` encodes bytes, performs
-  `BarsV1::access_archived(&bytes)` before `total_start`, then times
-  transponding, Arrow, and Parquet writing.
-- `metamorphose_csv_full_archived` encodes bytes, performs
-  `BarsV1::access_archived(&bytes)` before `total_start`, then times CSV
-  writing.
+- modify new codegen;
+- add generated archived adapter entrypoints;
+- hand-edit generated files;
+- compare speed against historical `bench_results.md`;
+- change production runtime behavior;
+- compile old non-Bars generated modules or old non-parity benchmark modules
+  for the old parity benchmark command.
 
-Current new workspace public trusted adapter APIs take MBT bytes and perform
-trusted access inside the public call:
+## Evidence From Code Read
 
-```text
-crates/schemas/bars_core/src/bars_v1_csv.rs
-crates/schemas/bars_core/src/bars_v1_arrow_ipc.rs
-crates/schemas/bars_core/src/bars_v1_parquet.rs
-```
-
-Code-read evidence:
-
-- `BarsV1::metamorphose_csv_trusted_unchecked(bytes, ...)` calls
-  `Self::access_archived_trusted_unchecked(bytes)?` inside the function.
-- `BarsV1::metamorphose_arrow_ipc_trusted_unchecked(bytes, ...)` calls
-  `Self::access_archived_trusted_unchecked(bytes)?` inside the function.
-- `BarsV1::metamorphose_parquet_trusted_unchecked(bytes, ...)` calls
-  `Self::access_archived_trusted_unchecked(bytes)?` inside the function.
-
-The direct archived conversion helpers are not public to the benchmark crate:
-
-```text
-crates/schemas/bars_core/src/bars_v1_transponding.rs
-crates/schemas/bars_core/src/bars_v1_arrow_ipc.rs
-crates/schemas/bars_core/src/bars_v1_parquet.rs
-crates/schemas/bars_core/src/bars_v1_csv.rs
-```
-
-Observed visibility:
-
-- `BarsV1::transpond_archived(...)` is `pub(crate)`;
-- `BarsV1ColumnBatch` is `pub(crate)`;
-- `arrow_record_batch(...)` is private;
-- `write_csv_response(...)` is private.
-
-Therefore the benchmark crate cannot reproduce the old archived timing boundary
-without either:
-
-1. changing generated schema or adapter API surface; or
-2. changing the spec to compare the current trusted bytes API boundary instead
-   of the old archived boundary.
-
-## Decision
-
-Implementation is blocked until the spec chooses one of these two paths:
-
-### Path A: Exact old archived boundary
-
-Amend the spec to authorize generated archived adapter entrypoints.
-
-Required generated/public shape, names subject to codegen review:
-
-```rust
-impl BarsV1 {
-    pub fn metamorphose_csv_archived(
-        archived: &ArchivedMathildeTransportResponseV1Payload,
-        max_response_bytes: usize,
-    ) -> Result<Vec<u8>>;
-
-    pub fn metamorphose_arrow_ipc_archived(
-        archived: &ArchivedMathildeTransportResponseV1Payload,
-        max_response_bytes: usize,
-    ) -> Result<Vec<u8>>;
-
-    pub fn metamorphose_parquet_archived(
-        archived: &ArchivedMathildeTransportResponseV1Payload,
-        max_response_bytes: usize,
-    ) -> Result<Vec<u8>>;
-}
-```
-
-If this path is chosen, the codegen spec and implementation plan must also
-bind whether these archived entrypoints are public production API or
-bench-only/test-only API. They cannot be hand-written into generated files.
-
-### Path B: Current trusted bytes boundary
-
-Amend the spec to compare current trusted bytes APIs against a matching old
-public or otherwise adjusted baseline, not the old archived baseline.
-
-This path is simpler but does not prove exact old archived lane parity.
-
-## Benchmark-Only Corrections After Blocker Resolution
-
-Once the archived-boundary blocker is resolved, the following benchmark-only
-edits are approved by this plan shape and must be re-audited before code.
+| Evidence type | Path | Observed behavior |
+|---|---|---|
+| Code-read evidence | `crates/benches/src/bars_regression.rs` | Current new benchmark still carries historical markdown baseline parsing and fields. |
+| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs` | Current new benchmark parses `OLD_BENCH_RESULTS` before measuring and attaches old markdown comparisons. |
+| Code-read evidence | `crates/benches/src/projection.rs` | Current Bars fixture is deterministic BTCUSDT-only with all generated Bars presence bits set. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars row field names differ for some ordinal fields: `source`, `process`, and `recomputed_reason` instead of new `*_ordinal` names. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars generated code exposes checked JSON/protobuf/CSV/Arrow IPC/Parquet functions and trusted JSON/protobuf functions. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars generated code exposes `access_archived_trusted_unchecked` and crate-internal archived helpers for CSV, Arrow IPC, and Parquet. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs` | Old binary dispatches benchmark subcommands from `main.rs`. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs` | Old benchmark modules are exported from `src/benches/mod.rs`. |
 
 ## Files To Edit
 
-Only these existing files may be edited for the benchmark correction:
+New split repository:
 
 ```text
 crates/benches/src/bars_regression.rs
@@ -173,37 +97,127 @@ crates/benches/src/tests/test_bars_regression_bench_output.rs
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md
 ```
 
-No dependency file edit is required for the benchmark-only correction.
+Old experiments repository:
 
-No production crate source file may be edited under this blocked plan.
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs
+```
+
+No other existing file is approved.
 
 ## Files To Create
 
-Create the corrective result review only after corrective benchmarks run:
+Old experiments repository:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/.gitkeep
+```
+
+New split repository after corrective runs:
 
 ```text
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md
 ```
 
-No new code file is required.
+No generated file may be created or modified.
 
 ## Dependency Changes
 
-No dependency changes are approved.
+No dependency package changes are approved.
 
-`Cargo.lock` must not change for the benchmark-only correction.
+The only `Cargo.toml` edit approved is adding an old-crate feature flag with
+no dependencies:
 
-## Corrective Edit Plan
+```toml
+bars-regression-parity-only = []
+```
 
-### 1. Replace the row source
+The feature is allowed only to limit old-crate compilation for the parity
+benchmark command. It must not change non-featured old-crate behavior.
+
+These files must not change:
+
+```text
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/Cargo.lock
+/home/tia/_DEV/MATHILDE/experiments/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/Cargo.lock
+```
+
+If implementation proves any dependency edit, lockfile edit, or workspace
+manifest edit is required, work must stop and the spec and plan must be
+amended and audited again.
+
+## Implementation Steps
+
+### 0. Add old parity-only compile feature
+
+Edit:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
+```
+
+Required changes:
+
+- add only this old-crate feature:
+
+```toml
+bars-regression-parity-only = []
+```
+
+- under `bars-regression-parity-only`, expose only the old Bars generated
+  modules required by the parity benchmark:
+
+```rust
+pub mod generated {
+    pub mod bars_v1;
+    pub mod bars_v1_proto;
+}
+```
+
+- keep the existing generated module graph unchanged when the feature is not
+  enabled;
+- under `bars-regression-parity-only`, compile only:
+
+```text
+src/benches/bars_regression_parity.rs
+src/tests/test_bars_regression_parity.rs
+the `bench-bars-regression-parity` binary dispatch path
+```
+
+- keep all existing old benchmark modules, test modules, and binary dispatches
+  unchanged when the feature is not enabled;
+- do not edit `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/mod.rs`;
+- do not edit any generated file.
+
+### 1. Remove historical markdown speed comparison from the new benchmark
 
 Edit:
 
 ```text
 crates/benches/src/bars_regression.rs
+crates/benches/src/bin/mbt_bars_regression_bench.rs
+crates/benches/src/tests/test_bars_regression_bench_output.rs
 ```
 
-Current wrong function:
+Required changes:
+
+- remove use of `OLD_BENCH_RESULTS` as a speed baseline;
+- remove the required historical markdown parser from the measured run path;
+- remove mandatory calls to `parse_old_bars_baselines` and
+  `verify_required_old_baselines` from the benchmark binary;
+- keep the current deterministic Bars fixture unchanged:
 
 ```rust
 pub fn bars_rows(row_count: usize) -> Vec<MathildeBarRowV1> {
@@ -211,317 +225,242 @@ pub fn bars_rows(row_count: usize) -> Vec<MathildeBarRowV1> {
 }
 ```
 
-Required replacement:
+- keep current labels exactly:
 
 ```text
-bars_rows(row_count: usize) -> BenchResult<Vec<MathildeBarRowV1>>
+bars_mbt_full_encode_inspect_checked
+bars_metamorphose_json_checked
+bars_metamorphose_protobuf_checked
+bars_metamorphose_csv_checked
+bars_metamorphose_json_trusted
+bars_metamorphose_protobuf_trusted
+bars_metamorphose_csv_trusted
+bars_metamorphose_arrow_ipc_trusted
+bars_metamorphose_parquet_trusted
+bars_serde_json_baseline
 ```
 
-The implementation must port the old fixture from:
+- keep current row counts:
 
 ```text
-/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/fixtures.rs
+1, 100, 500, 1_000, 10_000, 100_000
 ```
 
-Required constants:
+- keep current single-pass timing boundary unless the same change is applied
+  to the old parity port in the same implementation.
+
+The new benchmark may keep optional comparison fields as `null`, but it must
+not populate them from historical `bench_results.md`.
+
+### 2. Create old parity fixture in the old crate
+
+Create:
 
 ```text
-DEFAULT_SEED = 0x4d415448494c4445
-FIRST_CLOSE_MS = 1_546_300_860_000
-BAR_MS = 60_000
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs
 ```
 
-Required RNG:
+The old parity fixture must mirror the current new fixture from:
 
 ```text
-state = state * 6364136223846793005 + 1442695040888963407, wrapping u64
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/crates/benches/src/projection.rs
 ```
 
-Required generated-name mapping:
+Required old row field mapping:
 
-| Old fixture name | New generated name |
+| New fixture field | Old row field |
 |---|---|
-| `TF_1M` | `TIMEFRAME_1M` |
-| `source` | `source_ordinal` |
-| `process` | `process_ordinal` |
-| `recomputed_reason` | `recomputed_reason_ordinal` |
-| `P_VW` | `PRESENCE_VW` |
-| `P_N` | `PRESENCE_N` |
-| `P_PROCESS` | `PRESENCE_PROCESS_ORDINAL` |
-| `P_INGESTED_AT_MS` | `PRESENCE_INGESTED_AT_MS` |
-| `P_TARGET_INGESTED_AT_MS` | `PRESENCE_TARGET_INGESTED_AT_MS` |
-| `P_BUILT_AT_MS` | `PRESENCE_BUILT_AT_MS` |
-| `P_COMMITTED_AT_MS` | `PRESENCE_COMMITTED_AT_MS` |
-| `P_HARMONIZED_AT_MS` | `PRESENCE_HARMONIZED_AT_MS` |
-| `P_RECOMPUTED_AT_MS` | `PRESENCE_RECOMPUTED_AT_MS` |
-| `P_RECOMPUTED_REASON` | `PRESENCE_RECOMPUTED_REASON_ORDINAL` |
-| `P_COVERED_1M_COUNT` | `PRESENCE_COVERED_1M_COUNT` |
-| `P_EXPECTED_1M_COUNT` | `PRESENCE_EXPECTED_1M_COUNT` |
-| `P_COVERAGE_RATIO` | `PRESENCE_COVERAGE_RATIO` |
-| `P_INPUTS_SOURCE_COUNTS_FRONTIER` | `PRESENCE_INPUTS_SOURCE_COUNTS_FRONTIER` |
-| `P_INPUTS_SOURCE_COUNTS_API` | `PRESENCE_INPUTS_SOURCE_COUNTS_API` |
-| `P_INPUTS_SOURCE_COUNTS_SYNTHETIC` | `PRESENCE_INPUTS_SOURCE_COUNTS_SYNTHETIC` |
-| `P_INPUTS_SOURCE_COUNTS_FIX_DATA` | `PRESENCE_INPUTS_SOURCE_COUNTS_FIX_DATA` |
-| `P_FRONTIER_5S_INPUTS_COVERAGE_RATIO` | `PRESENCE_FRONTIER_5S_INPUTS_COVERAGE_RATIO` |
-| `P_FRONTIER_5S_EXPECTED` | `PRESENCE_FRONTIER_5S_EXPECTED` |
-| `P_FRONTIER_5S_SYNTH_N` | `PRESENCE_FRONTIER_5S_SYNTH_N` |
-| `P_FRONTIER_5S_SYNTH_RATIO` | `PRESENCE_FRONTIER_5S_SYNTH_RATIO` |
-| `P_FRONTIER_5S_TRADE_N` | `PRESENCE_FRONTIER_5S_TRADE_N` |
-| `P_FRONTIER_5S_TRADE_RATIO` | `PRESENCE_FRONTIER_5S_TRADE_RATIO` |
-| `P_AGE_MS` | `PRESENCE_AGE_MS` |
+| `schema_version` | `schema_version` |
+| `pair_ordinal = PAIR_BTCUSDT` | `pair_ordinal = PAIR_BTCUSDT` |
+| `tf_ordinal = TIMEFRAME_1M` | `tf_ordinal = TF_1M` |
+| `open_ms` | `open_ms` |
+| `close_ms` | `close_ms` |
+| `o` | `o` |
+| `h` | `h` |
+| `l` | `l` |
+| `c` | `c` |
+| `v` | `v` |
+| `quote_v` | `quote_v` |
+| `taker_known_v` | `taker_known_v` |
+| `taker_signed_v` | `taker_signed_v` |
+| `taker_known_quote_v` | `taker_known_quote_v` |
+| `taker_signed_quote_v` | `taker_signed_quote_v` |
+| `taker_known_n` | `taker_known_n` |
+| `taker_signed_n` | `taker_signed_n` |
+| `vw` | `vw` |
+| `n` | `n` |
+| `source_ordinal = SOURCE_FRONTIER` | `source = SOURCE_FRONTIER` |
+| `process_ordinal = PROCESS_DERIVED` | `process = PROCESS_DERIVED` |
+| `recomputed_reason_ordinal = RECOMPUTED_REASON_CANONICAL_REPAIR` | `recomputed_reason = RECOMPUTE_CANONICAL_REPAIR` |
+| `presence_bits = PRESENCE_ALLOWED_MASK` | `presence_bits = PRESENCE_ALLOWED_MASK` |
 
-Required validation:
+All numeric value formulas must match the current new fixture exactly:
+
+```text
+close_ms = 1_700_000_000_000 + idx * 60_000
+base = 100.0 + (idx % 10_000) * 0.01
+o = base
+h = base + 1.0
+l = base - 1.0
+c = base + 0.25
+v = 1_000.0 + idx
+quote_v = 100_000.0 + idx
+taker_known_v = 500.0 + idx
+taker_signed_v = -10.0 + (idx % 20)
+taker_known_quote_v = 50_000.0 + idx
+taker_signed_quote_v = -1_000.0 + idx
+taker_known_n = idx
+taker_signed_n = idx - 10
+```
+
+The fixture must call old generated row validation before returning rows:
 
 ```rust
-metamorphic_binary_transport_schema_bars::bars_v1::validate_rows(&rows)?;
+crate::generated::bars_v1::validate_rows(&rows)?;
 ```
 
-The fixture must not call `crate::projection::bars_rows`.
+### 3. Implement old parity benchmark lanes
 
-### 2. Add row-count configuration with iterations
-
-Edit:
+Create old benchmark support in:
 
 ```text
-crates/benches/src/bars_regression.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs
 ```
 
-Add a small public config type:
+Required public entrypoint:
+
+```rust
+pub fn run_from_env() -> Result<()>;
+```
+
+Required CLI:
 
 ```text
-RowCountConfig { label: &'static str, rows: usize, iterations: usize }
+mathilde_binary_transport bench-bars-regression-parity --report-dir <path>
 ```
 
-Required configs:
-
-| Label | Rows | Iterations |
-|---|---:|---:|
-| `one` | 1 | 50 |
-| `small` | 100 | 50 |
-| `page_500` | 500 | 50 |
-| `page_1000` | 1,000 | 50 |
-| `medium` | 10,000 | 10 |
-| `large` | 100,000 | 3 |
-
-Keep `ROW_COUNTS` only if existing tests/report metadata still need the row
-array. It must be derived manually from the same values and tested against
-`ROW_CONFIGS`.
-
-### 3. Parse old semantic checksums
-
-Edit:
+Required labels, in order:
 
 ```text
-crates/benches/src/bars_regression.rs
+bars_mbt_full_encode_inspect_checked
+bars_metamorphose_json_checked
+bars_metamorphose_protobuf_checked
+bars_metamorphose_csv_checked
+bars_metamorphose_json_trusted
+bars_metamorphose_protobuf_trusted
+bars_metamorphose_csv_trusted
+bars_metamorphose_arrow_ipc_trusted
+bars_metamorphose_parquet_trusted
+bars_serde_json_baseline
 ```
 
-Extend:
+Required lane boundaries:
 
-```text
-OldBaselineEntry
-parse_old_bars_baselines
-verify_required_old_baselines
-comparison_for
-```
-
-Required parsed columns from old full benchmark markdown rows:
-
-| Field | Old table column |
+| Label | Old implementation boundary |
 |---|---|
-| row label | column 0 |
-| row count | column 1 |
-| format label | column 2 |
-| output bytes | column 3 |
-| total ms | column 4 |
-| rows/sec | column 5 |
-| MB/sec | column 6 |
-| semantic or response checksum | column 12 |
+| `bars_mbt_full_encode_inspect_checked` | time `BarsV1::encode(rows, cap)`, `BarsV1::inspect(&bytes)`, and `response_checksum(&bytes)` |
+| `bars_metamorphose_json_checked` | encode outside timing, then time `BarsV1::metamorphose_json(&encoded, cap)` and checksum |
+| `bars_metamorphose_protobuf_checked` | encode outside timing, then time `BarsV1::metamorphose_protobuf(&encoded, cap)` and checksum |
+| `bars_metamorphose_csv_checked` | encode outside timing, then time `BarsV1::metamorphose_csv(&encoded, cap)` and checksum |
+| `bars_metamorphose_json_trusted` | encode outside timing, then time old `unsafe BarsV1::metamorphose_json_trusted_unchecked(&encoded, cap)` and checksum |
+| `bars_metamorphose_protobuf_trusted` | encode outside timing, then time old `unsafe BarsV1::metamorphose_protobuf_trusted_unchecked(&encoded, cap)` and checksum |
+| `bars_metamorphose_csv_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_csv_archived(archived, cap)` and checksum |
+| `bars_metamorphose_arrow_ipc_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_arrow_ipc_archived(archived, cap)` and checksum |
+| `bars_metamorphose_parquet_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_parquet_archived(archived, cap)` and checksum |
+| `bars_serde_json_baseline` | build DTO outside timing, then time `serde_json::to_vec(&dto_rows)` and checksum |
 
-The parser must fail closed if a required label and row count is missing.
+For old trusted CSV, Arrow IPC, and Parquet, trusted archived access must be
+inside the measured closure because the current new public trusted functions
+also include trusted access inside the call.
 
-For `mathilde_binary_generated`, the checksum is the semantic checksum produced
-by old `BarsV1::inspect`. The corrective benchmark must require the new fixture
-semantic checksum to match this checksum before calculating old speed ratios.
+Required output path pattern:
 
-### 4. Replace single-pass measurement with accumulated measurement
+```text
+crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_N.json
+```
+
+The writer must refuse to overwrite an existing run file.
+
+### 4. Wire old benchmark dispatch
 
 Edit:
 
 ```text
-crates/benches/src/bin/mbt_bars_regression_bench.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
 ```
 
-Current wrong shape:
+Required `mod.rs` export:
+
+```rust
+pub mod bars_regression_parity;
+```
+
+Under `bars-regression-parity-only`, `src/benches/mod.rs` must compile only
+`bars_regression_parity`. Without the feature, all existing old benchmark
+module exports must remain unchanged.
+
+Required `main.rs` dispatch:
+
+```rust
+Some("bench-bars-regression-parity") => bars_regression_parity::run_from_env(),
+```
+
+Under `bars-regression-parity-only`, `src/main.rs` must accept only the
+`bench-bars-regression-parity` command. Without the feature, all existing
+subcommands must remain unchanged.
+
+### 5. Add old parity tests
+
+Create:
 
 ```text
-for row_count in ROW_COUNTS:
-    measure each label once
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs
 ```
-
-Required shape:
-
-```text
-for config in ROW_CONFIGS:
-    generate fixture rows once outside measured timing
-    build serde DTO rows once outside measured timing
-    for each label:
-        run config.iterations iterations
-        accumulate output bytes
-        track max single output bytes
-        accumulate measured total time
-        compute rows/sec from config.rows * config.iterations
-        compute MB/sec from accumulated output bytes
-```
-
-Add a local accumulator in the binary or support module:
-
-```text
-LaneAccumulator
-```
-
-Required accumulator fields:
-
-```text
-output_bytes
-max_output_bytes
-total_milliseconds
-response_checksum
-response_checksum_stable
-semantic_checksum
-semantic_checksum_stable
-minimal_projection_checksum
-minimal_projection_checksum_stable
-```
-
-Do not average per-iteration rows/sec.
-
-### 5. Preserve old setup boundaries
-
-For full MBT:
-
-```text
-timed:
-  BarsV1::encode(rows, MAX_RESPONSE_BYTES)
-  BarsV1::inspect(&bytes)
-  response_checksum(&bytes)
-```
-
-For current serde JSON baseline:
-
-```text
-outside timing:
-  fixture row generation
-  SerdeBarRow conversion
-timed:
-  serde_json::to_vec(&serde_rows)
-  response_checksum(&bytes)
-```
-
-For checked JSON/protobuf:
-
-```text
-outside timing:
-  BarsV1::encode(rows, MAX_RESPONSE_BYTES)
-timed:
-  BarsV1::metamorphose_json(&encoded, MAX_RESPONSE_BYTES)
-  BarsV1::metamorphose_protobuf(&encoded, MAX_RESPONSE_BYTES)
-  response_checksum(&bytes)
-```
-
-Important limitation:
-
-The old JSON/protobuf lanes included old decode checksum work inside the timed
-total. The current workspace does not provide old-equivalent JSON/protobuf
-decode checksum helpers in this benchmark. The corrective result review must
-state this limitation unless a later spec adds exact decode-oracle parity.
-
-For trusted CSV, Arrow IPC, and Parquet:
-
-Exact old archived timing is blocked until the spec resolves Path A or Path B
-from this plan's blocking finding.
-
-### 6. Update JSON report fields
 
 Edit:
 
 ```text
-crates/benches/src/bars_regression.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs
 ```
 
-Extend `BarsRegressionRow` and JSON writer with:
+Required test coverage:
 
-```text
-row_label
-iterations
-max_output_bytes
-old_semantic_checksum
-semantic_checksum_matches_old
-response_checksum_stable
-semantic_checksum_stable
-minimal_projection_checksum_stable
-```
+- required labels match the exact spec list;
+- required row counts are `1, 100, 500, 1_000, 10_000, 100_000`;
+- selected fixture rows match the current new fixture formulas for row `0`,
+  row `1`, and row `10_000` when applicable;
+- writer refuses overwrite;
+- sample JSON report contains metadata and required row fields;
+- old fixture validation succeeds.
 
-Keep existing fields:
+Tests must not use `unwrap`, `expect`, or `panic!`.
 
-```text
-label
-row_count
-output_bytes
-total_milliseconds
-rows_per_second
-mb_per_second
-response_checksum
-semantic_checksum
-minimal_projection_checksum
-old_baseline_label
-old_crate_comparison
-serde_json_comparison
-```
+Under `bars-regression-parity-only`, `src/tests/mod.rs` must compile only
+`test_bars_regression_parity`. Without the feature, all existing old test
+module exports must remain unchanged.
 
-The report writer must reject:
-
-- zero output bytes;
-- non-finite timing or throughput;
-- unstable response checksums for repeated deterministic iterations;
-- unstable semantic checksum when semantic checksum exists;
-- full MBT semantic checksum mismatch against old `mathilde_binary_generated`.
-
-### 7. Update tests
+### 6. Update new benchmark tests and metadata
 
 Edit:
 
 ```text
 crates/benches/src/tests/test_bars_regression_bench_output.rs
+crates/benches/src/bars_regression.rs
 ```
 
-Required test changes:
+Required changes:
 
-1. `required_old_baselines_are_found`
-   - verify old label, row count, rows/sec, MB/sec, and checksum are parsed.
-2. New `old_fixture_matches_old_mbt_checksums`
-   - for each `ROW_CONFIGS` row count:
-     - generate rows through corrected `bars_rows`;
-     - encode with `BarsV1::encode`;
-     - inspect with `BarsV1::inspect`;
-     - compare semantic checksum with old `mathilde_binary_generated`.
-3. `required_labels_are_exact`
-   - verify labels remain unchanged;
-   - verify row configs and iteration counts.
-4. `serde_rows_preserve_selected_fields`
-   - use corrected old fixture rows.
-5. `report_contains_required_fields`
-   - include new JSON fields:
-     - `row_label`;
-     - `iterations`;
-     - `max_output_bytes`;
-     - `old_semantic_checksum`;
-     - `semantic_checksum_matches_old`;
-     - checksum stability flags.
+- remove tests that require historical old markdown baselines;
+- keep tests for current labels, row counts, report overwrite refusal, and
+  serde DTO conversion;
+- update metadata from historical baseline path to old parity evidence glob:
 
-All tests must stay panic-free and must not use `unwrap`, `expect`, or
-`assert_eq!`.
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_*.json
+```
 
-### 8. Update result review status
+### 7. Update result review status
 
 Edit:
 
@@ -529,25 +468,54 @@ Edit:
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md
 ```
 
-Before new benchmark runs, amend status to:
+Before new benchmark runs, set status to:
 
 ```text
-RESULT_REVIEW_SUPERSEDED_BY_CORRECTIVE_SPEC
+RESULT_REVIEW_SUPERSEDED_BY_CORRECTIVE_PARITY_PORT_SPEC
 ```
 
-Add a short correction note:
+The note must state:
 
-- the prior runs used the projection fixture;
-- the prior runs used single-pass timing;
-- the prior old-baseline ratios are not valid parity evidence.
+- historical markdown comparisons are no longer the corrective baseline;
+- the accepted baseline is the old-MBT parity-port benchmark;
+- prior `bars_regression_run_1..3.json` artifacts are not old-vs-new parity
+  evidence until paired with matching old parity-port reports.
 
-After corrective benchmark runs, create:
+### 8. Corrective result review after runs
+
+Create only after validation and benchmark runs:
 
 ```text
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md
 ```
 
-## Validation Commands After Blocker Resolution
+Required comparison method:
+
+- load three old parity reports;
+- load three new split reports;
+- match rows by `label` and `row_count`;
+- require full MBT semantic checksum equality before speed ratios;
+- compute ratio:
+
+```text
+new_rows_per_second / old_parity_rows_per_second
+new_mb_per_second / old_parity_mb_per_second
+```
+
+- report per-run ratios and spread;
+- do not claim stability from one run;
+- state any byte-output checksum mismatch as evidence, not failure, unless the
+  implementation proves writer byte determinism first.
+
+## Validation Commands
+
+### New split repository checks
+
+Run from:
+
+```text
+cd /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
+```
 
 Formatting:
 
@@ -558,7 +526,7 @@ cargo fmt --all --check
 Forbidden-pattern scan:
 
 ```text
-rg -n "unwrap\\(|expect\\(|panic!|todo!|unreachable!|unwrap_or\\(|unwrap_or_default\\(|assert!|assert_eq!|assert_ne!" crates/benches/src/bars_regression.rs crates/benches/src/bin/mbt_bars_regression_bench.rs crates/benches/src/tests/test_bars_regression_bench_output.rs
+rg -n "unwrap\\(|expect\\(|panic!|todo!|unreachable!" crates/benches/src/bars_regression.rs crates/benches/src/bin/mbt_bars_regression_bench.rs crates/benches/src/tests/test_bars_regression_bench_output.rs
 ```
 
 Codegen checks:
@@ -573,24 +541,66 @@ cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- --check -
 cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- --check --proto-root crates/schemas/bars_core/proto --proto-root proto --schema mathilde/binary_transport/v1/bars.proto --root mathilde.binary_transport.v1.MathildeTransportResponseV1 --module bars_v1 --surface metamorphose --adapter parquet --out crates/schemas/bars_core/src/bars_v1_parquet.rs
 ```
 
-Tests:
+Tests and compile checks:
 
 ```text
 cargo test -p metamorphic_binary_transport_benches --lib
-```
-
-Compile checks:
-
-```text
 /usr/bin/time -v cargo check -p metamorphic_binary_transport_benches --all-targets
 /usr/bin/time -v cargo check -p metamorphic_binary_transport_schema_bars --features json,protobuf,csv,arrow_ipc,parquet
 /usr/bin/time -v cargo check -p metamorphic_binary_transport_core
-cargo tree -p metamorphic_binary_transport_core
+cargo tree -p metamorphic_binary_transport_benches
 ```
 
-Benchmark runs:
+### Old experiments repository checks
+
+Run from:
 
 ```text
+cd /home/tia/_DEV/MATHILDE/experiments
+```
+
+Formatting:
+
+```text
+rustfmt --check crates/mathilde-binary-transport/src/lib.rs crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs crates/mathilde-binary-transport/src/benches/mod.rs crates/mathilde-binary-transport/src/main.rs crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs crates/mathilde-binary-transport/src/tests/mod.rs
+```
+
+`cargo fmt --all --check` may be run as a diagnostic, but if it fails on
+pre-existing unrelated formatting drift outside the bound files, the result
+must be recorded and must not authorize reformatting unapproved files.
+
+Forbidden-pattern scan:
+
+```text
+rg -n "unwrap\\(|expect\\(|panic!|todo!|unreachable!" crates/mathilde-binary-transport/src/lib.rs crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs crates/mathilde-binary-transport/src/benches/mod.rs crates/mathilde-binary-transport/src/main.rs crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs crates/mathilde-binary-transport/src/tests/mod.rs
+```
+
+Tests and compile checks:
+
+```text
+cargo test -p mathilde_binary_transport --features bars-regression-parity-only test_bars_regression_parity
+/usr/bin/time -v cargo check -p mathilde_binary_transport --all-targets --features bars-regression-parity-only
+```
+
+The unfeatured old-crate check may be run as a diagnostic only. If it fails on
+pre-existing non-parity code, the failure must be recorded and must not block
+the feature-gated parity validation.
+
+## Benchmark Commands
+
+Run three old parity runs:
+
+```text
+cd /home/tia/_DEV/MATHILDE/experiments
+cargo run --release -p mathilde_binary_transport --features bars-regression-parity-only -- bench-bars-regression-parity --report-dir crates/mathilde-binary-transport/docs/evidences/bars_regression_parity
+cargo run --release -p mathilde_binary_transport --features bars-regression-parity-only -- bench-bars-regression-parity --report-dir crates/mathilde-binary-transport/docs/evidences/bars_regression_parity
+cargo run --release -p mathilde_binary_transport --features bars-regression-parity-only -- bench-bars-regression-parity --report-dir crates/mathilde-binary-transport/docs/evidences/bars_regression_parity
+```
+
+Run three new split runs:
+
+```text
+cd /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regression_bench -- --report-dir docs/evidence/mbt_bars_regression_benchmark
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regression_bench -- --report-dir docs/evidence/mbt_bars_regression_benchmark
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regression_bench -- --report-dir docs/evidence/mbt_bars_regression_benchmark
@@ -599,22 +609,34 @@ cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regre
 Companion projection run:
 
 ```text
+cd /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_projection_bench -- --report-dir docs/evidence/mbt_projection_direct_writer
 ```
 
-## Expected Outputs After Blocker Resolution
+## Expected Outputs
 
 The implementation is accepted only if:
 
-- fixture semantic checksums match old `mathilde_binary_generated` for every
-  required row count;
-- report rows include the old iteration counts;
-- repeated deterministic iterations have stable response checksums;
-- old-baseline ratios are calculated only from accumulated timing;
-- result review explicitly separates:
-  - proved old-fixture parity;
-  - speed ratios;
-  - any remaining timing-boundary limitation.
+- no generated files change;
+- no dependency package changes are made;
+- no lockfile changes are made;
+- `/home/tia/_DEV/MATHILDE/experiments/Cargo.lock` does not change;
+- `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml`
+  changes only by adding the empty `bars-regression-parity-only` feature;
+- old `bars-regression-parity-only` builds compile only Bars generated modules
+  and the parity benchmark/test modules;
+- old non-featured module exports and command dispatches remain unchanged by
+  inspection;
+- old parity report contains all required labels and row counts;
+- new split report contains all required labels and row counts;
+- full MBT semantic checksum matches between old and new for every row count;
+- old and new reports use the same row fixture semantics;
+- prior historical markdown ratios are not used as corrective speed evidence;
+- result review separates:
+  - raw old parity run evidence;
+  - raw new split run evidence;
+  - old-vs-new ratios;
+  - instability or residual limitations.
 
 ## Rollback Boundary
 
@@ -625,30 +647,45 @@ crates/benches/src/bars_regression.rs
 crates/benches/src/bin/mbt_bars_regression_bench.rs
 crates/benches/src/tests/test_bars_regression_bench_output.rs
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md
-docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/.gitkeep
 ```
 
-No generated files, production crates, schema crates, adapter crates, or
-dependency files are in rollback scope for the benchmark-only correction.
+No generated-file rollback is expected because generated files are not touched.
 
 ## Known Risks
 
-1. Exact archived adapter timing requires generated archived entrypoints or a
-   spec change to the comparison boundary.
-2. JSON/protobuf old timing included decode checksum work that is not currently
-   reproduced by the new benchmark.
-3. The old baseline source is markdown; parsing must fail closed.
-4. The repository is currently dirty; result reviews must report dirty state.
+1. Current new benchmark timing is single-pass. The old parity port must mirror
+   that exactly. Stability claims require three runs and cannot be made from
+   one run.
+2. Arrow IPC and Parquet byte outputs may differ between old and new dependency
+   surfaces. The result review must not require byte equality unless writer
+   determinism is proved first.
+3. Old parity code lives in the experiments repository, so validation commands
+   must be run from both repository roots.
+4. If the old parity benchmark needs dependency changes, this plan is invalid
+   and work must return to spec/plan amendment.
+5. If a feature gate misses one old non-Bars module, old release compilation
+   can still include wide/primitives generated code and reproduce the blocked
+   benchmark build time. The implementation must verify the feature-gated
+   generated module surface by code read.
+6. If the feature gate changes old non-featured behavior, the corrective
+   comparison is invalid because the old crate has been modified outside the
+   parity-only benchmark boundary.
 
 ## Required Next Step
 
-Do not implement this blocked plan.
-
-Choose and specify the archived adapter boundary decision:
+Write an implementation-plan peer audit for this amended plan:
 
 ```text
-Approved: amend docs/specs/mbt_bars_regression_benchmark_SPEC.md to authorize generated archived adapter entrypoints for exact old archived timing parity, then write docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md
+docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v3.md
 ```
 
-or explicitly choose the current trusted bytes boundary and accept that it is
-not exact old archived parity.
+No code may be changed before that audit passes and this plan is explicitly
+approved for implementation.

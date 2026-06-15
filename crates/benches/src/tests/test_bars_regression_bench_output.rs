@@ -4,17 +4,9 @@ use std::io;
 use std::path::PathBuf;
 
 use crate::bars_regression::{
-    OLD_BENCH_RESULTS, ROW_COUNTS, bars_rows, next_bars_run_path, parse_old_bars_baselines,
-    required_current_labels, sample_metadata, sample_row, serde_rows_from_bars,
-    verify_required_old_baselines, write_report,
+    OLD_PARITY_EVIDENCE_GLOB, ROW_COUNTS, bars_rows, next_bars_run_path, required_current_labels,
+    sample_metadata, sample_row, serde_rows_from_bars, write_report,
 };
-
-#[test]
-fn required_old_baselines_are_found() -> Result<(), Box<dyn Error>> {
-    let entries = parse_old_bars_baselines(OLD_BENCH_RESULTS.as_ref())?;
-    verify_required_old_baselines(&entries)?;
-    Ok(())
-}
 
 #[test]
 fn next_run_path_refuses_overwrite() -> Result<(), Box<dyn Error>> {
@@ -117,7 +109,7 @@ fn report_contains_required_fields() -> Result<(), Box<dyn Error>> {
         "\"row_counts\"",
         "\"enabled_schema_features\"",
         "\"max_response_bytes\"",
-        "\"old_baseline_path\"",
+        "\"old_parity_evidence_glob\"",
         "\"projection_evidence_glob\"",
         "\"report_path\"",
         "\"cache_mode\"",
@@ -137,6 +129,23 @@ fn report_contains_required_fields() -> Result<(), Box<dyn Error>> {
         if !text.contains(key) {
             return Err(err(format!("missing report key {key}")));
         }
+    }
+    fs::remove_dir_all(&root)?;
+    Ok(())
+}
+
+#[test]
+fn metadata_points_to_old_parity_evidence() -> Result<(), Box<dyn Error>> {
+    let root = temp_root("bars-old-parity-metadata")?;
+    let path = root.join("bars_regression_run_1.json");
+    let metadata = sample_metadata(&path);
+    let row = sample_row("bars_mbt_full_encode_inspect_checked", 1);
+    write_report(&path, &metadata, &[row])?;
+    let text = fs::read_to_string(&path)?;
+    if !text.contains(OLD_PARITY_EVIDENCE_GLOB) {
+        return Err(err(
+            "report metadata does not reference old parity evidence glob",
+        ));
     }
     fs::remove_dir_all(&root)?;
     Ok(())

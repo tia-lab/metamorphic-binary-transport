@@ -9,8 +9,7 @@ use metamorphic_binary_transport_schema_bars::bars_v1::MathildeBarRowV1;
 
 pub const MAX_RESPONSE_BYTES: usize = 1_073_741_824;
 pub const ROW_COUNTS: [usize; 6] = [1, 100, 500, 1_000, 10_000, 100_000];
-pub const OLD_BENCH_RESULTS: &str =
-    "/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/bench_results.md";
+pub const OLD_PARITY_EVIDENCE_GLOB: &str = "/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_*.json";
 pub const REQUIRED_SCHEMA_FEATURES: [&str; 5] = ["json", "protobuf", "csv", "arrow_ipc", "parquet"];
 pub const PROJECTION_EVIDENCE_GLOB: &str =
     "docs/evidence/mbt_projection_direct_writer/projection_run_*.json";
@@ -56,18 +55,10 @@ pub struct BarsRegressionMetadata {
     pub row_counts: &'static [usize],
     pub enabled_schema_features: &'static [&'static str],
     pub max_response_bytes: usize,
-    pub old_baseline_path: &'static str,
+    pub old_parity_evidence_glob: &'static str,
     pub projection_evidence_glob: &'static str,
     pub report_path: String,
     pub cache_mode: &'static str,
-}
-
-#[derive(Clone, Debug)]
-pub struct OldBaselineEntry {
-    pub label: String,
-    pub row_count: usize,
-    pub rows_per_second: f64,
-    pub mb_per_second: f64,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -138,70 +129,6 @@ pub fn next_bars_run_path(report_dir: &Path) -> BenchResult<PathBuf> {
     Err(io::Error::other("no available Bars regression run path").into())
 }
 
-pub fn parse_old_bars_baselines(path: &Path) -> BenchResult<Vec<OldBaselineEntry>> {
-    let text = fs::read_to_string(path)?;
-    let mut entries = Vec::new();
-    for line in text.lines() {
-        let columns = markdown_columns(line);
-        if columns.len() < 7 {
-            continue;
-        }
-        let label = columns[2].trim_matches('`');
-        if !required_old_labels().contains(&label) {
-            continue;
-        }
-        let Some(row_count) = parse_usize(columns[1]) else {
-            continue;
-        };
-        let Some(rows_per_second) = parse_f64(columns[5]) else {
-            continue;
-        };
-        let Some(mb_per_second) = parse_f64(columns[6]) else {
-            continue;
-        };
-        entries.push(OldBaselineEntry {
-            label: label.to_string(),
-            row_count,
-            rows_per_second,
-            mb_per_second,
-        });
-    }
-    Ok(entries)
-}
-
-pub fn verify_required_old_baselines(entries: &[OldBaselineEntry]) -> BenchResult<()> {
-    for label in required_old_labels() {
-        for row_count in ROW_COUNTS {
-            if !entries
-                .iter()
-                .any(|entry| entry.label == *label && entry.row_count == row_count)
-            {
-                return Err(io::Error::other(format!(
-                    "missing old Bars baseline {label} row_count={row_count}"
-                ))
-                .into());
-            }
-        }
-    }
-    Ok(())
-}
-
-pub fn comparison_for(
-    entries: &[OldBaselineEntry],
-    old_label: &str,
-    row_count: usize,
-    observed_rows_per_second: f64,
-) -> Option<Comparison> {
-    entries
-        .iter()
-        .find(|entry| entry.label == old_label && entry.row_count == row_count)
-        .map(|entry| Comparison {
-            rows_per_second: entry.rows_per_second,
-            mb_per_second: entry.mb_per_second,
-            ratio_rows_per_second: ratio(observed_rows_per_second, entry.rows_per_second),
-        })
-}
-
 pub fn measured_rates(row_count: usize, output_bytes: usize, milliseconds: f64) -> (f64, f64) {
     if milliseconds <= 0.0 {
         return (0.0, 0.0);
@@ -235,7 +162,7 @@ pub fn metadata_for_run(
         row_counts: &ROW_COUNTS,
         enabled_schema_features: &REQUIRED_SCHEMA_FEATURES,
         max_response_bytes: MAX_RESPONSE_BYTES,
-        old_baseline_path: OLD_BENCH_RESULTS,
+        old_parity_evidence_glob: OLD_PARITY_EVIDENCE_GLOB,
         projection_evidence_glob: PROJECTION_EVIDENCE_GLOB,
         report_path: report_path.display().to_string(),
         cache_mode: "not_applicable",
@@ -283,18 +210,6 @@ pub fn required_current_labels() -> &'static [&'static str] {
     ]
 }
 
-pub fn old_label_for(current_label: &str) -> Option<&'static str> {
-    match current_label {
-        "bars_mbt_full_encode_inspect_checked" => Some("mathilde_binary_generated"),
-        "bars_metamorphose_json_checked" => Some("metamorphose_json"),
-        "bars_metamorphose_protobuf_checked" => Some("metamorphose_protobuf"),
-        "bars_metamorphose_csv_trusted" => Some("metamorphose_csv_full_archived"),
-        "bars_metamorphose_arrow_ipc_trusted" => Some("metamorphose_arrow_ipc_full_archived"),
-        "bars_metamorphose_parquet_trusted" => Some("metamorphose_parquet_full_archived"),
-        _ => None,
-    }
-}
-
 pub fn sample_metadata(report_path: &Path) -> BarsRegressionMetadata {
     BarsRegressionMetadata {
         slug: "mbt_bars_regression_benchmark",
@@ -311,7 +226,7 @@ pub fn sample_metadata(report_path: &Path) -> BarsRegressionMetadata {
         row_counts: &ROW_COUNTS,
         enabled_schema_features: &REQUIRED_SCHEMA_FEATURES,
         max_response_bytes: MAX_RESPONSE_BYTES,
-        old_baseline_path: OLD_BENCH_RESULTS,
+        old_parity_evidence_glob: OLD_PARITY_EVIDENCE_GLOB,
         projection_evidence_glob: PROJECTION_EVIDENCE_GLOB,
         report_path: report_path.display().to_string(),
         cache_mode: "not_applicable",
@@ -329,7 +244,7 @@ pub fn sample_row(label: &'static str, row_count: usize) -> BarsRegressionRow {
         response_checksum: 1,
         semantic_checksum: Some(2),
         minimal_projection_checksum: Some(3),
-        old_baseline_label: old_label_for(label),
+        old_baseline_label: None,
         old_crate_comparison: None,
         serde_json_comparison: None,
     }
@@ -385,17 +300,6 @@ impl From<&MathildeBarRowV1> for SerdeBarRow {
             presence_bits: row.presence_bits,
         }
     }
-}
-
-fn required_old_labels() -> &'static [&'static str] {
-    &[
-        "mathilde_binary_generated",
-        "metamorphose_json",
-        "metamorphose_protobuf",
-        "metamorphose_csv_full_archived",
-        "metamorphose_arrow_ipc_full_archived",
-        "metamorphose_parquet_full_archived",
-    ]
 }
 
 fn validate_row_numbers(row: &BarsRegressionRow) -> BenchResult<()> {
@@ -490,7 +394,12 @@ fn write_metadata_json(out: &mut String, metadata: &BarsRegressionMetadata) {
         metadata.enabled_schema_features,
     );
     write_usize_field(out, "max_response_bytes", metadata.max_response_bytes);
-    write_string_field(out, "old_baseline_path", metadata.old_baseline_path, false);
+    write_string_field(
+        out,
+        "old_parity_evidence_glob",
+        metadata.old_parity_evidence_glob,
+        false,
+    );
     write_string_field(
         out,
         "projection_evidence_glob",
@@ -610,28 +519,4 @@ fn escape_json(value: &str) -> String {
         }
     }
     out
-}
-
-fn markdown_columns(line: &str) -> Vec<&str> {
-    line.trim()
-        .trim_matches('|')
-        .split('|')
-        .map(str::trim)
-        .collect()
-}
-
-fn parse_usize(value: &str) -> Option<usize> {
-    value.replace(',', "").parse::<usize>().ok()
-}
-
-fn parse_f64(value: &str) -> Option<f64> {
-    value.replace(',', "").parse::<f64>().ok()
-}
-
-fn ratio(observed: f64, baseline: f64) -> f64 {
-    if baseline <= 0.0 {
-        0.0
-    } else {
-        observed / baseline
-    }
 }

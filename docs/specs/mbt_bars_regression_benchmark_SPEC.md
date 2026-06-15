@@ -20,10 +20,17 @@ Legal Contact: massimo.nicora@wnlegal.ch
 ## 1. Identification
 
 Slug: `mbt_bars_regression_benchmark`
-Repository:
+
+Primary repository:
 
 ```text
 /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
+```
+
+Old implementation repository used only for the parity-port benchmark:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport
 ```
 
 Research brief:
@@ -32,7 +39,7 @@ Research brief:
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md
 ```
 
-Old benchmark baseline:
+Historical old benchmark evidence, retained as context only:
 
 ```text
 /home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/bench_results.md
@@ -40,71 +47,102 @@ Old benchmark baseline:
 
 ## 2. Status
 
-Status: `DRAFT_CORRECTIVE_AMENDED_AWAITING_PEER_AUDIT`
+Status: `DRAFT_CORRECTIVE_PARITY_PORT_FEATURE_AMENDMENT_AWAITING_PEER_AUDIT_V3`
 
 This spec does not authorize code changes. Implementation may start only after:
 
 1. this spec passes a separate peer audit;
-2. an implementation plan binds exact edits and validation commands;
-3. the implementation plan is explicitly approved.
+2. the corrective implementation plan is amended to this spec;
+3. the amended implementation plan passes its own peer audit;
+4. the amended implementation plan is explicitly approved.
 
 Corrective amendment:
 
-The first implementation used the current projection benchmark Bars fixture and
-single-pass timing. That does not prove old-baseline parity. This amended spec
-supersedes the prior benchmark method for old-baseline comparisons and requires
-exact old fixture parity, old iteration-count parity, and old timing-boundary
-parity before any performance ratio against the old crate can be accepted.
+The prior corrective path tried to reproduce the historical old archived timing
+boundary in the new split workspace. That would require generated archived
+adapter entrypoints or a different public API surface. That path is no longer
+approved.
+
+The accepted corrective path is to leave the new codegen and runtime API
+unchanged, then add a benchmark to the old MBT crate that mirrors the current
+new split benchmark semantics. The only valid old-vs-new performance
+comparison for this pass is:
+
+```text
+old MBT implementation + new benchmark semantics
+vs
+new split MBT implementation + same benchmark semantics
+```
+
+Historical rows from `bench_results.md` must not be used as the speed baseline
+for this corrective comparison.
+
+Feature-gated old parity amendment:
+
+The old experiments crate may add one empty benchmark-only feature to avoid
+compiling old non-Bars generated modules and old non-parity benchmark/test
+modules for the parity benchmark command:
+
+```toml
+bars-regression-parity-only = []
+```
+
+This feature is not a dependency feature and must not change old non-featured
+crate behavior.
 
 ## 3. Purpose
 
-Create the minimal dedicated benchmark surface needed to compare the new split
-MBT workspace against the old tracked Bars benchmark evidence.
+Create an apple-to-apple Bars regression benchmark by measuring the old
+implementation and the new split workspace under the same benchmark semantics.
 
 The benchmark must answer:
 
-- whether full Bars MBT encode plus checked access/inspect stays close to the
-  old tracked `mathilde_binary_generated` lane;
-- whether generated metamorphose JSON, protobuf, CSV, Arrow IPC, and Parquet
-  stay close to the old tracked metamorphose lanes;
+- whether the new split workspace regressed against the old implementation
+  when both use the same fixture, labels, output caps, trusted-access policy,
+  timing boundary, and evidence format;
+- whether the current generated trusted metamorphose paths are comparable
+  without changing codegen;
 - whether current generated metamorphose JSON is faster or slower than a
   current bench-only Rust DTO to serde JSON baseline for the same logical rows;
-- whether existing projection direct-writer evidence remains valid and included
-  in the final result view.
+- whether existing projection direct-writer evidence remains separately owned
+  by the projection benchmark.
 
 ## 4. Non-goals
 
 This spec does not:
 
-- add benchmark code to production crates;
-- add benchmark code to schema crates;
 - change core, schema, codegen, projection, metamorphose, transponding, or
-  adapter runtime behavior;
-- duplicate the existing projection benchmark;
+  adapter runtime behavior in the new split workspace;
+- add generated archived adapter entrypoints;
+- hand-edit generated files;
+- reproduce historical old archived timing boundaries;
+- compare against historical `bench_results.md` as a speed baseline for this
+  corrective pass;
 - add compression benchmarks;
 - add wide-schema benchmarks;
 - add storage, cache, MDB, MLDB, service, SDK, or network benchmarks;
 - add direct prost DTO protobuf baseline generation in the new workspace;
-- claim performance parity before at least three release runs are recorded.
+- claim performance parity before at least three old-parity and three
+  new-split release runs are recorded.
 
 ## 5. Measured object
 
-The new benchmark binary measures only Bars full-schema runtime surfaces:
+The new split benchmark remains:
 
 ```text
-deterministic Bars rows
+deterministic current Bars rows
   -> BarsV1::encode
   -> BarsV1::inspect
 ```
 
 ```text
-deterministic Bars rows
+deterministic current Bars rows
   -> BarsV1::encode
   -> BarsV1::{metamorphose_json, metamorphose_protobuf, metamorphose_csv}
 ```
 
 ```text
-deterministic Bars rows
+deterministic current Bars rows
   -> BarsV1::encode
   -> unsafe BarsV1::{
        metamorphose_json_trusted_unchecked,
@@ -116,13 +154,22 @@ deterministic Bars rows
 ```
 
 ```text
-deterministic Bars rows
+deterministic current Bars rows
   -> bench-only Rust DTO view
   -> serde_json::to_vec
 ```
 
-The existing projection benchmark remains the measured object for MBT-to-MBT
-projection:
+The old parity-port benchmark must measure the same logical lanes and timing
+boundaries using the old implementation:
+
+```text
+deterministic current Bars rows ported to old row type
+  -> old BarsV1 encode/access/metamorphose APIs
+  -> same labels and same report fields
+```
+
+The existing projection benchmark remains the only measured object for
+MBT-to-MBT projection:
 
 ```text
 crates/benches/src/bin/mbt_projection_bench.rs
@@ -130,16 +177,22 @@ crates/benches/src/bin/mbt_projection_bench.rs
 
 ## 6. Schema source contract
 
-The schema source is the existing generated Bars schema crate:
+The new split schema source is:
 
 ```text
-crates/schemas/bars_core
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/crates/schemas/bars_core
 ```
 
-The benchmark must not define a new schema and must not hand-edit generated
-schema files.
+The old parity-port schema source is:
 
-Required generated modules:
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs
+```
+
+Neither benchmark may define a new schema. Neither benchmark may hand-edit
+generated schema files.
+
+Required new generated modules:
 
 ```text
 crates/schemas/bars_core/src/bars_v1.rs
@@ -151,38 +204,45 @@ crates/schemas/bars_core/src/bars_v1_parquet.rs
 crates/schemas/bars_core/src/bars_v1_transponding.rs
 ```
 
-The benchmark must compile the Bars schema crate with these features:
+Required new schema features:
 
 ```text
 json,protobuf,csv,arrow_ipc,parquet
 ```
 
-The benchmark must not require the `arrow` feature unless a later spec adds an
-Arrow RecordBatch lane.
+The benchmark must not require the new schema `arrow` feature unless a later
+spec adds an Arrow RecordBatch lane.
 
 ## 7. Wire and archive contract
 
-The full MBT lane output is the encoded MBT byte vector produced by:
+The new full MBT lane output is:
 
 ```rust
 BarsV1::encode(&rows, MAX_RESPONSE_BYTES)
 ```
 
-Metamorphose lanes consume the same MBT byte vector.
+The old parity full MBT lane output is the equivalent old generated Bars
+encoder output for the same logical rows.
+
+Metamorphose lanes consume the MBT byte vector produced for that implementation
+and row count.
 
 Checked lanes use checked public access.
 
-Trusted lanes may use generated unsafe trusted calls only after the same
-benchmark iteration has produced the MBT bytes through `BarsV1::encode`; encoded
-bytes are trusted because they were produced by the schema encoder in the same
-process and are not mutated before use.
+Trusted lanes use trusted access only after bytes were produced by the same
+schema encoder in the same benchmark setup and are not mutated before use.
 
-The benchmark must record:
+The old parity port may use old-crate internal `pub(crate)` archived helpers
+only to mirror the current new split trusted byte-boundary semantics. It must
+not revive the historical old archived setup boundary as the comparison method.
+
+Every report row must record:
 
 - output byte length;
 - response checksum for byte outputs;
-- semantic checksum where `BarsV1::inspect` can provide it;
-- old baseline rows/sec and MB/sec where available.
+- semantic checksum where `inspect` can provide it;
+- old parity rows/sec and MB/sec when comparing a new run against an old parity
+  run.
 
 ## 8. Checked and trusted access contract
 
@@ -204,17 +264,22 @@ Trusted metamorphose lanes:
 
 ```text
 encode rows
-unsafe trusted metamorphose function
+unsafe trusted access path for the same MBT bytes
+format conversion
 ```
 
 The benchmark must label checked and trusted lanes separately. It must not mix
 checked and trusted times into one metric.
 
+Trusted lanes are valid only for this benchmark because bytes are generated by
+the schema encoder before the measured conversion and remain immutable.
+
 ## 9. Codegen contract
 
 This benchmark does not change codegen.
 
-Generated artifacts are inputs only. Reproducibility validation must include:
+Generated artifacts are inputs only. New split reproducibility validation must
+include:
 
 ```text
 cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- --check --proto-root crates/schemas/bars_core/proto --proto-root proto --schema mathilde/binary_transport/v1/bars.proto --root mathilde.binary_transport.v1.MathildeTransportResponseV1 --module bars_v1 --surface projection --out crates/schemas/bars_core/src/bars_v1.rs
@@ -232,15 +297,27 @@ cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- --check -
 cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- --check --proto-root crates/schemas/bars_core/proto --proto-root proto --schema mathilde/binary_transport/v1/bars.proto --root mathilde.binary_transport.v1.MathildeTransportResponseV1 --module bars_v1 --surface metamorphose --adapter parquet --out crates/schemas/bars_core/src/bars_v1_parquet.rs
 ```
 
+The old parity port does not run or modify old codegen.
+
 ## 10. Crate boundary contract
 
-Benchmark code lives only in:
+New split benchmark code lives only in:
 
 ```text
-crates/benches
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/crates/benches
 ```
 
-Production crates remain unchanged:
+Old parity-port code lives only in:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
+```
+
+New production crates remain unchanged:
 
 ```text
 crates/core
@@ -251,104 +328,101 @@ crates/adapters/*
 crates/schemas/*
 ```
 
-The benchmark crate is `publish = false` and is not part of downstream runtime
-dependency surfaces.
+The old parity port is an experiment benchmark surface only. It must not change
+old runtime behavior or generated code.
+
+Old parity-only feature contract:
+
+```text
+feature enabled:
+  - old generated module surface exposes only bars_v1 and bars_v1_proto;
+  - old benchmark module graph compiles only bars_regression_parity;
+  - old test module graph compiles only test_bars_regression_parity;
+  - old binary dispatch accepts only bench-bars-regression-parity.
+
+feature disabled:
+  - old generated module graph remains unchanged;
+  - old benchmark module graph remains unchanged;
+  - old test module graph remains unchanged;
+  - old binary dispatch remains unchanged.
+```
+
+The feature must not edit:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/*.rs
+```
 
 ## 11. Dependency contract
 
-Allowed hand-edited dependency file:
+No new dependency is approved by this corrective amendment.
+
+Already approved new benchmark dependency surface remains limited to:
 
 ```text
-crates/benches/Cargo.toml
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/crates/benches/Cargo.toml
 ```
 
-Allowed Cargo-generated dependency artifact:
+The old parity port must use dependencies already present in:
 
 ```text
-Cargo.lock
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
 ```
 
-`Cargo.lock` may change only as Cargo's dependency-resolution effect from the
-approved `crates/benches/Cargo.toml` edits. Manual edits to `Cargo.lock` are
-not allowed. The result review must record the lockfile/dependency graph
-validation outcome.
-
-The existing Bars schema dependency must be feature-activated for the measured
-adapter surfaces:
+Only this old-crate `Cargo.toml` edit is approved:
 
 ```toml
-# crates/benches/Cargo.toml only
-metamorphic_binary_transport_schema_bars = {
-    path = "../schemas/bars_core",
-    features = ["json", "protobuf", "csv", "arrow_ipc", "parquet"]
-}
+bars-regression-parity-only = []
 ```
 
-The benchmark crate may add bench-only serde dependencies:
+No dependency package may be added or changed. No lockfile may change.
 
-```toml
-# crates/benches/Cargo.toml only
-serde = { version = "=1.0.228", features = ["derive"] }
-serde_json = "=1.0.145"
+These files must not change:
+
+```text
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/Cargo.lock
+/home/tia/_DEV/MATHILDE/experiments/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/Cargo.lock
 ```
 
-Reason:
-
-- the Bars schema feature activation is required to compile the generated
-  metamorphose functions under measurement;
-- needed only to measure the current normal Rust DTO to JSON baseline;
-- all edits are isolated to the benchmark crate dependency surface;
-- does not enter MBT core, generated schemas, adapters, metamorphose, or
-  transponding.
-
-No other dependency change is allowed by this spec.
+Any dependency edit, workspace manifest edit, or lockfile edit outside the
+approved empty old-crate feature is out of scope.
 
 ## 12. Determinism contract
 
-Rows must be generated by a bench-only port of the old Bars fixture:
+Both old and new benchmarks must use the current new split Bars regression
+fixture semantics.
+
+Source fixture to mirror:
 
 ```text
-/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/fixtures.rs
+/home/tia/_DEV/MATHILDE/metamorphic-binary-transport/crates/benches/src/projection.rs
 ```
 
 Required fixture identity:
 
 | Property | Required value |
 |---|---|
-| function semantics | old `generate_rows(row_count, DEFAULT_SEED)` |
-| seed | `0x4d415448494c4445` |
-| first close timestamp | `1_546_300_860_000` |
-| RNG | old `Lcg` transition with multiplier `6364136223846793005` and increment `1442695040888963407` |
-| entity ordering | `idx % PAIR_COUNT` exactly as old fixture |
-| time ordering | `FIRST_CLOSE_MS + (idx / PAIR_COUNT) * BAR_MS` exactly as old fixture |
-| optional presence | same base presence bits and same `idx % 3`, `7`, `11`, `13`, `17` branches as old fixture |
-| validation | the port must run the equivalent generated Bars row validation before returning rows |
+| function semantics | current `projection::bars_rows(row_count)` |
+| first close timestamp | `1_700_000_000_000` |
+| time step | `60_000` ms |
+| entity | BTCUSDT only |
+| timeframe | `1m` |
+| source | `frontier` |
+| process | `derived` |
+| presence | all Bars presence bits set through the generated allowed mask |
+| row values | deterministic arithmetic values from current `projection::bars_rows` |
 
-The existing projection fixture:
-
-```rust
-metamorphic_binary_transport_benches::projection::bars_rows(row_count)
-```
-
-must not be used for old-baseline regression comparisons. It may remain owned
-by projection benchmarks only.
+The old parity port must not use the old `generate_rows(row_count,
+DEFAULT_SEED)` fixture for this corrective comparison.
 
 Required row counts:
 
 ```text
 1, 100, 500, 1_000, 10_000, 100_000
 ```
-
-Required old iteration counts:
-
-| Label | Rows | Iterations |
-|---|---:|---:|
-| `one` | 1 | 50 |
-| `small` | 100 | 50 |
-| `page_500` | 500 | 50 |
-| `page_1000` | 1,000 | 50 |
-| `medium` | 10,000 | 10 |
-| `large` | 100,000 | 3 |
 
 Required max response bytes:
 
@@ -365,18 +439,10 @@ Each run must record:
 - OS/kernel;
 - CPU;
 - row counts;
-- enabled schema features;
-- old baseline file path.
-
-Each run must also record:
-
+- enabled schema features where applicable;
 - fixture source identity;
-- seed;
-- row label;
-- iteration count;
-- accumulated output bytes across iterations;
-- max single-iteration output bytes;
-- accumulated total milliseconds across iterations.
+- max response bytes;
+- output report path.
 
 ## 13. Failure contract
 
@@ -384,22 +450,32 @@ The benchmark must fail if:
 
 - `--report-dir` is missing;
 - a report path would overwrite an existing run file;
-- required old baseline labels are missing for required row counts;
+- required labels are missing;
+- required row counts are missing;
 - a measured output exceeds `MAX_RESPONSE_BYTES`;
 - any checked MBT inspect fails;
 - any metamorphose function fails;
-- checksum equality checks fail for full logical payload lanes where checksums
-  are defined;
-- a JSON artifact cannot be written.
+- a JSON artifact cannot be written;
+- a row reports non-finite timing or throughput;
+- output bytes are zero for a byte-output lane.
 
 The benchmark must not silently skip a lane.
 
 ## 14. Compile-surface budget
 
-The new benchmark is allowed to increase compile surface only for
-`metamorphic_binary_transport_benches`.
+The new benchmark is allowed to increase compile surface only for:
 
-Required compile checks:
+```text
+metamorphic_binary_transport_benches
+```
+
+The old parity port is allowed to increase compile surface only for:
+
+```text
+mathilde_binary_transport
+```
+
+Required new compile checks:
 
 ```text
 cargo check -p metamorphic_binary_transport_benches --all-targets
@@ -408,70 +484,66 @@ cargo check -p metamorphic_binary_transport_core
 cargo tree -p metamorphic_binary_transport_benches
 ```
 
+Required old compile checks:
+
+```text
+cd /home/tia/_DEV/MATHILDE/experiments
+cargo check -p mathilde_binary_transport --all-targets --features bars-regression-parity-only
+```
+
+The unfeatured old-crate check may be run as a diagnostic only. If it fails on
+pre-existing non-parity code, the result review must record it separately and
+must not treat it as parity benchmark evidence.
+
 The result review must record elapsed time and max RSS if `/usr/bin/time` is
 available.
 
 ## 15. Runtime performance budget
 
-The first budget is observational, not a pass/fail production gate.
+This pass is an old-vs-new regression check. It is not compared against the
+historical old markdown table.
 
-Required current benchmark labels:
+Required current/new labels and old parity labels are identical:
 
-| Current label | Measured surface | Old baseline label |
-|---|---|---|
-| `bars_mbt_full_encode_inspect_checked` | `BarsV1::encode` plus `BarsV1::inspect` | `mathilde_binary_generated` |
-| `bars_metamorphose_json_checked` | `BarsV1::metamorphose_json` | `metamorphose_json` |
-| `bars_metamorphose_protobuf_checked` | `BarsV1::metamorphose_protobuf` | `metamorphose_protobuf` |
-| `bars_metamorphose_csv_checked` | `BarsV1::metamorphose_csv` | none; current checked CSV evidence only |
-| `bars_metamorphose_json_trusted` | `BarsV1::metamorphose_json_trusted_unchecked` | none; current trusted JSON evidence only |
-| `bars_metamorphose_protobuf_trusted` | `BarsV1::metamorphose_protobuf_trusted_unchecked` | none; current trusted protobuf evidence only |
-| `bars_metamorphose_csv_trusted` | `BarsV1::metamorphose_csv_trusted_unchecked` | `metamorphose_csv_full_archived` |
-| `bars_metamorphose_arrow_ipc_trusted` | `BarsV1::metamorphose_arrow_ipc_trusted_unchecked` | `metamorphose_arrow_ipc_full_archived` |
-| `bars_metamorphose_parquet_trusted` | `BarsV1::metamorphose_parquet_trusted_unchecked` | `metamorphose_parquet_full_archived` |
-| `bars_serde_json_baseline` | bench-only Rust DTO rows through `serde_json::to_vec` | none; current baseline only |
-
-Required old baseline labels:
-
-```text
-mathilde_binary_generated
-metamorphose_json
-metamorphose_protobuf
-metamorphose_csv_full_archived
-metamorphose_arrow_ipc_full_archived
-metamorphose_parquet_full_archived
-```
+| Label | Measured surface |
+|---|---|
+| `bars_mbt_full_encode_inspect_checked` | encode plus inspect |
+| `bars_metamorphose_json_checked` | checked JSON metamorphose |
+| `bars_metamorphose_protobuf_checked` | checked protobuf metamorphose |
+| `bars_metamorphose_csv_checked` | checked CSV metamorphose |
+| `bars_metamorphose_json_trusted` | trusted JSON metamorphose |
+| `bars_metamorphose_protobuf_trusted` | trusted protobuf metamorphose |
+| `bars_metamorphose_csv_trusted` | trusted CSV metamorphose |
+| `bars_metamorphose_arrow_ipc_trusted` | trusted Arrow IPC metamorphose |
+| `bars_metamorphose_parquet_trusted` | trusted Parquet metamorphose |
+| `bars_serde_json_baseline` | bench-only Rust DTO rows through `serde_json::to_vec` |
 
 Required comparisons:
 
-- every current label with an old baseline label must compare 100k rows against
-  that old label;
-- `bars_metamorphose_json_checked` must compare 100k rows against
-  `bars_serde_json_baseline`;
-- missing old labels for the required row counts are benchmark failures;
-- CSV is mandatory because the old baseline contains
-  `metamorphose_csv_full_archived`.
+- every new label must compare against the same label from the old parity-port
+  report for the same row count;
+- `bars_metamorphose_json_checked` must also compare against
+  `bars_serde_json_baseline` from the same new run;
+- missing old parity labels or row counts are result-review blockers;
+- at least three old parity runs and three new split runs are required before
+  stability claims.
 
-The result review must not claim parity from a single run. At least three runs
-are required before stability claims.
+Throughput is computed from exactly the measured timing boundary in each report
+row. If the current new benchmark remains single-pass, the old parity port must
+also be single-pass. If a later approved plan changes the new benchmark to
+accumulated iterations, the old parity port must change in the same plan.
 
 ## 16. Correctness oracle
 
-For MBT full:
+For MBT full lanes:
 
 ```text
 BarsV1::inspect(bytes).semantic_checksum
 ```
 
-The semantic checksum for `bars_mbt_full_encode_inspect_checked` must match the
-old `mathilde_binary_generated` semantic checksum for each row count parsed
-from:
-
-```text
-/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/bench_results.md
-```
-
-If the old semantic checksum cannot be parsed for a row count, old-baseline
-performance comparison for that row count is blocked.
+The old parity port and new split benchmark must report semantic checksum for
+the full MBT lane. The result review must compare old-vs-new semantic checksum
+for the same row count before speed comparison.
 
 For JSON/protobuf/CSV/Arrow IPC/Parquet byte outputs:
 
@@ -480,6 +552,12 @@ response checksum = fnv1a64(output bytes)
 output length > 0
 ```
 
+The result review must record response checksums for old and new outputs.
+Byte-for-byte equality is required only when the implementation plan proves the
+format writer is deterministic across the old and new dependency surfaces. If
+that is not proved, semantic payload identity is established by the shared
+fixture and full MBT semantic checksum, and the limitation must be stated.
+
 For current serde JSON baseline:
 
 ```text
@@ -487,10 +565,6 @@ response checksum = fnv1a64(output bytes)
 serde row count equals source row count
 output length > 0
 ```
-
-Cross-format semantic equality is limited in this pass because the new split
-workspace does not implement direct JSON/protobuf decode baselines. The result
-review must state this limitation.
 
 Projection correctness remains owned by:
 
@@ -506,57 +580,57 @@ semantic_checksum == minimal_projection_checksum
 
 ## 17. Benchmark methodology
 
-The new benchmark command:
+New split benchmark command:
 
 ```text
+cd /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regression_bench -- --report-dir docs/evidence/mbt_bars_regression_benchmark
+```
+
+Old parity-port benchmark command:
+
+```text
+cd /home/tia/_DEV/MATHILDE/experiments
+cargo run --release -p mathilde_binary_transport --features bars-regression-parity-only -- bench-bars-regression-parity --report-dir crates/mathilde-binary-transport/docs/evidences/bars_regression_parity
 ```
 
 Required companion projection command:
 
 ```text
+cd /home/tia/_DEV/MATHILDE/metamorphic-binary-transport
 cargo run --release -p metamorphic_binary_transport_benches --bin mbt_projection_bench -- --report-dir docs/evidence/mbt_projection_direct_writer
 ```
 
-The new benchmark output path pattern:
+New output path pattern:
 
 ```text
 docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_N.json
 ```
 
+Old parity output path pattern:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_N.json
+```
+
 The benchmark must measure setup outside the measured loop:
 
 - row generation is outside measured lane timing;
-- MBT encode is measured for full MBT lane;
-- checked metamorphose lanes measure the same setup and timed boundary as the
-  corresponding old tracked lane where an old lane exists;
-- trusted archived metamorphose lanes measure conversion over MBT bytes after
-  encode and checked archive access are complete, matching the old archived
-  timing boundary for Arrow IPC, Parquet, and CSV archived comparisons;
+- MBT encode is measured for the full MBT lane;
+- checked metamorphose lanes time the checked public conversion from already
+  encoded MBT bytes;
+- trusted metamorphose lanes time the trusted conversion from already encoded
+  MBT bytes;
 - serde JSON baseline measures serde JSON output over prebuilt bench-only DTO
   rows.
 
-Old-baseline timing parity requirements:
+Old parity timing boundary:
 
-| Current label | Old label | Required measured boundary |
-|---|---|---|
-| `bars_mbt_full_encode_inspect_checked` | `mathilde_binary_generated` | measure encode, inspect, semantic/minimal checksum extraction, and response checksum inside each timed iteration, matching old `run_iteration` total timing |
-| `bars_metamorphose_json_checked` | `metamorphose_json` | measure the current checked public JSON metamorphose path with the old fixture and old iteration count |
-| `bars_metamorphose_protobuf_checked` | `metamorphose_protobuf` | measure the current checked public protobuf metamorphose path with the old fixture and old iteration count |
-| `bars_metamorphose_csv_trusted` | `metamorphose_csv_full_archived` | measure archived/trusted CSV conversion after encode/access setup, using the old fixture and old iteration count |
-| `bars_metamorphose_arrow_ipc_trusted` | `metamorphose_arrow_ipc_full_archived` | measure archived/trusted Arrow IPC conversion after encode/access setup, using the old fixture and old iteration count |
-| `bars_metamorphose_parquet_trusted` | `metamorphose_parquet_full_archived` | measure archived/trusted Parquet conversion after encode/access setup, using the old fixture and old iteration count |
+The old parity port must match the current new benchmark boundary for each
+label. It must not use the old `bench.rs` archived setup timing boundary as the
+comparison baseline.
 
-For every old-baseline comparison, throughput must be computed as:
-
-```text
-rows_per_second = (row_count * iterations) / accumulated_total_seconds
-mb_per_second = accumulated_output_bytes / 1024 / 1024 / accumulated_total_seconds
-```
-
-Single-pass timings must not be compared against old multi-iteration baselines.
-
-Existing artifacts produced before this corrective amendment:
+Existing new artifacts produced before this corrective amendment:
 
 ```text
 docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_1.json
@@ -565,31 +639,42 @@ docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_3.json
 ```
 
 are valid only as evidence of the first benchmark implementation behavior. They
-must not be used to claim old-baseline parity or regression until replaced by
-corrective runs that satisfy this methodology.
+must not be used to claim old-vs-new parity until paired with an old parity-port
+artifact that satisfies this methodology.
 
 ## 18. Test plan
 
-Required tests:
+Required new tests:
 
 ```text
 crates/benches/src/tests/test_bars_regression_bench_output.rs
 ```
 
+Required old parity tests:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs
+```
+
+Required old parity test command:
+
+```text
+cd /home/tia/_DEV/MATHILDE/experiments
+cargo test -p mathilde_binary_transport --features bars-regression-parity-only test_bars_regression_parity
+```
+
 The tests must prove:
 
-- required old baseline parser finds all required labels;
-- required old baseline parser finds `mathilde_binary_generated` semantic
-  checksums for all required row counts;
-- report writer refuses overwrite;
-- required labels list includes only the approved benchmark lanes;
-- the old fixture port produces deterministic rows and matches the old
-  `mathilde_binary_generated` semantic checksum for each required row count;
+- old and new required label lists are identical;
+- old and new row counts are identical;
+- old parity fixture values match the current new `projection::bars_rows`
+  contract for selected rows;
+- report writers refuse overwrite;
 - serde JSON baseline row conversion preserves row count and selected field
-  values for the old fixture rows;
+  values;
 - benchmark JSON output contains command, environment, row count, label, bytes,
-  checksum, iterations, accumulated timing, rows/sec, MB/sec, and optional old
-  comparison.
+  checksum, timing, rows/sec, MB/sec, and optional comparison fields;
+- no test depends on historical `bench_results.md` for speed claims.
 
 Existing projection tests remain:
 
@@ -599,41 +684,49 @@ crates/benches/src/tests/test_projection_bench_output.rs
 
 ## 19. Code bindings
 
-Files to edit after implementation plan approval:
+Files to edit in the new split repository after implementation plan approval:
 
 ```text
-crates/benches/Cargo.toml
-crates/benches/src/lib.rs
 crates/benches/src/bars_regression.rs
 crates/benches/src/bin/mbt_bars_regression_bench.rs
 crates/benches/src/tests/test_bars_regression_bench_output.rs
-crates/benches/src/tests/mod.rs
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md
 ```
 
-Cargo-generated artifact that may change after implementation plan approval:
+Files to create in the old experiments repository after implementation plan
+approval:
 
 ```text
-Cargo.lock
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/.gitkeep
 ```
 
-`Cargo.lock` may change only through Cargo resolution of the approved
-`crates/benches/Cargo.toml` dependency edits.
-
-Files to create after implementation plan approval:
+Files to edit in the old experiments repository after implementation plan
+approval:
 
 ```text
-docs/evidence/mbt_bars_regression_benchmark/.gitkeep
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/Cargo.toml
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs
+```
+
+Files to create in the new split repository after corrective runs:
+
+```text
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md
 ```
 
-No other code files are approved by this spec.
+No production crate source file may be edited in the new split repository.
+No generated file may be edited in either repository.
 
 ## 20. Generated artifact bindings
 
 This benchmark does not create generated schema artifacts.
 
-Generated files consumed by the benchmark:
+Generated files consumed by the new benchmark:
 
 ```text
 crates/schemas/bars_core/src/bars_v1.rs
@@ -645,8 +738,19 @@ crates/schemas/bars_core/src/bars_v1_parquet.rs
 crates/schemas/bars_core/src/bars_v1_transponding.rs
 ```
 
-Generated files remain owned by `mbt_codegen --check/--write` commands listed
-in section 9.
+Generated files consumed by the old parity port:
+
+```text
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1_proto.rs
+```
+
+Generated files remain owned by their existing codegen commands. This spec
+does not authorize generated-file writes.
+
+The old parity-only feature may replace the old generated module root only at
+the old `src/lib.rs` module boundary when the feature is enabled. It must not
+modify the old generated module file itself.
 
 ## 21. Review artifact bindings
 
@@ -659,6 +763,8 @@ docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_au
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit.md
+docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md
+docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v3.md
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md
 docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md
 ```
@@ -668,33 +774,29 @@ Evidence artifacts:
 ```text
 docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_N.json
 docs/evidence/mbt_projection_direct_writer/projection_run_N.json
+/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_N.json
 ```
 
 ## 22. Implementation plan requirement
 
-The implementation plan must bind:
+The corrective implementation plan must be amended to bind:
 
-- exact JSON report fields;
-- exact old fixture port fields and constants;
-- exact row-count iteration table;
-- exact old-baseline semantic checksum parsing;
-- exact timing boundaries for every old-baseline comparison lane;
-- dependency edits;
-- Cargo-generated lockfile behavior;
-- validation commands;
-- three-run benchmark command sequence;
+- exact old parity-port fixture mapping from current new `projection::bars_rows`;
+- exact old parity labels;
+- exact old parity timing boundaries matching the current new benchmark;
+- exact old parity report fields;
+- exact old parity-only feature contract;
+- exact old feature-gated parity command and output path;
+- exact old feature-gated validation commands;
+- exact old and new comparison method;
+- validation commands for both repositories;
+- three old parity runs and three new split runs;
 - result review update.
 
-The existing implementation plan is superseded for old-baseline parity claims.
-A corrective implementation plan must be written at:
+The prior corrective implementation plan status `BLOCKED_BEFORE_CODE` is
+superseded by this spec once an amended plan is written and audited.
 
-```text
-docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md
-```
-
-and approved before any code change to the benchmark.
-
-No code may be changed until the implementation plan is approved.
+No code may be changed until the amended implementation plan is approved.
 
 ## 23. Approval checklist
 
@@ -704,32 +806,41 @@ Pre-audit closure checklist:
 - Prior approved specs searched:
   - `mbt_projection_direct_writer_SPEC.md` remains projection owner;
   - `mbt_metamorphose_migration_SPEC.md` remains adapter architecture owner.
-- Command surfaces are exact.
+- Command surfaces are exact for new and old benchmark commands.
+- Old parity benchmark command uses `--features bars-regression-parity-only`.
 - Generated artifacts have one owner.
 - No generated artifact is bound to two incompatible command surfaces.
+- Old `src/generated/mod.rs` and all old generated files remain forbidden to
+  edit.
+- Old `Cargo.lock` remains forbidden to edit.
+- Old `Cargo.toml` edit is limited to the empty `bars-regression-parity-only`
+  feature.
 - Runtime dispatch paths to benchmark are listed.
 - Existing projection tests are preserved.
 - No design decision is deferred to the implementation plan.
-- Exact benchmark labels and old baseline labels are bound in section 15.
-- Cargo-generated lockfile behavior is bound in sections 11 and 19.
-- Compile-surface evidence commands are defined.
-- Corrective amendment binds exact old fixture parity.
-- Corrective amendment binds old iteration-count parity.
-- Corrective amendment binds timing-boundary parity.
-- Existing single-pass `projection::bars_rows` benchmark artifacts are marked
-  non-authoritative for old-baseline parity claims.
+- Exact benchmark labels are bound in section 15.
+- Compile-surface evidence commands are defined for both repositories.
+- Corrective amendment removes generated archived entrypoint work from scope.
+- Corrective amendment binds the old-MBT benchmark parity port.
+- Corrective amendment states historical `bench_results.md` is context only for
+  this pass.
+- Existing single-pass artifacts are marked non-authoritative until paired with
+  matching old parity-port artifacts.
 
 Implementation approval checklist:
 
 - peer audit passed;
-- implementation plan approved;
-- benchmark code remains only in `crates/benches`;
-- Bars adapter feature activation remains only on the `crates/benches`
-  dependency edge;
-- serde dependencies remain only in `crates/benches`;
-- `Cargo.lock`, if changed, changes only through Cargo resolution of the
-  approved benchmark dependency edits;
-- no production crate code changes are introduced.
+- amended implementation plan peer audit passed;
+- amended implementation plan approved;
+- new benchmark code remains only in `crates/benches`;
+- old parity changes remain only in old `Cargo.toml`, old `src/lib.rs`, old
+  `src/benches`, old `src/tests`, and old `src/main.rs` dispatch;
+- old `Cargo.toml` changes only by adding the empty
+  `bars-regression-parity-only` feature;
+- old feature-gated validation and benchmark commands use
+  `--features bars-regression-parity-only`;
+- no generated files are edited;
+- no dependency package changes or lockfile changes are introduced.
 
 ## 24. Open questions
 
