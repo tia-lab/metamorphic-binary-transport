@@ -232,58 +232,146 @@ fn validate_finite_f64(field: &'static str, value: f64) -> Result<()> {
 pub fn semantic_checksum(rows: &[TestCompatibilityRowV1]) -> u64 {
     let mut checksum = fnv1a64("mathilde.test_compatibility.v1".as_bytes());
     for row in rows {
-        checksum = checksum_row(checksum, row);
+        checksum = checksum_row(checksum, row, true);
     }
     checksum
 }
 
 pub fn minimal_projection_checksum(rows: &[TestCompatibilityRowV1]) -> u64 {
-    semantic_checksum(rows)
+    let mut checksum = fnv1a64("mathilde.test_compatibility.v1-minimal".as_bytes());
+    for row in rows {
+        checksum = checksum_row(checksum, row, false);
+    }
+    checksum
 }
 
-pub fn checksum_row(mut checksum: u64, row: &TestCompatibilityRowV1) -> u64 {
+pub fn checksum_row(
+    mut checksum: u64,
+    row: &TestCompatibilityRowV1,
+    include_metadata: bool,
+) -> u64 {
     checksum = update_u16(checksum, row.schema_version);
     checksum = update_u16(checksum, row.tenant_ordinal);
     checksum = update_u16(checksum, row.entity_ordinal);
     checksum = update_i64(checksum, row.close_ms);
     checksum = update_u16(checksum, row.status_ordinal);
-    checksum = update_u16(checksum, row.optional_status_ordinal);
     checksum = update_u64(checksum, row.venues_mask);
     checksum = update_i64(checksum, row.required_i64);
-    checksum = update_i64(checksum, row.optional_i64);
     checksum = update_i32(checksum, row.required_i32);
-    checksum = update_i32(checksum, row.optional_i32);
     checksum = update_u32(checksum, row.required_u32);
-    checksum = update_u32(checksum, row.optional_u32);
     checksum = update_f64(checksum, row.required_f64);
-    checksum = update_f64(checksum, row.optional_f64);
     checksum = update_f32(checksum, row.required_f32);
-    checksum = update_f32(checksum, row.optional_f32);
     checksum = update_bool(checksum, row.required_bool);
-    checksum = update_bool(checksum, row.optional_bool);
     checksum = update_bytes(checksum, row.required_text.as_bytes());
-    checksum = update_bytes(checksum, row.optional_text.as_bytes());
     checksum = update_bytes(checksum, row.required_bytes.as_slice());
-    checksum = update_bytes(checksum, row.optional_bytes.as_slice());
     checksum = update_bytes(checksum, row.uuid_text.as_bytes());
     checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
     checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
     checksum = update_bytes(checksum, row.numeric_text.as_bytes());
     checksum = update_i64_array(checksum, row.required_i64_array.as_slice());
-    checksum = update_i64_array(checksum, row.nullable_i64_array.as_slice());
     checksum = update_i32_array(checksum, row.required_i32_array.as_slice());
-    checksum = update_i32_array(checksum, row.nullable_i32_array.as_slice());
     checksum = update_u32_array(checksum, row.required_u32_array.as_slice());
-    checksum = update_u32_array(checksum, row.nullable_u32_array.as_slice());
     checksum = update_f64_array(checksum, row.required_f64_array.as_slice());
-    checksum = update_f64_array(checksum, row.nullable_f64_array.as_slice());
     checksum = update_f32_array(checksum, row.required_f32_array.as_slice());
-    checksum = update_f32_array(checksum, row.nullable_f32_array.as_slice());
-    checksum = update_u64(checksum, row.presence_bits);
+    if include_metadata {
+        checksum = update_u64(checksum, row.presence_bits);
+        checksum = update_u16(checksum, row.optional_status_ordinal);
+        checksum = update_i64(checksum, row.optional_i64);
+        checksum = update_i32(checksum, row.optional_i32);
+        checksum = update_u32(checksum, row.optional_u32);
+        checksum = update_f64(checksum, row.optional_f64);
+        checksum = update_f32(checksum, row.optional_f32);
+        checksum = update_bool(checksum, row.optional_bool);
+        checksum = update_bytes(checksum, row.optional_text.as_bytes());
+        checksum = update_bytes(checksum, row.optional_bytes.as_slice());
+        checksum = update_i64_array(checksum, row.nullable_i64_array.as_slice());
+        checksum = update_i32_array(checksum, row.nullable_i32_array.as_slice());
+        checksum = update_u32_array(checksum, row.nullable_u32_array.as_slice());
+        checksum = update_f64_array(checksum, row.nullable_f64_array.as_slice());
+        checksum = update_f32_array(checksum, row.nullable_f32_array.as_slice());
+    }
     checksum
 }
 
 pub fn checksum_archived_row(
+    mut checksum: u64,
+    row: &<TestCompatibilityRowV1 as Archive>::Archived,
+    include_metadata: bool,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.tenant_ordinal.to_native());
+    checksum = update_u16(checksum, row.entity_ordinal.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_u16(checksum, row.status_ordinal.to_native());
+    checksum = update_u64(checksum, row.venues_mask.to_native());
+    checksum = update_i64(checksum, row.required_i64.to_native());
+    checksum = update_i32(checksum, row.required_i32.to_native());
+    checksum = update_u32(checksum, row.required_u32.to_native());
+    checksum = update_f64(checksum, row.required_f64.to_native());
+    checksum = update_f32(checksum, row.required_f32.to_native());
+    checksum = update_bool(checksum, row.required_bool);
+    checksum = update_bytes(checksum, row.required_text.as_bytes());
+    checksum = update_bytes(checksum, row.required_bytes.as_slice());
+    checksum = update_bytes(checksum, row.uuid_text.as_bytes());
+    checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
+    checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
+    checksum = update_bytes(checksum, row.numeric_text.as_bytes());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
+    if include_metadata {
+        checksum = update_u64(checksum, row.presence_bits.to_native());
+        checksum = update_u16(checksum, row.optional_status_ordinal.to_native());
+        checksum = update_i64(checksum, row.optional_i64.to_native());
+        checksum = update_i32(checksum, row.optional_i32.to_native());
+        checksum = update_u32(checksum, row.optional_u32.to_native());
+        checksum = update_f64(checksum, row.optional_f64.to_native());
+        checksum = update_f32(checksum, row.optional_f32.to_native());
+        checksum = update_bool(checksum, row.optional_bool);
+        checksum = update_bytes(checksum, row.optional_text.as_bytes());
+        checksum = update_bytes(checksum, row.optional_bytes.as_slice());
+        checksum = update_u64(checksum, row.nullable_i64_array.len() as u64);
+        for value in row.nullable_i64_array.iter() {
+            checksum = update_i64(checksum, value.to_native());
+        }
+        checksum = update_u64(checksum, row.nullable_i32_array.len() as u64);
+        for value in row.nullable_i32_array.iter() {
+            checksum = update_i32(checksum, value.to_native());
+        }
+        checksum = update_u64(checksum, row.nullable_u32_array.len() as u64);
+        for value in row.nullable_u32_array.iter() {
+            checksum = update_u32(checksum, value.to_native());
+        }
+        checksum = update_u64(checksum, row.nullable_f64_array.len() as u64);
+        for value in row.nullable_f64_array.iter() {
+            checksum = update_f64(checksum, value.to_native());
+        }
+        checksum = update_u64(checksum, row.nullable_f32_array.len() as u64);
+        for value in row.nullable_f32_array.iter() {
+            checksum = update_f32(checksum, value.to_native());
+        }
+    }
+    checksum
+}
+
+pub fn minimal_projection_archived_row(
     mut checksum: u64,
     row: &<TestCompatibilityRowV1 as Archive>::Archived,
 ) -> u64 {
@@ -292,39 +380,39 @@ pub fn checksum_archived_row(
     checksum = update_u16(checksum, row.entity_ordinal.to_native());
     checksum = update_i64(checksum, row.close_ms.to_native());
     checksum = update_u16(checksum, row.status_ordinal.to_native());
-    checksum = update_u16(checksum, row.optional_status_ordinal.to_native());
     checksum = update_u64(checksum, row.venues_mask.to_native());
     checksum = update_i64(checksum, row.required_i64.to_native());
-    checksum = update_i64(checksum, row.optional_i64.to_native());
     checksum = update_i32(checksum, row.required_i32.to_native());
-    checksum = update_i32(checksum, row.optional_i32.to_native());
     checksum = update_u32(checksum, row.required_u32.to_native());
-    checksum = update_u32(checksum, row.optional_u32.to_native());
     checksum = update_f64(checksum, row.required_f64.to_native());
-    checksum = update_f64(checksum, row.optional_f64.to_native());
     checksum = update_f32(checksum, row.required_f32.to_native());
-    checksum = update_f32(checksum, row.optional_f32.to_native());
     checksum = update_bool(checksum, row.required_bool);
-    checksum = update_bool(checksum, row.optional_bool);
     checksum = update_bytes(checksum, row.required_text.as_bytes());
-    checksum = update_bytes(checksum, row.optional_text.as_bytes());
     checksum = update_bytes(checksum, row.required_bytes.as_slice());
-    checksum = update_bytes(checksum, row.optional_bytes.as_slice());
     checksum = update_bytes(checksum, row.uuid_text.as_bytes());
     checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
     checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
     checksum = update_bytes(checksum, row.numeric_text.as_bytes());
-    checksum = update_archived_i64_array(checksum, row.required_i64_array.iter());
-    checksum = update_archived_i64_array(checksum, row.nullable_i64_array.iter());
-    checksum = update_archived_i32_array(checksum, row.required_i32_array.iter());
-    checksum = update_archived_i32_array(checksum, row.nullable_i32_array.iter());
-    checksum = update_archived_u32_array(checksum, row.required_u32_array.iter());
-    checksum = update_archived_u32_array(checksum, row.nullable_u32_array.iter());
-    checksum = update_archived_f64_array(checksum, row.required_f64_array.iter());
-    checksum = update_archived_f64_array(checksum, row.nullable_f64_array.iter());
-    checksum = update_archived_f32_array(checksum, row.required_f32_array.iter());
-    checksum = update_archived_f32_array(checksum, row.nullable_f32_array.iter());
-    checksum = update_u64(checksum, row.presence_bits.to_native());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
     checksum
 }
 
@@ -342,9 +430,6 @@ fn fnv1a64_update(mut checksum: u64, byte: u8) -> u64 {
 }
 
 fn update_fixed<const N: usize>(mut checksum: u64, bytes: [u8; N]) -> u64 {
-    for byte in checksum.to_le_bytes() {
-        checksum = fnv1a64_update(checksum, byte);
-    }
     for byte in bytes {
         checksum = fnv1a64_update(checksum, byte);
     }
@@ -419,56 +504,6 @@ fn update_f32_array(mut checksum: u64, values: &[f32]) -> u64 {
     checksum = update_u64(checksum, values.len() as u64);
     for value in values {
         checksum = update_f32(checksum, *value);
-    }
-    checksum
-}
-
-fn update_archived_i64_array<'a, I>(mut checksum: u64, values: I) -> u64
-where
-    I: Iterator<Item = &'a rkyv::rend::i64_le>,
-{
-    for value in values {
-        checksum = update_i64(checksum, value.to_native());
-    }
-    checksum
-}
-
-fn update_archived_i32_array<'a, I>(mut checksum: u64, values: I) -> u64
-where
-    I: Iterator<Item = &'a rkyv::rend::i32_le>,
-{
-    for value in values {
-        checksum = update_i32(checksum, value.to_native());
-    }
-    checksum
-}
-
-fn update_archived_u32_array<'a, I>(mut checksum: u64, values: I) -> u64
-where
-    I: Iterator<Item = &'a rkyv::rend::u32_le>,
-{
-    for value in values {
-        checksum = update_u32(checksum, value.to_native());
-    }
-    checksum
-}
-
-fn update_archived_f64_array<'a, I>(mut checksum: u64, values: I) -> u64
-where
-    I: Iterator<Item = &'a rkyv::rend::f64_le>,
-{
-    for value in values {
-        checksum = update_f64(checksum, value.to_native());
-    }
-    checksum
-}
-
-fn update_archived_f32_array<'a, I>(mut checksum: u64, values: I) -> u64
-where
-    I: Iterator<Item = &'a rkyv::rend::f32_le>,
-{
-    for value in values {
-        checksum = update_f32(checksum, value.to_native());
     }
     checksum
 }
@@ -648,13 +683,12 @@ impl TestCompatibilityV1 {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedTestCompatibilityResponseV1Payload> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
-            rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1Payload>(payload)
-        };
-        validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        Ok(
+            unsafe {
+                rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1Payload>(payload)
+            },
+        )
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -941,23 +975,124 @@ fn validate_archived_payload(
             expected: expected_rows,
         });
     }
+    validate_archived_rows(archived)
+}
+
+fn validate_archived_rows(archived: &ArchivedTestCompatibilityResponseV1Payload) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = row_from_archived(archived_row);
+        validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn inspect_archived_rows(
     archived: &ArchivedTestCompatibilityResponseV1Payload,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.test_compatibility.v1".as_bytes());
-    let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = checksum_archived_row(semantic_checksum, row);
-        minimal_projection_checksum = checksum_archived_row(minimal_projection_checksum, row);
+    let mut minimal_projection_checksum =
+        fnv1a64("mathilde.test_compatibility.v1-minimal".as_bytes());
+    for archived_row in archived.rows.iter() {
+        let row = row_from_archived(archived_row);
+        validate_row(&row, previous.as_ref())?;
+        semantic_checksum = checksum_archived_row(semantic_checksum, archived_row, true);
+        minimal_projection_checksum =
+            minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn row_from_archived(
+    row: &<TestCompatibilityRowV1 as Archive>::Archived,
+) -> TestCompatibilityRowV1 {
+    TestCompatibilityRowV1 {
+        schema_version: row.schema_version.to_native(),
+        tenant_ordinal: row.tenant_ordinal.to_native(),
+        entity_ordinal: row.entity_ordinal.to_native(),
+        close_ms: row.close_ms.to_native(),
+        status_ordinal: row.status_ordinal.to_native(),
+        optional_status_ordinal: row.optional_status_ordinal.to_native(),
+        venues_mask: row.venues_mask.to_native(),
+        required_i64: row.required_i64.to_native(),
+        optional_i64: row.optional_i64.to_native(),
+        required_i32: row.required_i32.to_native(),
+        optional_i32: row.optional_i32.to_native(),
+        required_u32: row.required_u32.to_native(),
+        optional_u32: row.optional_u32.to_native(),
+        required_f64: row.required_f64.to_native(),
+        optional_f64: row.optional_f64.to_native(),
+        required_f32: row.required_f32.to_native(),
+        optional_f32: row.optional_f32.to_native(),
+        required_bool: row.required_bool,
+        optional_bool: row.optional_bool,
+        required_text: row.required_text.as_str().to_string(),
+        optional_text: row.optional_text.as_str().to_string(),
+        required_bytes: row.required_bytes.as_slice().to_vec(),
+        optional_bytes: row.optional_bytes.as_slice().to_vec(),
+        uuid_text: row.uuid_text.as_str().to_string(),
+        jsonb_text: row.jsonb_text.as_str().to_string(),
+        timestamptz_text: row.timestamptz_text.as_str().to_string(),
+        numeric_text: row.numeric_text.as_str().to_string(),
+        required_i64_array: row
+            .required_i64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_i64_array: row
+            .nullable_i64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_i32_array: row
+            .required_i32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_i32_array: row
+            .nullable_i32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_u32_array: row
+            .required_u32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_u32_array: row
+            .nullable_u32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f64_array: row
+            .required_f64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_f64_array: row
+            .nullable_f64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f32_array: row
+            .required_f32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_f32_array: row
+            .nullable_f32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        presence_bits: row.presence_bits.to_native(),
+    }
 }
 struct DirectI64ArrayRef<'a> {
     values: &'a ArchivedVec<rkyv::primitive::ArchivedI64>,
@@ -976,7 +1111,8 @@ where
     S: Fallible + Allocator + Writer + ?Sized,
 {
     fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
-        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+        let mut values = self.values.iter().map(|value| value.to_native());
+        ArchivedVec::serialize_from_unknown_length_iter::<i64, _, _>(&mut values, serializer)
     }
 }
 
@@ -997,7 +1133,8 @@ where
     S: Fallible + Allocator + Writer + ?Sized,
 {
     fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
-        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+        let mut values = self.values.iter().map(|value| value.to_native());
+        ArchivedVec::serialize_from_unknown_length_iter::<i32, _, _>(&mut values, serializer)
     }
 }
 
@@ -1018,7 +1155,8 @@ where
     S: Fallible + Allocator + Writer + ?Sized,
 {
     fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
-        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+        let mut values = self.values.iter().map(|value| value.to_native());
+        ArchivedVec::serialize_from_unknown_length_iter::<u32, _, _>(&mut values, serializer)
     }
 }
 
@@ -1039,7 +1177,8 @@ where
     S: Fallible + Allocator + Writer + ?Sized,
 {
     fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
-        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+        let mut values = self.values.iter().map(|value| value.to_native());
+        ArchivedVec::serialize_from_unknown_length_iter::<f64, _, _>(&mut values, serializer)
     }
 }
 
@@ -1060,7 +1199,8 @@ where
     S: Fallible + Allocator + Writer + ?Sized,
 {
     fn serialize(&self, serializer: &mut S) -> std::result::Result<Self::Resolver, S::Error> {
-        ArchivedVec::serialize_from_slice(self.values.as_slice(), serializer)
+        let mut values = self.values.iter().map(|value| value.to_native());
+        ArchivedVec::serialize_from_unknown_length_iter::<f32, _, _>(&mut values, serializer)
     }
 }
 
@@ -1158,6 +1298,7 @@ fn no_optional_validate_row(
 fn no_optional_checksum_archived_row(
     mut checksum: u64,
     row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+    include_metadata: bool,
 ) -> u64 {
     checksum = update_u16(checksum, row.schema_version.to_native());
     checksum = update_u16(checksum, row.tenant_ordinal.to_native());
@@ -1177,11 +1318,72 @@ fn no_optional_checksum_archived_row(
     checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
     checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
     checksum = update_bytes(checksum, row.numeric_text.as_bytes());
-    checksum = update_archived_i64_array(checksum, row.required_i64_array.iter());
-    checksum = update_archived_i32_array(checksum, row.required_i32_array.iter());
-    checksum = update_archived_u32_array(checksum, row.required_u32_array.iter());
-    checksum = update_archived_f64_array(checksum, row.required_f64_array.iter());
-    checksum = update_archived_f32_array(checksum, row.required_f32_array.iter());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
+    let _ = include_metadata;
+    checksum
+}
+
+fn no_optional_minimal_projection_archived_row(
+    mut checksum: u64,
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.tenant_ordinal.to_native());
+    checksum = update_u16(checksum, row.entity_ordinal.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_u16(checksum, row.status_ordinal.to_native());
+    checksum = update_u64(checksum, row.venues_mask.to_native());
+    checksum = update_i64(checksum, row.required_i64.to_native());
+    checksum = update_i32(checksum, row.required_i32.to_native());
+    checksum = update_u32(checksum, row.required_u32.to_native());
+    checksum = update_f64(checksum, row.required_f64.to_native());
+    checksum = update_f32(checksum, row.required_f32.to_native());
+    checksum = update_bool(checksum, row.required_bool);
+    checksum = update_bytes(checksum, row.required_text.as_bytes());
+    checksum = update_bytes(checksum, row.required_bytes.as_slice());
+    checksum = update_bytes(checksum, row.uuid_text.as_bytes());
+    checksum = update_bytes(checksum, row.jsonb_text.as_bytes());
+    checksum = update_bytes(checksum, row.timestamptz_text.as_bytes());
+    checksum = update_bytes(checksum, row.numeric_text.as_bytes());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
     checksum
 }
 
@@ -1271,13 +1473,10 @@ impl TestCompatibilityV1NoOptional {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNoOptional> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
+        Ok(unsafe {
             rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1PayloadNoOptional>(payload)
-        };
-        no_optional_validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        })
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -1452,24 +1651,91 @@ fn no_optional_validate_archived_payload(
             expected: expected_rows,
         });
     }
+    no_optional_validate_archived_rows(archived)
+}
+
+fn no_optional_validate_archived_rows(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = no_optional_row_from_archived(archived_row);
+        no_optional_validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn no_optional_inspect_archived_rows(
     archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.test_compatibility.v1.no_optional".as_bytes());
     let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = no_optional_checksum_archived_row(semantic_checksum, row);
+    for archived_row in archived.rows.iter() {
+        let row = no_optional_row_from_archived(archived_row);
+        no_optional_validate_row(&row, previous.as_ref())?;
+        semantic_checksum =
+            no_optional_checksum_archived_row(semantic_checksum, archived_row, true);
         minimal_projection_checksum =
-            no_optional_checksum_archived_row(minimal_projection_checksum, row);
+            no_optional_minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn no_optional_row_from_archived(
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+) -> TestCompatibilityRowV1NoOptional {
+    TestCompatibilityRowV1NoOptional {
+        schema_version: row.schema_version.to_native(),
+        tenant_ordinal: row.tenant_ordinal.to_native(),
+        entity_ordinal: row.entity_ordinal.to_native(),
+        close_ms: row.close_ms.to_native(),
+        status_ordinal: row.status_ordinal.to_native(),
+        venues_mask: row.venues_mask.to_native(),
+        required_i64: row.required_i64.to_native(),
+        required_i32: row.required_i32.to_native(),
+        required_u32: row.required_u32.to_native(),
+        required_f64: row.required_f64.to_native(),
+        required_f32: row.required_f32.to_native(),
+        required_bool: row.required_bool,
+        required_text: row.required_text.as_str().to_string(),
+        required_bytes: row.required_bytes.as_slice().to_vec(),
+        uuid_text: row.uuid_text.as_str().to_string(),
+        jsonb_text: row.jsonb_text.as_str().to_string(),
+        timestamptz_text: row.timestamptz_text.as_str().to_string(),
+        numeric_text: row.numeric_text.as_str().to_string(),
+        required_i64_array: row
+            .required_i64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_i32_array: row
+            .required_i32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_u32_array: row
+            .required_u32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f64_array: row
+            .required_f64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f32_array: row
+            .required_f32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+    }
 }
 #[derive(Archive, RkyvSerialize)]
 struct TestCompatibilityV1NoOptionalProjectionPayloadRef<'a> {
@@ -1810,6 +2076,7 @@ fn numeric_only_validate_row(
 fn numeric_only_checksum_archived_row(
     mut checksum: u64,
     row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+    include_metadata: bool,
 ) -> u64 {
     checksum = update_u16(checksum, row.schema_version.to_native());
     checksum = update_u16(checksum, row.tenant_ordinal.to_native());
@@ -1825,16 +2092,109 @@ fn numeric_only_checksum_archived_row(
     checksum = update_f64(checksum, row.optional_f64.to_native());
     checksum = update_f32(checksum, row.required_f32.to_native());
     checksum = update_f32(checksum, row.optional_f32.to_native());
-    checksum = update_archived_i64_array(checksum, row.required_i64_array.iter());
-    checksum = update_archived_i64_array(checksum, row.nullable_i64_array.iter());
-    checksum = update_archived_i32_array(checksum, row.required_i32_array.iter());
-    checksum = update_archived_i32_array(checksum, row.nullable_i32_array.iter());
-    checksum = update_archived_u32_array(checksum, row.required_u32_array.iter());
-    checksum = update_archived_u32_array(checksum, row.nullable_u32_array.iter());
-    checksum = update_archived_f64_array(checksum, row.required_f64_array.iter());
-    checksum = update_archived_f64_array(checksum, row.nullable_f64_array.iter());
-    checksum = update_archived_f32_array(checksum, row.required_f32_array.iter());
-    checksum = update_archived_f32_array(checksum, row.nullable_f32_array.iter());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_i64_array.len() as u64);
+    for value in row.nullable_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_i32_array.len() as u64);
+    for value in row.nullable_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_u32_array.len() as u64);
+    for value in row.nullable_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_f64_array.len() as u64);
+    for value in row.nullable_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_f32_array.len() as u64);
+    for value in row.nullable_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.presence_bits.to_native());
+    let _ = include_metadata;
+    checksum
+}
+
+fn numeric_only_minimal_projection_archived_row(
+    mut checksum: u64,
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.tenant_ordinal.to_native());
+    checksum = update_u16(checksum, row.entity_ordinal.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_i64(checksum, row.required_i64.to_native());
+    checksum = update_i64(checksum, row.optional_i64.to_native());
+    checksum = update_i32(checksum, row.required_i32.to_native());
+    checksum = update_i32(checksum, row.optional_i32.to_native());
+    checksum = update_u32(checksum, row.required_u32.to_native());
+    checksum = update_u32(checksum, row.optional_u32.to_native());
+    checksum = update_f64(checksum, row.required_f64.to_native());
+    checksum = update_f64(checksum, row.optional_f64.to_native());
+    checksum = update_f32(checksum, row.required_f32.to_native());
+    checksum = update_f32(checksum, row.optional_f32.to_native());
+    checksum = update_u64(checksum, row.required_i64_array.len() as u64);
+    for value in row.required_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_i64_array.len() as u64);
+    for value in row.nullable_i64_array.iter() {
+        checksum = update_i64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_i32_array.len() as u64);
+    for value in row.required_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_i32_array.len() as u64);
+    for value in row.nullable_i32_array.iter() {
+        checksum = update_i32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_u32_array.len() as u64);
+    for value in row.required_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_u32_array.len() as u64);
+    for value in row.nullable_u32_array.iter() {
+        checksum = update_u32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f64_array.len() as u64);
+    for value in row.required_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_f64_array.len() as u64);
+    for value in row.nullable_f64_array.iter() {
+        checksum = update_f64(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.required_f32_array.len() as u64);
+    for value in row.required_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
+    checksum = update_u64(checksum, row.nullable_f32_array.len() as u64);
+    for value in row.nullable_f32_array.iter() {
+        checksum = update_f32(checksum, value.to_native());
+    }
     checksum = update_u64(checksum, row.presence_bits.to_native());
     checksum
 }
@@ -1925,13 +2285,10 @@ impl TestCompatibilityV1NumericOnly {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedTestCompatibilityResponseV1PayloadNumericOnly> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
+        Ok(unsafe {
             rkyv::access_unchecked::<ArchivedTestCompatibilityResponseV1PayloadNumericOnly>(payload)
-        };
-        numeric_only_validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        })
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -2154,24 +2511,113 @@ fn numeric_only_validate_archived_payload(
             expected: expected_rows,
         });
     }
+    numeric_only_validate_archived_rows(archived)
+}
+
+fn numeric_only_validate_archived_rows(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = numeric_only_row_from_archived(archived_row);
+        numeric_only_validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn numeric_only_inspect_archived_rows(
     archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.test_compatibility.v1.numeric_only".as_bytes());
     let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = numeric_only_checksum_archived_row(semantic_checksum, row);
+    for archived_row in archived.rows.iter() {
+        let row = numeric_only_row_from_archived(archived_row);
+        numeric_only_validate_row(&row, previous.as_ref())?;
+        semantic_checksum =
+            numeric_only_checksum_archived_row(semantic_checksum, archived_row, true);
         minimal_projection_checksum =
-            numeric_only_checksum_archived_row(minimal_projection_checksum, row);
+            numeric_only_minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn numeric_only_row_from_archived(
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+) -> TestCompatibilityRowV1NumericOnly {
+    TestCompatibilityRowV1NumericOnly {
+        schema_version: row.schema_version.to_native(),
+        tenant_ordinal: row.tenant_ordinal.to_native(),
+        entity_ordinal: row.entity_ordinal.to_native(),
+        close_ms: row.close_ms.to_native(),
+        required_i64: row.required_i64.to_native(),
+        optional_i64: row.optional_i64.to_native(),
+        required_i32: row.required_i32.to_native(),
+        optional_i32: row.optional_i32.to_native(),
+        required_u32: row.required_u32.to_native(),
+        optional_u32: row.optional_u32.to_native(),
+        required_f64: row.required_f64.to_native(),
+        optional_f64: row.optional_f64.to_native(),
+        required_f32: row.required_f32.to_native(),
+        optional_f32: row.optional_f32.to_native(),
+        required_i64_array: row
+            .required_i64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_i64_array: row
+            .nullable_i64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_i32_array: row
+            .required_i32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_i32_array: row
+            .nullable_i32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_u32_array: row
+            .required_u32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_u32_array: row
+            .nullable_u32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f64_array: row
+            .required_f64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_f64_array: row
+            .nullable_f64_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        required_f32_array: row
+            .required_f32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        nullable_f32_array: row
+            .nullable_f32_array
+            .iter()
+            .map(|value| value.to_native())
+            .collect(),
+        presence_bits: row.presence_bits.to_native(),
+    }
 }
 #[derive(Archive, RkyvSerialize)]
 struct TestCompatibilityV1NumericOnlyProjectionPayloadRef<'a> {

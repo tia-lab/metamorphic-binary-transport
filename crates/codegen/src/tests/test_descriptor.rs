@@ -1,4 +1,5 @@
 use super::*;
+use crate::model::{JsonCsvOutputField, ProtobufOutputField};
 
 #[test]
 fn valid_fixture_schemas_load() -> Result<()> {
@@ -8,6 +9,7 @@ fn valid_fixture_schemas_load() -> Result<()> {
         valid_array_proto().to_string(),
         valid_wide_presence_proto(),
         valid_alias_and_projection_ignored_proto().to_string(),
+        valid_nested_derived_utc_proto().to_string(),
     ] {
         let model = model_for(&proto)?;
         assert_eq!(model.row_field_name, "rows");
@@ -30,9 +32,73 @@ fn invalid_fixture_schemas_fail_before_emission() -> Result<()> {
         invalid_repeated_bytes_proto(),
         invalid_repeated_bool_proto(),
         invalid_duplicate_rust_field_proto(),
+        invalid_derived_utc_without_ignored_proto(),
+        invalid_derived_utc_unknown_source_proto(),
+        invalid_derived_utc_non_i64_source_proto(),
+        invalid_derived_utc_non_string_field_proto(),
+        invalid_repeated_derived_utc_proto(),
+        invalid_duplicate_protobuf_output_tag_proto(),
+        invalid_duplicate_protobuf_helper_stem_proto(),
     ] {
         assert!(model_for(proto).is_err());
     }
+    Ok(())
+}
+
+#[test]
+fn derived_utc_fields_are_row_format_only() -> Result<()> {
+    let model = model_for(valid_nested_derived_utc_proto())?;
+    assert_eq!(model.fields.len(), 4);
+    assert!(
+        model
+            .fields
+            .iter()
+            .all(|field| field.proto_name != "close_utc")
+    );
+    assert!(
+        model
+            .fields
+            .iter()
+            .all(|field| field.proto_name != "ingested_at_utc")
+    );
+
+    assert_eq!(model.derived_utc_fields.len(), 2);
+    assert_eq!(model.derived_utc_fields[0].logical_path, "close_utc");
+    assert_eq!(model.derived_utc_fields[0].source_logical_path, "close_ms");
+    assert_eq!(
+        model.derived_utc_fields[1].logical_path,
+        "metadata.ingested_at_utc"
+    );
+    assert_eq!(
+        model.derived_utc_fields[1].source_logical_path,
+        "metadata.ingested_at_ms"
+    );
+    assert_eq!(model.derived_utc_fields[1].source_presence_bit, Some(0));
+
+    assert!(matches!(
+        model.json_csv_output_fields[3],
+        JsonCsvOutputField::DerivedUtc { derived_index: 0 }
+    ));
+    assert!(matches!(
+        model.json_csv_output_fields[5],
+        JsonCsvOutputField::DerivedUtc { derived_index: 1 }
+    ));
+
+    assert_eq!(model.protobuf_messages.len(), 2);
+    assert_eq!(model.protobuf_messages[0].rust_helper_stem, "row");
+    assert_eq!(model.protobuf_messages[1].rust_helper_stem, "metadata");
+    assert!(model.protobuf_messages[0].fields.iter().any(|field| {
+        matches!(
+            field,
+            ProtobufOutputField::Message { message_index } if *message_index == 1
+        )
+    }));
+    assert!(model.protobuf_messages[1].fields.iter().any(|field| {
+        matches!(
+            field,
+            ProtobufOutputField::DerivedUtc { derived_index } if *derived_index == 1
+        )
+    }));
     Ok(())
 }
 

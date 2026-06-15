@@ -310,16 +310,20 @@ fn validate_finite_f64(field: &'static str, value: f64) -> Result<()> {
 pub fn semantic_checksum(rows: &[MathildeBarRowV1]) -> u64 {
     let mut checksum = fnv1a64("mathilde.bar.v1".as_bytes());
     for row in rows {
-        checksum = checksum_row(checksum, row);
+        checksum = checksum_row(checksum, row, true);
     }
     checksum
 }
 
 pub fn minimal_projection_checksum(rows: &[MathildeBarRowV1]) -> u64 {
-    semantic_checksum(rows)
+    let mut checksum = fnv1a64("mathilde.bar.v1-minimal".as_bytes());
+    for row in rows {
+        checksum = checksum_row(checksum, row, false);
+    }
+    checksum
 }
 
-pub fn checksum_row(mut checksum: u64, row: &MathildeBarRowV1) -> u64 {
+pub fn checksum_row(mut checksum: u64, row: &MathildeBarRowV1, include_metadata: bool) -> u64 {
     checksum = update_u16(checksum, row.schema_version);
     checksum = update_u16(checksum, row.pair_ordinal);
     checksum = update_u16(checksum, row.tf_ordinal);
@@ -330,45 +334,102 @@ pub fn checksum_row(mut checksum: u64, row: &MathildeBarRowV1) -> u64 {
     checksum = update_f64(checksum, row.l);
     checksum = update_f64(checksum, row.c);
     checksum = update_f64(checksum, row.v);
-    checksum = update_f64(checksum, row.quote_v);
-    checksum = update_f64(checksum, row.taker_known_v);
-    checksum = update_f64(checksum, row.taker_signed_v);
-    checksum = update_f64(checksum, row.taker_known_quote_v);
-    checksum = update_f64(checksum, row.taker_signed_quote_v);
-    checksum = update_i64(checksum, row.taker_known_n);
-    checksum = update_i64(checksum, row.taker_signed_n);
-    checksum = update_f64(checksum, row.vw);
-    checksum = update_i64(checksum, row.n);
-    checksum = update_u16(checksum, row.source_ordinal);
-    checksum = update_u16(checksum, row.process_ordinal);
-    checksum = update_u64(checksum, row.venues_expected_mask);
-    checksum = update_u64(checksum, row.venues_with_trades_mask);
-    checksum = update_i64(checksum, row.ingested_at_ms);
-    checksum = update_i64(checksum, row.target_ingested_at_ms);
-    checksum = update_i64(checksum, row.built_at_ms);
-    checksum = update_i64(checksum, row.committed_at_ms);
-    checksum = update_i64(checksum, row.harmonized_at_ms);
-    checksum = update_i64(checksum, row.recomputed_at_ms);
-    checksum = update_u16(checksum, row.recomputed_reason_ordinal);
-    checksum = update_i64(checksum, row.covered_1m_count);
-    checksum = update_i64(checksum, row.expected_1m_count);
-    checksum = update_f64(checksum, row.coverage_ratio);
-    checksum = update_i64(checksum, row.inputs_source_counts_frontier);
-    checksum = update_i64(checksum, row.inputs_source_counts_api);
-    checksum = update_i64(checksum, row.inputs_source_counts_synthetic);
-    checksum = update_i64(checksum, row.inputs_source_counts_fix_data);
-    checksum = update_f64(checksum, row.frontier_5s_inputs_coverage_ratio);
-    checksum = update_i64(checksum, row.frontier_5s_expected);
-    checksum = update_i64(checksum, row.frontier_5s_synth_n);
-    checksum = update_f64(checksum, row.frontier_5s_synth_ratio);
-    checksum = update_i64(checksum, row.frontier_5s_trade_n);
-    checksum = update_f64(checksum, row.frontier_5s_trade_ratio);
-    checksum = update_i64(checksum, row.age_ms);
-    checksum = update_u64(checksum, row.presence_bits);
+    if include_metadata {
+        checksum = update_u64(checksum, row.presence_bits);
+        checksum = update_f64(checksum, row.quote_v);
+        checksum = update_f64(checksum, row.taker_known_v);
+        checksum = update_f64(checksum, row.taker_signed_v);
+        checksum = update_f64(checksum, row.taker_known_quote_v);
+        checksum = update_f64(checksum, row.taker_signed_quote_v);
+        checksum = update_i64(checksum, row.taker_known_n);
+        checksum = update_i64(checksum, row.taker_signed_n);
+        checksum = update_f64(checksum, row.vw);
+        checksum = update_i64(checksum, row.n);
+        checksum = update_u16(checksum, row.source_ordinal);
+        checksum = update_u16(checksum, row.process_ordinal);
+        checksum = update_u64(checksum, row.venues_expected_mask);
+        checksum = update_u64(checksum, row.venues_with_trades_mask);
+        checksum = update_i64(checksum, row.ingested_at_ms);
+        checksum = update_i64(checksum, row.target_ingested_at_ms);
+        checksum = update_i64(checksum, row.built_at_ms);
+        checksum = update_i64(checksum, row.committed_at_ms);
+        checksum = update_i64(checksum, row.harmonized_at_ms);
+        checksum = update_i64(checksum, row.recomputed_at_ms);
+        checksum = update_u16(checksum, row.recomputed_reason_ordinal);
+        checksum = update_i64(checksum, row.covered_1m_count);
+        checksum = update_i64(checksum, row.expected_1m_count);
+        checksum = update_f64(checksum, row.coverage_ratio);
+        checksum = update_i64(checksum, row.inputs_source_counts_frontier);
+        checksum = update_i64(checksum, row.inputs_source_counts_api);
+        checksum = update_i64(checksum, row.inputs_source_counts_synthetic);
+        checksum = update_i64(checksum, row.inputs_source_counts_fix_data);
+        checksum = update_f64(checksum, row.frontier_5s_inputs_coverage_ratio);
+        checksum = update_i64(checksum, row.frontier_5s_expected);
+        checksum = update_i64(checksum, row.frontier_5s_synth_n);
+        checksum = update_f64(checksum, row.frontier_5s_synth_ratio);
+        checksum = update_i64(checksum, row.frontier_5s_trade_n);
+        checksum = update_f64(checksum, row.frontier_5s_trade_ratio);
+        checksum = update_i64(checksum, row.age_ms);
+    }
     checksum
 }
 
 pub fn checksum_archived_row(
+    mut checksum: u64,
+    row: &<MathildeBarRowV1 as Archive>::Archived,
+    include_metadata: bool,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.pair_ordinal.to_native());
+    checksum = update_u16(checksum, row.tf_ordinal.to_native());
+    checksum = update_i64(checksum, row.open_ms.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_f64(checksum, row.o.to_native());
+    checksum = update_f64(checksum, row.h.to_native());
+    checksum = update_f64(checksum, row.l.to_native());
+    checksum = update_f64(checksum, row.c.to_native());
+    checksum = update_f64(checksum, row.v.to_native());
+    if include_metadata {
+        checksum = update_u64(checksum, row.presence_bits.to_native());
+        checksum = update_f64(checksum, row.quote_v.to_native());
+        checksum = update_f64(checksum, row.taker_known_v.to_native());
+        checksum = update_f64(checksum, row.taker_signed_v.to_native());
+        checksum = update_f64(checksum, row.taker_known_quote_v.to_native());
+        checksum = update_f64(checksum, row.taker_signed_quote_v.to_native());
+        checksum = update_i64(checksum, row.taker_known_n.to_native());
+        checksum = update_i64(checksum, row.taker_signed_n.to_native());
+        checksum = update_f64(checksum, row.vw.to_native());
+        checksum = update_i64(checksum, row.n.to_native());
+        checksum = update_u16(checksum, row.source_ordinal.to_native());
+        checksum = update_u16(checksum, row.process_ordinal.to_native());
+        checksum = update_u64(checksum, row.venues_expected_mask.to_native());
+        checksum = update_u64(checksum, row.venues_with_trades_mask.to_native());
+        checksum = update_i64(checksum, row.ingested_at_ms.to_native());
+        checksum = update_i64(checksum, row.target_ingested_at_ms.to_native());
+        checksum = update_i64(checksum, row.built_at_ms.to_native());
+        checksum = update_i64(checksum, row.committed_at_ms.to_native());
+        checksum = update_i64(checksum, row.harmonized_at_ms.to_native());
+        checksum = update_i64(checksum, row.recomputed_at_ms.to_native());
+        checksum = update_u16(checksum, row.recomputed_reason_ordinal.to_native());
+        checksum = update_i64(checksum, row.covered_1m_count.to_native());
+        checksum = update_i64(checksum, row.expected_1m_count.to_native());
+        checksum = update_f64(checksum, row.coverage_ratio.to_native());
+        checksum = update_i64(checksum, row.inputs_source_counts_frontier.to_native());
+        checksum = update_i64(checksum, row.inputs_source_counts_api.to_native());
+        checksum = update_i64(checksum, row.inputs_source_counts_synthetic.to_native());
+        checksum = update_i64(checksum, row.inputs_source_counts_fix_data.to_native());
+        checksum = update_f64(checksum, row.frontier_5s_inputs_coverage_ratio.to_native());
+        checksum = update_i64(checksum, row.frontier_5s_expected.to_native());
+        checksum = update_i64(checksum, row.frontier_5s_synth_n.to_native());
+        checksum = update_f64(checksum, row.frontier_5s_synth_ratio.to_native());
+        checksum = update_i64(checksum, row.frontier_5s_trade_n.to_native());
+        checksum = update_f64(checksum, row.frontier_5s_trade_ratio.to_native());
+        checksum = update_i64(checksum, row.age_ms.to_native());
+    }
+    checksum
+}
+
+pub fn minimal_projection_archived_row(
     mut checksum: u64,
     row: &<MathildeBarRowV1 as Archive>::Archived,
 ) -> u64 {
@@ -382,41 +443,6 @@ pub fn checksum_archived_row(
     checksum = update_f64(checksum, row.l.to_native());
     checksum = update_f64(checksum, row.c.to_native());
     checksum = update_f64(checksum, row.v.to_native());
-    checksum = update_f64(checksum, row.quote_v.to_native());
-    checksum = update_f64(checksum, row.taker_known_v.to_native());
-    checksum = update_f64(checksum, row.taker_signed_v.to_native());
-    checksum = update_f64(checksum, row.taker_known_quote_v.to_native());
-    checksum = update_f64(checksum, row.taker_signed_quote_v.to_native());
-    checksum = update_i64(checksum, row.taker_known_n.to_native());
-    checksum = update_i64(checksum, row.taker_signed_n.to_native());
-    checksum = update_f64(checksum, row.vw.to_native());
-    checksum = update_i64(checksum, row.n.to_native());
-    checksum = update_u16(checksum, row.source_ordinal.to_native());
-    checksum = update_u16(checksum, row.process_ordinal.to_native());
-    checksum = update_u64(checksum, row.venues_expected_mask.to_native());
-    checksum = update_u64(checksum, row.venues_with_trades_mask.to_native());
-    checksum = update_i64(checksum, row.ingested_at_ms.to_native());
-    checksum = update_i64(checksum, row.target_ingested_at_ms.to_native());
-    checksum = update_i64(checksum, row.built_at_ms.to_native());
-    checksum = update_i64(checksum, row.committed_at_ms.to_native());
-    checksum = update_i64(checksum, row.harmonized_at_ms.to_native());
-    checksum = update_i64(checksum, row.recomputed_at_ms.to_native());
-    checksum = update_u16(checksum, row.recomputed_reason_ordinal.to_native());
-    checksum = update_i64(checksum, row.covered_1m_count.to_native());
-    checksum = update_i64(checksum, row.expected_1m_count.to_native());
-    checksum = update_f64(checksum, row.coverage_ratio.to_native());
-    checksum = update_i64(checksum, row.inputs_source_counts_frontier.to_native());
-    checksum = update_i64(checksum, row.inputs_source_counts_api.to_native());
-    checksum = update_i64(checksum, row.inputs_source_counts_synthetic.to_native());
-    checksum = update_i64(checksum, row.inputs_source_counts_fix_data.to_native());
-    checksum = update_f64(checksum, row.frontier_5s_inputs_coverage_ratio.to_native());
-    checksum = update_i64(checksum, row.frontier_5s_expected.to_native());
-    checksum = update_i64(checksum, row.frontier_5s_synth_n.to_native());
-    checksum = update_f64(checksum, row.frontier_5s_synth_ratio.to_native());
-    checksum = update_i64(checksum, row.frontier_5s_trade_n.to_native());
-    checksum = update_f64(checksum, row.frontier_5s_trade_ratio.to_native());
-    checksum = update_i64(checksum, row.age_ms.to_native());
-    checksum = update_u64(checksum, row.presence_bits.to_native());
     checksum
 }
 
@@ -426,9 +452,6 @@ fn fnv1a64_update(mut checksum: u64, byte: u8) -> u64 {
 }
 
 fn update_fixed<const N: usize>(mut checksum: u64, bytes: [u8; N]) -> u64 {
-    for byte in checksum.to_le_bytes() {
-        checksum = fnv1a64_update(checksum, byte);
-    }
     for byte in bytes {
         checksum = fnv1a64_update(checksum, byte);
     }
@@ -671,13 +694,12 @@ impl BarsV1 {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedMathildeTransportResponseV1Payload> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
-            rkyv::access_unchecked::<ArchivedMathildeTransportResponseV1Payload>(payload)
-        };
-        validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        Ok(
+            unsafe {
+                rkyv::access_unchecked::<ArchivedMathildeTransportResponseV1Payload>(payload)
+            },
+        )
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -986,23 +1008,88 @@ fn validate_archived_payload(
             expected: expected_rows,
         });
     }
+    validate_archived_rows(archived)
+}
+
+fn validate_archived_rows(archived: &ArchivedMathildeTransportResponseV1Payload) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = row_from_archived(archived_row);
+        validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn inspect_archived_rows(
     archived: &ArchivedMathildeTransportResponseV1Payload,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.bar.v1".as_bytes());
-    let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = checksum_archived_row(semantic_checksum, row);
-        minimal_projection_checksum = checksum_archived_row(minimal_projection_checksum, row);
+    let mut minimal_projection_checksum = fnv1a64("mathilde.bar.v1-minimal".as_bytes());
+    for archived_row in archived.rows.iter() {
+        let row = row_from_archived(archived_row);
+        validate_row(&row, previous.as_ref())?;
+        semantic_checksum = checksum_archived_row(semantic_checksum, archived_row, true);
+        minimal_projection_checksum =
+            minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn row_from_archived(row: &<MathildeBarRowV1 as Archive>::Archived) -> MathildeBarRowV1 {
+    MathildeBarRowV1 {
+        schema_version: row.schema_version.to_native(),
+        pair_ordinal: row.pair_ordinal.to_native(),
+        tf_ordinal: row.tf_ordinal.to_native(),
+        open_ms: row.open_ms.to_native(),
+        close_ms: row.close_ms.to_native(),
+        o: row.o.to_native(),
+        h: row.h.to_native(),
+        l: row.l.to_native(),
+        c: row.c.to_native(),
+        v: row.v.to_native(),
+        quote_v: row.quote_v.to_native(),
+        taker_known_v: row.taker_known_v.to_native(),
+        taker_signed_v: row.taker_signed_v.to_native(),
+        taker_known_quote_v: row.taker_known_quote_v.to_native(),
+        taker_signed_quote_v: row.taker_signed_quote_v.to_native(),
+        taker_known_n: row.taker_known_n.to_native(),
+        taker_signed_n: row.taker_signed_n.to_native(),
+        vw: row.vw.to_native(),
+        n: row.n.to_native(),
+        source_ordinal: row.source_ordinal.to_native(),
+        process_ordinal: row.process_ordinal.to_native(),
+        venues_expected_mask: row.venues_expected_mask.to_native(),
+        venues_with_trades_mask: row.venues_with_trades_mask.to_native(),
+        ingested_at_ms: row.ingested_at_ms.to_native(),
+        target_ingested_at_ms: row.target_ingested_at_ms.to_native(),
+        built_at_ms: row.built_at_ms.to_native(),
+        committed_at_ms: row.committed_at_ms.to_native(),
+        harmonized_at_ms: row.harmonized_at_ms.to_native(),
+        recomputed_at_ms: row.recomputed_at_ms.to_native(),
+        recomputed_reason_ordinal: row.recomputed_reason_ordinal.to_native(),
+        covered_1m_count: row.covered_1m_count.to_native(),
+        expected_1m_count: row.expected_1m_count.to_native(),
+        coverage_ratio: row.coverage_ratio.to_native(),
+        inputs_source_counts_frontier: row.inputs_source_counts_frontier.to_native(),
+        inputs_source_counts_api: row.inputs_source_counts_api.to_native(),
+        inputs_source_counts_synthetic: row.inputs_source_counts_synthetic.to_native(),
+        inputs_source_counts_fix_data: row.inputs_source_counts_fix_data.to_native(),
+        frontier_5s_inputs_coverage_ratio: row.frontier_5s_inputs_coverage_ratio.to_native(),
+        frontier_5s_expected: row.frontier_5s_expected.to_native(),
+        frontier_5s_synth_n: row.frontier_5s_synth_n.to_native(),
+        frontier_5s_synth_ratio: row.frontier_5s_synth_ratio.to_native(),
+        frontier_5s_trade_n: row.frontier_5s_trade_n.to_native(),
+        frontier_5s_trade_ratio: row.frontier_5s_trade_ratio.to_native(),
+        age_ms: row.age_ms.to_native(),
+        presence_bits: row.presence_bits.to_native(),
+    }
 }
 const NO_METADATA_SCHEMA_ID: u32 = 1;
 const NO_METADATA_SCHEMA_VERSION_VALUE: u16 = 1;
@@ -1107,6 +1194,36 @@ fn no_metadata_validate_row(
 }
 
 fn no_metadata_checksum_archived_row(
+    mut checksum: u64,
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+    include_metadata: bool,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.pair_ordinal.to_native());
+    checksum = update_u16(checksum, row.tf_ordinal.to_native());
+    checksum = update_i64(checksum, row.open_ms.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_f64(checksum, row.o.to_native());
+    checksum = update_f64(checksum, row.h.to_native());
+    checksum = update_f64(checksum, row.l.to_native());
+    checksum = update_f64(checksum, row.c.to_native());
+    checksum = update_f64(checksum, row.v.to_native());
+    checksum = update_f64(checksum, row.quote_v.to_native());
+    checksum = update_f64(checksum, row.taker_known_v.to_native());
+    checksum = update_f64(checksum, row.taker_signed_v.to_native());
+    checksum = update_f64(checksum, row.taker_known_quote_v.to_native());
+    checksum = update_f64(checksum, row.taker_signed_quote_v.to_native());
+    checksum = update_i64(checksum, row.taker_known_n.to_native());
+    checksum = update_i64(checksum, row.taker_signed_n.to_native());
+    checksum = update_f64(checksum, row.vw.to_native());
+    checksum = update_i64(checksum, row.n.to_native());
+    checksum = update_i64(checksum, row.age_ms.to_native());
+    checksum = update_u64(checksum, row.presence_bits.to_native());
+    let _ = include_metadata;
+    checksum
+}
+
+fn no_metadata_minimal_projection_archived_row(
     mut checksum: u64,
     row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
 ) -> u64 {
@@ -1220,13 +1337,10 @@ impl BarsV1NoMetadata {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedMathildeTransportResponseV1PayloadNoMetadata> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
+        Ok(unsafe {
             rkyv::access_unchecked::<ArchivedMathildeTransportResponseV1PayloadNoMetadata>(payload)
-        };
-        no_metadata_validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        })
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -1386,24 +1500,69 @@ fn no_metadata_validate_archived_payload(
             expected: expected_rows,
         });
     }
+    no_metadata_validate_archived_rows(archived)
+}
+
+fn no_metadata_validate_archived_rows(
+    archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
+) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = no_metadata_row_from_archived(archived_row);
+        no_metadata_validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn no_metadata_inspect_archived_rows(
     archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.bar.v1.no_metadata".as_bytes());
     let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = no_metadata_checksum_archived_row(semantic_checksum, row);
+    for archived_row in archived.rows.iter() {
+        let row = no_metadata_row_from_archived(archived_row);
+        no_metadata_validate_row(&row, previous.as_ref())?;
+        semantic_checksum =
+            no_metadata_checksum_archived_row(semantic_checksum, archived_row, true);
         minimal_projection_checksum =
-            no_metadata_checksum_archived_row(minimal_projection_checksum, row);
+            no_metadata_minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn no_metadata_row_from_archived(
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+) -> MathildeBarRowV1NoMetadata {
+    MathildeBarRowV1NoMetadata {
+        schema_version: row.schema_version.to_native(),
+        pair_ordinal: row.pair_ordinal.to_native(),
+        tf_ordinal: row.tf_ordinal.to_native(),
+        open_ms: row.open_ms.to_native(),
+        close_ms: row.close_ms.to_native(),
+        o: row.o.to_native(),
+        h: row.h.to_native(),
+        l: row.l.to_native(),
+        c: row.c.to_native(),
+        v: row.v.to_native(),
+        quote_v: row.quote_v.to_native(),
+        taker_known_v: row.taker_known_v.to_native(),
+        taker_signed_v: row.taker_signed_v.to_native(),
+        taker_known_quote_v: row.taker_known_quote_v.to_native(),
+        taker_signed_quote_v: row.taker_signed_quote_v.to_native(),
+        taker_known_n: row.taker_known_n.to_native(),
+        taker_signed_n: row.taker_signed_n.to_native(),
+        vw: row.vw.to_native(),
+        n: row.n.to_native(),
+        age_ms: row.age_ms.to_native(),
+        presence_bits: row.presence_bits.to_native(),
+    }
 }
 #[derive(Archive, RkyvSerialize)]
 struct BarsV1NoMetadataProjectionPayloadRef<'a> {
@@ -1652,6 +1811,25 @@ fn ohlcv_only_validate_row(
 fn ohlcv_only_checksum_archived_row(
     mut checksum: u64,
     row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+    include_metadata: bool,
+) -> u64 {
+    checksum = update_u16(checksum, row.schema_version.to_native());
+    checksum = update_u16(checksum, row.pair_ordinal.to_native());
+    checksum = update_u16(checksum, row.tf_ordinal.to_native());
+    checksum = update_i64(checksum, row.open_ms.to_native());
+    checksum = update_i64(checksum, row.close_ms.to_native());
+    checksum = update_f64(checksum, row.o.to_native());
+    checksum = update_f64(checksum, row.h.to_native());
+    checksum = update_f64(checksum, row.l.to_native());
+    checksum = update_f64(checksum, row.c.to_native());
+    checksum = update_f64(checksum, row.v.to_native());
+    let _ = include_metadata;
+    checksum
+}
+
+fn ohlcv_only_minimal_projection_archived_row(
+    mut checksum: u64,
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
 ) -> u64 {
     checksum = update_u16(checksum, row.schema_version.to_native());
     checksum = update_u16(checksum, row.pair_ordinal.to_native());
@@ -1750,13 +1928,10 @@ impl BarsV1OhlcvOnly {
     pub unsafe fn access_archived_trusted_unchecked(
         bytes: &[u8],
     ) -> Result<&ArchivedMathildeTransportResponseV1PayloadOhlcvOnly> {
-        let header = decode_header(bytes)?;
         let payload = trusted_payload_for_schema(bytes, Self::header_spec())?;
-        let archived = unsafe {
+        Ok(unsafe {
             rkyv::access_unchecked::<ArchivedMathildeTransportResponseV1PayloadOhlcvOnly>(payload)
-        };
-        ohlcv_only_validate_archived_payload(archived, header.row_count)?;
-        Ok(archived)
+        })
     }
 
     pub fn inspect(bytes: &[u8]) -> Result<BinaryInspection> {
@@ -1874,24 +2049,57 @@ fn ohlcv_only_validate_archived_payload(
             expected: expected_rows,
         });
     }
+    ohlcv_only_validate_archived_rows(archived)
+}
+
+fn ohlcv_only_validate_archived_rows(
+    archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
+) -> Result<()> {
+    let mut previous = None;
+    for archived_row in archived.rows.iter() {
+        let row = ohlcv_only_row_from_archived(archived_row);
+        ohlcv_only_validate_row(&row, previous.as_ref())?;
+        previous = Some(row);
+    }
     Ok(())
 }
 
 fn ohlcv_only_inspect_archived_rows(
     archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
 ) -> Result<BinaryInspection> {
+    let mut previous = None;
     let mut semantic_checksum = fnv1a64("mathilde.bar.v1.ohlcv_only".as_bytes());
     let mut minimal_projection_checksum = semantic_checksum;
-    for row in archived.rows.iter() {
-        semantic_checksum = ohlcv_only_checksum_archived_row(semantic_checksum, row);
+    for archived_row in archived.rows.iter() {
+        let row = ohlcv_only_row_from_archived(archived_row);
+        ohlcv_only_validate_row(&row, previous.as_ref())?;
+        semantic_checksum = ohlcv_only_checksum_archived_row(semantic_checksum, archived_row, true);
         minimal_projection_checksum =
-            ohlcv_only_checksum_archived_row(minimal_projection_checksum, row);
+            ohlcv_only_minimal_projection_archived_row(minimal_projection_checksum, archived_row);
+        previous = Some(row);
     }
     Ok(BinaryInspection {
         row_count: archived.rows.len(),
         semantic_checksum,
         minimal_projection_checksum,
     })
+}
+
+fn ohlcv_only_row_from_archived(
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+) -> MathildeBarRowV1OhlcvOnly {
+    MathildeBarRowV1OhlcvOnly {
+        schema_version: row.schema_version.to_native(),
+        pair_ordinal: row.pair_ordinal.to_native(),
+        tf_ordinal: row.tf_ordinal.to_native(),
+        open_ms: row.open_ms.to_native(),
+        close_ms: row.close_ms.to_native(),
+        o: row.o.to_native(),
+        h: row.h.to_native(),
+        l: row.l.to_native(),
+        c: row.c.to_native(),
+        v: row.v.to_native(),
+    }
 }
 #[derive(Archive, RkyvSerialize)]
 struct BarsV1OhlcvOnlyProjectionPayloadRef<'a> {

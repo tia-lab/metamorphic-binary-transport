@@ -89,6 +89,16 @@ fn encoded_len_row(
     )?;
     len = output::checked_len_add(
         len,
+        output::encoded_len_message(6, output::utc_len(row.open_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(7, output::utc_len(row.close_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
         proto::encoded_len_double(8, row.o.to_native()),
         max_response_bytes,
     )?;
@@ -161,6 +171,77 @@ fn encoded_len_row(
             max_response_bytes,
         )?;
     }
+    let message_len = encoded_len_metadata(row, max_response_bytes)?;
+    if message_len > 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(22, message_len),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_AGE_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_int64(23, row.age_ms.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    Ok(len)
+}
+
+fn write_protobuf_row(
+    row: &<MathildeBarRowV1 as Archive>::Archived,
+    writer: &mut ProtoWriter,
+) -> Result<()> {
+    writer.uint32(1, u32::from(1_u16))?;
+    writer.string(2, pair_symbol(row.pair_ordinal.to_native())?)?;
+    writer.string(3, tf_symbol(row.tf_ordinal.to_native())?)?;
+    writer.int64(4, row.open_ms.to_native())?;
+    writer.int64(5, row.close_ms.to_native())?;
+    writer.utc(6, row.open_ms.to_native())?;
+    writer.utc(7, row.close_ms.to_native())?;
+    writer.double(8, "o", row.o.to_native())?;
+    writer.double(9, "h", row.h.to_native())?;
+    writer.double(10, "l", row.l.to_native())?;
+    writer.double(11, "c", row.c.to_native())?;
+    writer.double(12, "v", row.v.to_native())?;
+    writer.double(13, "quote_v", row.quote_v.to_native())?;
+    writer.double(14, "taker_known_v", row.taker_known_v.to_native())?;
+    writer.double(15, "taker_signed_v", row.taker_signed_v.to_native())?;
+    writer.double(
+        16,
+        "taker_known_quote_v",
+        row.taker_known_quote_v.to_native(),
+    )?;
+    writer.double(
+        17,
+        "taker_signed_quote_v",
+        row.taker_signed_quote_v.to_native(),
+    )?;
+    writer.int64(18, row.taker_known_n.to_native())?;
+    writer.int64(19, row.taker_signed_n.to_native())?;
+    if row.presence_bits.to_native() & PRESENCE_VW != 0 {
+        writer.double(20, "vw", row.vw.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_N != 0 {
+        writer.int64(21, row.n.to_native())?;
+    }
+    let message_len = encoded_len_metadata(row, usize::MAX)?;
+    if message_len > 0 {
+        writer.message_prefix(22, message_len)?;
+        write_protobuf_metadata(row, writer)?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_AGE_MS != 0 {
+        writer.int64(23, row.age_ms.to_native())?;
+    }
+    Ok(())
+}
+
+fn encoded_len_metadata(
+    row: &<MathildeBarRowV1 as Archive>::Archived,
+    max_response_bytes: usize,
+) -> Result<usize> {
+    let mut len = 0_usize;
     len = output::checked_len_add(
         len,
         output::encoded_len_string(1, source_symbol(row.source_ordinal.to_native())?),
@@ -222,10 +303,24 @@ fn encoded_len_row(
             max_response_bytes,
         )?;
     }
+    if row.presence_bits.to_native() & PRESENCE_INGESTED_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(6, output::utc_len(row.ingested_at_ms.to_native())?),
+            max_response_bytes,
+        )?;
+    }
     if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
         len = output::checked_len_add(
             len,
             proto::encoded_len_int64(7, row.target_ingested_at_ms.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(8, output::utc_len(row.target_ingested_at_ms.to_native())?),
             max_response_bytes,
         )?;
     }
@@ -236,10 +331,24 @@ fn encoded_len_row(
             max_response_bytes,
         )?;
     }
+    if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(10, output::utc_len(row.built_at_ms.to_native())?),
+            max_response_bytes,
+        )?;
+    }
     if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
         len = output::checked_len_add(
             len,
             proto::encoded_len_int64(11, row.committed_at_ms.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(12, output::utc_len(row.committed_at_ms.to_native())?),
             max_response_bytes,
         )?;
     }
@@ -250,10 +359,24 @@ fn encoded_len_row(
             max_response_bytes,
         )?;
     }
+    if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(14, output::utc_len(row.harmonized_at_ms.to_native())?),
+            max_response_bytes,
+        )?;
+    }
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
         len = output::checked_len_add(
             len,
             proto::encoded_len_int64(15, row.recomputed_at_ms.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_message(16, output::utc_len(row.recomputed_at_ms.to_native())?),
             max_response_bytes,
         )?;
     }
@@ -358,51 +481,13 @@ fn encoded_len_row(
             max_response_bytes,
         )?;
     }
-    if row.presence_bits.to_native() & PRESENCE_AGE_MS != 0 {
-        len = output::checked_len_add(
-            len,
-            proto::encoded_len_int64(23, row.age_ms.to_native()),
-            max_response_bytes,
-        )?;
-    }
     Ok(len)
 }
 
-fn write_protobuf_row(
+fn write_protobuf_metadata(
     row: &<MathildeBarRowV1 as Archive>::Archived,
     writer: &mut ProtoWriter,
 ) -> Result<()> {
-    writer.uint32(1, u32::from(1_u16))?;
-    writer.string(2, pair_symbol(row.pair_ordinal.to_native())?)?;
-    writer.string(3, tf_symbol(row.tf_ordinal.to_native())?)?;
-    writer.int64(4, row.open_ms.to_native())?;
-    writer.int64(5, row.close_ms.to_native())?;
-    writer.double(8, "o", row.o.to_native())?;
-    writer.double(9, "h", row.h.to_native())?;
-    writer.double(10, "l", row.l.to_native())?;
-    writer.double(11, "c", row.c.to_native())?;
-    writer.double(12, "v", row.v.to_native())?;
-    writer.double(13, "quote_v", row.quote_v.to_native())?;
-    writer.double(14, "taker_known_v", row.taker_known_v.to_native())?;
-    writer.double(15, "taker_signed_v", row.taker_signed_v.to_native())?;
-    writer.double(
-        16,
-        "taker_known_quote_v",
-        row.taker_known_quote_v.to_native(),
-    )?;
-    writer.double(
-        17,
-        "taker_signed_quote_v",
-        row.taker_signed_quote_v.to_native(),
-    )?;
-    writer.int64(18, row.taker_known_n.to_native())?;
-    writer.int64(19, row.taker_signed_n.to_native())?;
-    if row.presence_bits.to_native() & PRESENCE_VW != 0 {
-        writer.double(20, "vw", row.vw.to_native())?;
-    }
-    if row.presence_bits.to_native() & PRESENCE_N != 0 {
-        writer.int64(21, row.n.to_native())?;
-    }
     writer.string(1, source_symbol(row.source_ordinal.to_native())?)?;
     if row.presence_bits.to_native() & PRESENCE_PROCESS_ORDINAL != 0 {
         writer.string(2, process_symbol(row.process_ordinal.to_native())?)?;
@@ -428,20 +513,38 @@ fn write_protobuf_row(
     if row.presence_bits.to_native() & PRESENCE_INGESTED_AT_MS != 0 {
         writer.int64(5, row.ingested_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_INGESTED_AT_MS != 0 {
+        writer.utc(6, row.ingested_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
         writer.int64(7, row.target_ingested_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
+        writer.utc(8, row.target_ingested_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
         writer.int64(9, row.built_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
+        writer.utc(10, row.built_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
         writer.int64(11, row.committed_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
+        writer.utc(12, row.committed_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
         writer.int64(13, row.harmonized_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
+        writer.utc(14, row.harmonized_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
         writer.int64(15, row.recomputed_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
+        writer.utc(16, row.recomputed_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_REASON_ORDINAL != 0 {
         writer.string(
@@ -503,9 +606,6 @@ fn write_protobuf_row(
             "metadata.frontier_5s_trade_ratio",
             row.frontier_5s_trade_ratio.to_native(),
         )?;
-    }
-    if row.presence_bits.to_native() & PRESENCE_AGE_MS != 0 {
-        writer.int64(23, row.age_ms.to_native())?;
     }
     Ok(())
 }

@@ -15,7 +15,7 @@ metamorphic_binary_transport_adapter_csv = { path = "../../adapters/csv", option
 metamorphic_binary_transport_adapter_arrow = { path = "../../adapters/arrow", optional = true }
 metamorphic_binary_transport_adapter_arrow_ipc = { path = "../../adapters/arrow_ipc", optional = true }
 metamorphic_binary_transport_adapter_parquet = { path = "../../adapters/parquet", optional = true }
-rkyv = "=0.8.16"
+rkyv = { workspace = true }
 
 [features]
 default = []

@@ -29,9 +29,10 @@ fn roundtrip_covers_all_fields() -> TestResult {
     let direct_inspection = TestCompatibilityV1::inspect(&bytes)?;
     assert_eq!(trait_inspection, direct_inspection);
     assert_eq!(trait_inspection.row_count, rows.len());
+    assert_eq!(trait_inspection.semantic_checksum, semantic_checksum(&rows));
     assert_eq!(
-        trait_inspection.semantic_checksum,
-        trait_inspection.minimal_projection_checksum
+        trait_inspection.minimal_projection_checksum,
+        minimal_projection_checksum(&rows)
     );
 
     Ok(())

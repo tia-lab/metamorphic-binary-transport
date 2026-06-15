@@ -41,6 +41,44 @@ fn csv_adapter_uses_static_header_and_checked_writer() -> Result<()> {
 }
 
 #[test]
+fn derived_utc_codegen_is_row_format_only_and_nested_for_protobuf() -> Result<()> {
+    let json = run_metamorphose_codegen_to_string(valid_nested_derived_utc_proto(), Adapter::Json)?;
+    assert!(json.contains("const JSON_FIELD_CLOSE_UTC"));
+    assert!(json.contains("const JSON_FIELD_INGESTED_AT_UTC"));
+    assert!(json.contains("writer.utc_value(row.close_ms.to_native())?;"));
+    assert!(json.contains("writer.utc_value(row.ingested_at_ms.to_native())?;"));
+    assert!(json.contains("PRESENCE_INGESTED_AT_MS"));
+
+    let csv = run_metamorphose_codegen_to_string(valid_nested_derived_utc_proto(), Adapter::Csv)?;
+    assert!(csv.contains(
+        "schema_version,entity,close_ms,close_utc,metadata.ingested_at_ms,metadata.ingested_at_utc"
+    ));
+    assert!(csv.contains("writer.utc_cell(row.close_ms.to_native())?;"));
+    assert!(csv.contains("writer.utc_cell(row.ingested_at_ms.to_native())?;"));
+
+    let protobuf =
+        run_metamorphose_codegen_to_string(valid_nested_derived_utc_proto(), Adapter::Protobuf)?;
+    assert!(protobuf.contains("fn encoded_len_metadata("));
+    assert!(protobuf.contains("writer.message_prefix(5, message_len)?;"));
+    assert!(protobuf.contains("writer.utc(4, row.close_ms.to_native())?;"));
+    assert!(protobuf.contains("writer.utc(2, row.ingested_at_ms.to_native())?;"));
+    assert!(protobuf.contains("output::utc_len(row.ingested_at_ms.to_native())?"));
+    assert!(!protobuf.contains("ingested_at_utc:"));
+
+    for adapter in [
+        Adapter::Transponding,
+        Adapter::Arrow,
+        Adapter::ArrowIpc,
+        Adapter::Parquet,
+    ] {
+        let source = run_metamorphose_codegen_to_string(valid_nested_derived_utc_proto(), adapter)?;
+        assert!(!source.contains("close_utc"));
+        assert!(!source.contains("ingested_at_utc"));
+    }
+    Ok(())
+}
+
+#[test]
 fn transponding_adapter_is_hidden_and_schema_specific() -> Result<()> {
     let source = run_metamorphose_codegen_to_string(valid_array_proto(), Adapter::Transponding)?;
     assert!(source.contains("pub(crate) struct FixtureV1ColumnBatch"));

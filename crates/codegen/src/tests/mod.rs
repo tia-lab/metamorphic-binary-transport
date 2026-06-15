@@ -287,6 +287,146 @@ message TestRowV1 {
 "#
 }
 
+fn valid_nested_derived_utc_proto() -> &'static str {
+    r#"
+syntax = "proto3";
+package test.fixture.v1;
+import "mathilde/options.proto";
+
+option (mathilde.dictionary_values) = {
+  name: "entity"
+  value: "btc"
+  value: "eth"
+};
+
+message TestPayloadV1 {
+  option (mathilde.schema_id) = 18;
+  option (mathilde.schema_version) = 1;
+  option (mathilde.transport_name) = "test.derived.v1";
+  option (mathilde.payload_root) = true;
+
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+}
+
+message TestRowV1 {
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  string entity = 2 [
+    (mathilde.dictionary) = "entity",
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 1
+  ];
+  int64 close_ms = 3 [
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 2
+  ];
+  string close_utc = 4 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "close_ms"
+  ];
+  TestMetadataV1 metadata = 5;
+}
+
+message TestMetadataV1 {
+  optional int64 ingested_at_ms = 1 [(mathilde.presence_bit) = 0];
+  optional string ingested_at_utc = 2 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "ingested_at_ms"
+  ];
+}
+"#
+}
+
+fn invalid_derived_utc_without_ignored_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace(
+            r#"  string close_utc = 4 [
+    (mathilde.ignored) = true,
+    (mathilde.derived_utc_from) = "close_ms"
+  ];"#,
+            r#"  string close_utc = 4 [
+    (mathilde.derived_utc_from) = "close_ms"
+  ];"#,
+        )
+        .leak()
+}
+
+fn invalid_derived_utc_unknown_source_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace(
+            r#"(mathilde.derived_utc_from) = "close_ms""#,
+            r#"(mathilde.derived_utc_from) = "missing_ms""#,
+        )
+        .leak()
+}
+
+fn invalid_derived_utc_non_i64_source_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace(
+            r#"(mathilde.derived_utc_from) = "close_ms""#,
+            r#"(mathilde.derived_utc_from) = "entity""#,
+        )
+        .leak()
+}
+
+fn invalid_derived_utc_non_string_field_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace("string close_utc = 4", "int64 close_utc = 4")
+        .leak()
+}
+
+fn invalid_repeated_derived_utc_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace("string close_utc = 4", "repeated string close_utc = 4")
+        .leak()
+}
+
+fn invalid_duplicate_protobuf_output_tag_proto() -> &'static str {
+    valid_nested_derived_utc_proto()
+        .replace(
+            "optional string ingested_at_utc = 2",
+            "optional string ingested_at_utc = 1",
+        )
+        .leak()
+}
+
+fn invalid_duplicate_protobuf_helper_stem_proto() -> &'static str {
+    r#"
+syntax = "proto3";
+package test.fixture.v1;
+import "mathilde/options.proto";
+
+message TestPayloadV1 {
+  option (mathilde.schema_id) = 19;
+  option (mathilde.schema_version) = 1;
+  option (mathilde.transport_name) = "test.helper.collision.v1";
+  option (mathilde.payload_root) = true;
+
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+}
+
+message TestRowV1 {
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  Foo foo = 3;
+  FooBar foo_bar = 4;
+}
+
+message Foo {
+  Bar bar = 1;
+}
+
+message Bar {
+  int64 first_ms = 1;
+}
+
+message FooBar {
+  int64 second_ms = 1;
+}
+"#
+}
+
 fn invalid_unannotated_string_proto() -> &'static str {
     valid_scalar_proto()
         .replace("double c = 4;", "string c = 4;")

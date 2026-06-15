@@ -1,0 +1,4 @@
+   265 crates/codegen/src/model.rs
+  1398 crates/codegen/src/descriptor.rs
+  3312 crates/codegen/src/rust_emit.rs
+  4975 total

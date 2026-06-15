@@ -8,7 +8,7 @@ use metamorphic_binary_transport_core::error::Result;
 use metamorphic_binary_transport_metamorphose::{CsvMetamorphoseSchema, runtime::TrustedUnchecked};
 use rkyv::Archive;
 
-const CSV_HEADER: &[u8] = b"schema_version,pair,tf,open_ms,close_ms,o,h,l,c,v,quote_v,taker_known_v,taker_signed_v,taker_known_quote_v,taker_signed_quote_v,taker_known_n,taker_signed_n,vw,n,metadata.source,metadata.process,metadata.venues_expected,metadata.venues_with_trades,metadata.ingested_at_ms,metadata.target_ingested_at_ms,metadata.built_at_ms,metadata.committed_at_ms,metadata.harmonized_at_ms,metadata.recomputed_at_ms,metadata.recomputed_reason,metadata.covered_1m_count,metadata.expected_1m_count,metadata.coverage_ratio,metadata.inputs_source_counts_frontier,metadata.inputs_source_counts_api,metadata.inputs_source_counts_synthetic,metadata.inputs_source_counts_fix_data,metadata.frontier_5s_inputs_coverage_ratio,metadata.frontier_5s_expected,metadata.frontier_5s_synth_n,metadata.frontier_5s_synth_ratio,metadata.frontier_5s_trade_n,metadata.frontier_5s_trade_ratio,age_ms";
+const CSV_HEADER: &[u8] = b"schema_version,pair,tf,open_ms,close_ms,open_utc,close_utc,o,h,l,c,v,quote_v,taker_known_v,taker_signed_v,taker_known_quote_v,taker_signed_quote_v,taker_known_n,taker_signed_n,vw,n,metadata.source,metadata.process,metadata.venues_expected,metadata.venues_with_trades,metadata.ingested_at_ms,metadata.ingested_at_utc,metadata.target_ingested_at_ms,metadata.target_ingested_at_utc,metadata.built_at_ms,metadata.built_at_utc,metadata.committed_at_ms,metadata.committed_at_utc,metadata.harmonized_at_ms,metadata.harmonized_at_utc,metadata.recomputed_at_ms,metadata.recomputed_at_utc,metadata.recomputed_reason,metadata.covered_1m_count,metadata.expected_1m_count,metadata.coverage_ratio,metadata.inputs_source_counts_frontier,metadata.inputs_source_counts_api,metadata.inputs_source_counts_synthetic,metadata.inputs_source_counts_fix_data,metadata.frontier_5s_inputs_coverage_ratio,metadata.frontier_5s_expected,metadata.frontier_5s_synth_n,metadata.frontier_5s_synth_ratio,metadata.frontier_5s_trade_n,metadata.frontier_5s_trade_ratio,age_ms";
 
 impl BarsV1 {
     pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -69,6 +69,10 @@ fn write_csv_row(
     writer.comma()?;
     writer.i64_cell(row.close_ms.to_native())?;
     writer.comma()?;
+    writer.utc_cell(row.open_ms.to_native())?;
+    writer.comma()?;
+    writer.utc_cell(row.close_ms.to_native())?;
+    writer.comma()?;
     writer.f64_cell("o", row.o.to_native())?;
     writer.comma()?;
     writer.f64_cell("h", row.h.to_native())?;
@@ -115,24 +119,48 @@ fn write_csv_row(
         writer.i64_cell(row.ingested_at_ms.to_native())?;
     }
     writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_INGESTED_AT_MS != 0 {
+        writer.utc_cell(row.ingested_at_ms.to_native())?;
+    }
+    writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
         writer.i64_cell(row.target_ingested_at_ms.to_native())?;
+    }
+    writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
+        writer.utc_cell(row.target_ingested_at_ms.to_native())?;
     }
     writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
         writer.i64_cell(row.built_at_ms.to_native())?;
     }
     writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
+        writer.utc_cell(row.built_at_ms.to_native())?;
+    }
+    writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
         writer.i64_cell(row.committed_at_ms.to_native())?;
+    }
+    writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
+        writer.utc_cell(row.committed_at_ms.to_native())?;
     }
     writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
         writer.i64_cell(row.harmonized_at_ms.to_native())?;
     }
     writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
+        writer.utc_cell(row.harmonized_at_ms.to_native())?;
+    }
+    writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
         writer.i64_cell(row.recomputed_at_ms.to_native())?;
+    }
+    writer.comma()?;
+    if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
+        writer.utc_cell(row.recomputed_at_ms.to_native())?;
     }
     writer.comma()?;
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_REASON_ORDINAL != 0 {

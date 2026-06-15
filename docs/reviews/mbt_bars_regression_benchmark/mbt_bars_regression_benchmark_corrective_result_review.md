@@ -18,21 +18,138 @@ Legal Contact: massimo.nicora@wnlegal.ch
 # Corrective Result Review: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
-Date: 2026-06-15
-Status: `BLOCKED_BY_PARITY_FAILURE`
 
-## Result
+Status: `CORRECTIVE_RERUN_COMPLETE_CORE_PARITY_RESTORED_ADAPTER_GAPS_OPEN`
 
-The corrective benchmark implementation ran, but the result is not accepted as
-an old-vs-new performance comparison.
+## Scope
 
-The approved gate requires matching rows by `label` and `row_count`, then
-verifying semantic checksum equality before computing speed ratios. That gate
-failed for every semantic benchmark row in the paired run set.
+This review records the result of the runtime/archive corrective pass:
 
-## Evidence
+- `rkyv` `unaligned` restored through workspace dependency binding;
+- generated trusted access restored to the trusted payload plus
+  `rkyv::access_unchecked` shape;
+- generated checksum helpers restored to seeded field-byte folding without
+  re-hashing the current checksum bytes before every field;
+- generated checked inspect restored to archived row validation plus separate
+  semantic and minimal checksum paths;
+- projection-surface schema files regenerated from codegen;
+- all-fields unaligned archived numeric array compilation fixed in codegen;
+- Bars regression benchmark rerun three times.
 
-Old parity evidence:
+## Codegen And Static Proof
+
+Generated files:
+
+```text
+crates/schemas/bars_core/src/bars_v1.rs
+crates/schemas/test_compatibility_core/src/test_compatibility_v1.rs
+```
+
+Both files were regenerated with:
+
+```text
+--surface projection
+--proto-root proto
+```
+
+Reproducibility checks passed for both generated files with the same arguments
+and `--check`.
+
+Trusted-access scoped negative proof:
+
+```text
+for file in crates/schemas/bars_core/src/bars_v1.rs crates/schemas/test_compatibility_core/src/test_compatibility_v1.rs; do
+  awk '/pub unsafe fn access_archived_trusted_unchecked/{inside=1} inside{print} inside && /^    }$/{inside=0}' "$file" \
+    | rg -n "validate_archived_payload|let header = decode_header" && exit 1 || true
+done
+```
+
+Observed result:
+
+```text
+no matches
+```
+
+Trusted-access scoped positive proof found `trusted_payload_for_schema` and
+`rkyv::access_unchecked` in the generated trusted functions for Bars full,
+Bars projections, test-compatibility full, and test-compatibility projections.
+
+Dependency proof:
+
+```text
+cargo tree -p metamorphic_binary_transport_schema_bars --no-default-features -e features | rg "rkyv|unaligned"
+cargo tree -p metamorphic_binary_transport_schema_test_compatibility --no-default-features -e features | rg "rkyv|unaligned"
+```
+
+Observed result:
+
+```text
+rkyv v0.8.16 includes feature "unaligned" for both schema crates
+```
+
+## Validation Commands
+
+All commands completed with exit status `0`:
+
+```text
+cargo fmt --check
+cargo test -p metamorphic_binary_transport_codegen -- --nocapture
+cargo check -p metamorphic_binary_transport_schema_bars --no-default-features
+cargo check -p metamorphic_binary_transport_schema_test_compatibility --no-default-features
+cargo check -p metamorphic_binary_transport_schema_bars --features json,protobuf,csv,arrow_ipc,parquet
+cargo test -p metamorphic_binary_transport_schema_bars --features json,protobuf,csv -- --nocapture
+cargo test -p metamorphic_binary_transport_schema_test_compatibility --features json,protobuf,csv -- --nocapture
+```
+
+Observed test totals:
+
+- codegen: `29 passed`;
+- Bars schema feature tests: `7 passed`;
+- test-compatibility schema feature tests: `17 passed`.
+
+## Corrective Implementation Note
+
+The first `test_compatibility_core` no-feature check exposed a real unaligned
+archive issue in projection-surface array wrappers. The generated wrapper used
+`ArchivedVec::serialize_from_slice` with already archived primitive values.
+Under `rkyv` `unaligned`, those values are `Archived*` primitive aliases backed
+by unaligned `rend` types and cannot serialize as native values.
+
+The codegen fix streams archived primitive values into the projected archive as
+native primitives through `ArchivedVec::serialize_from_unknown_length_iter`.
+This avoids a temporary `Vec` and keeps the projection output write bounded to
+the required projected MBT bytes.
+
+The follow-up forensic pass exposed a generated checksum and checked-inspect
+regression. The new emitter had generated `update_fixed` so it hashed the
+current checksum bytes before every field, which changed checksum semantics and
+added repeated work. It also generated checked inspect by hashing full archived
+rows twice instead of using a separate minimal path. The corrected emitter now:
+
+- calls `checksum_row(checksum, row, include_metadata)`;
+- calls `checksum_archived_row(checksum, archived_row, include_metadata)`;
+- emits `minimal_projection_archived_row`;
+- validates archived rows during checked inspect through `row_from_archived`;
+- keeps trusted access unchanged as trusted payload plus unchecked archive
+  access.
+
+## Benchmark Evidence
+
+Command, run three times:
+
+```text
+cargo run --release -p metamorphic_binary_transport_benches --bin mbt_bars_regression_bench -- --report-dir docs/evidence/mbt_bars_regression_benchmark
+```
+
+Run evidence:
+
+```text
+docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_11.json
+docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_12.json
+docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_13.json
+```
+
+The old evidence files used for comparison are:
 
 ```text
 /home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_1.json
@@ -40,92 +157,71 @@ Old parity evidence:
 /home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_3.json
 ```
 
-New split evidence:
+## 100k Row Snapshot
+
+Rows/sec values are arithmetic means across three runs.
+
+| lane | old rows/sec | new rows/sec | new/old | old bytes | new bytes |
+|---|---:|---:|---:|---:|---:|
+| MBT encode + inspect checked | 644091.509 | 635666.617 | 0.987 | 32400138 | 32400138 |
+| JSON checked | 197932.199 | 207980.727 | 1.051 | 140088238 | 165788238 |
+| JSON trusted | 214656.748 | 246297.061 | 1.147 | 140088238 | 165788238 |
+| Protobuf trusted | 321657.392 | 316561.854 | 0.984 | 50450538 | 50450538 |
+| CSV trusted | 326946.017 | 347760.087 | 1.064 | 52289248 | 51689248 |
+| Arrow IPC trusted | 2413451.797 | 2012328.780 | 0.834 | 32159688 | 32159432 |
+| Parquet trusted | 671348.549 | 628384.798 | 0.936 | 17407852 | 17407584 |
+| serde JSON baseline | 520330.169 | 489194.992 | 0.940 | 108598210 | 108598210 |
+
+## Evidence Assessment
+
+Proved:
+
+- schema crates compile with `rkyv` `unaligned`;
+- generated trusted access no longer performs full archived payload validation
+  inside `access_archived_trusted_unchecked`;
+- projection-surface generation is reproducible;
+- Bars and all-fields schema correctness tests pass after regeneration;
+- MBT full checked encode plus inspect has matching 100k output bytes and is
+  within about `1.3%` of the old evidence mean;
+- protobuf trusted output has matching 100k output bytes and is within about
+  `1.6%` of the old evidence mean;
+- JSON and CSV are faster in rows/sec in the current evidence, but not an
+  apples-to-apples byte comparison because output sizes differ from the old
+  evidence.
+
+Not proved:
+
+- old-vs-new semantic checksum parity for the benchmark evidence files;
+- JSON/CSV old-vs-new parity, because the current new evidence includes the
+  derived UTC output surface while the available old evidence has different
+  output sizes.
+- Arrow IPC old-vs-new parity;
+- Parquet old-vs-new parity.
+
+The available old benchmark evidence is therefore not a complete apples-to-
+apples reference for the current generated output surface. The old source tree
+currently contains derived UTC output fields, but the old evidence files listed
+above were produced earlier and have different JSON/CSV output sizes.
+
+## Open Findings
+
+The previous MBT encode + inspect regression is no longer present in the
+current three-run evidence:
 
 ```text
-docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_4.json
-docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_5.json
-docs/evidence/mbt_bars_regression_benchmark/bars_regression_run_6.json
+old mean: 644091.509 rows/sec
+new mean: 635666.617 rows/sec
+ratio: 0.987
+output bytes: identical at 32400138
 ```
 
-Projection companion evidence:
+Remaining adapter gaps at 100k rows:
 
 ```text
-docs/evidence/mbt_projection_direct_writer/projection_run_6.json
+Arrow IPC trusted ratio: 0.834
+Parquet trusted ratio: 0.936
 ```
 
-Validation commands:
-
-```text
-cargo test -p mathilde_binary_transport --features bars-regression-parity-only test_bars_regression_parity
-/usr/bin/time -v cargo check -p mathilde_binary_transport --all-targets --features bars-regression-parity-only
-rustfmt --check crates/mathilde-binary-transport/src/lib.rs crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs crates/mathilde-binary-transport/src/benches/mod.rs crates/mathilde-binary-transport/src/main.rs crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs crates/mathilde-binary-transport/src/tests/mod.rs
-rg -n "unwrap\\(|expect\\(|panic!|todo!|unreachable!" crates/mathilde-binary-transport/src/lib.rs crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs crates/mathilde-binary-transport/src/benches/mod.rs crates/mathilde-binary-transport/src/main.rs crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs crates/mathilde-binary-transport/src/tests/mod.rs
-rustfmt --check --config skip_children=true crates/mathilde-binary-transport/src/lib.rs crates/mathilde-binary-transport/src/benches/bars_regression_parity.rs crates/mathilde-binary-transport/src/benches/mod.rs crates/mathilde-binary-transport/src/main.rs crates/mathilde-binary-transport/src/tests/test_bars_regression_parity.rs crates/mathilde-binary-transport/src/tests/mod.rs
-```
-
-Observed validation:
-
-| Check | Result |
-| --- | --- |
-| old parity tests | passed, 5 tests |
-| old parity all-targets check | passed; first recorded run 1.39 s wall, max RSS 263256 KB; final warm rerun 0.18 s wall, max RSS 65544 KB |
-| recursive bound rustfmt check from `lib.rs` | failed on unrelated old codegen/test child modules outside the corrective patch |
-| touched-file rustfmt check with `skip_children=true` | passed |
-| forbidden-pattern scan | passed, no matches |
-
-## Parity Failure
-
-Paired run comparison:
-
-| Old run | New run | Matched rows | Semantic rows checked | Semantic mismatches | Output-byte mismatches |
-| --- | --- | ---: | ---: | ---: | ---: |
-| `bars_regression_parity_run_1.json` | `bars_regression_run_4.json` | 60 | 54 | 54 | 54 |
-| `bars_regression_parity_run_2.json` | `bars_regression_run_5.json` | 60 | 54 | 54 | 54 |
-| `bars_regression_parity_run_3.json` | `bars_regression_run_6.json` | 60 | 54 | 54 | 54 |
-
-The mismatch is therefore structural, not jitter.
-
-## Diagnosed Causes
-
-Code-read evidence:
-
-- Old generated Bars emits derived UTC fields in metamorphose outputs:
-  `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs`
-  contains `open_utc`, `close_utc`, `writer.utc(...)`, and UTC CSV columns.
-- New split Bars core generated module does not emit those UTC fields:
-  `crates/schemas/bars_core/src/bars_v1.rs` has no UTC emission path.
-- Old and new checksum contracts differ:
-  - old `semantic_checksum` and `minimal_projection_checksum` use separate
-    seeds and old minimal excludes metadata;
-  - new core `minimal_projection_checksum(rows)` currently aliases
-    `semantic_checksum(rows)`.
-- Old and new full MBT byte sizes differ for the same row count. At 100000
-  rows, old full MBT output is `32400138` bytes, while new split full MBT
-  output is `33600140` bytes.
-
-These differences mean the run set does not prove equal logical output for the
-measured lanes.
-
-## Diagnostic 100000-Row Metrics
-
-The following values are diagnostic only. They are not accepted speed ratios
-because the semantic parity gate failed.
-
-| Label | Old avg rows/s | Old bytes | New avg rows/s | New bytes |
-| --- | ---: | ---: | ---: | ---: |
-| `bars_mbt_full_encode_inspect_checked` | 644091.51 | 32400138 | 385894.32 | 33600140 |
-| `bars_metamorphose_json_trusted` | 214656.75 | 140088238 | 363391.64 | 127988238 |
-| `bars_metamorphose_protobuf_trusted` | 321657.39 | 50450538 | 2050897.74 | 32350538 |
-| `bars_metamorphose_csv_trusted` | 326946.02 | 52289248 | 584902.70 | 33289070 |
-| `bars_metamorphose_arrow_ipc_trusted` | 2413451.80 | 32159688 | 1901223.13 | 32159432 |
-| `bars_metamorphose_parquet_trusted` | 671348.55 | 17407852 | 638692.88 | 17407584 |
-
-## Conclusion
-
-The compile-isolation correction is proved for the old parity-only feature.
-
-The performance comparison is not proved. The next correction must make the
-old parity port and new split benchmark use one normalized semantic/output
-contract, or explicitly narrow the benchmark to lanes where the output contract
-is identical before speed ratios are computed.
+No Arrow IPC or Parquet performance parity claim is accepted from this
+corrective pass. Core MBT encode plus checked inspect parity is accepted for
+the recorded 100k Bars benchmark lane under the run evidence listed above.

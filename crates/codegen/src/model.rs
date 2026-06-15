@@ -27,9 +27,49 @@ pub struct SchemaModel {
     pub row_field_number: u32,
     pub dictionaries: Vec<Dictionary>,
     pub fields: Vec<PhysicalField>,
+    pub derived_utc_fields: Vec<DerivedUtcField>,
+    pub json_csv_output_fields: Vec<JsonCsvOutputField>,
+    pub protobuf_messages: Vec<ProtobufMessageModel>,
     pub key_parts: Vec<KeyPart>,
     pub normalized_schema_hash: u64,
     pub projections: Vec<ProjectionModel>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DerivedUtcField {
+    pub proto_path: String,
+    pub logical_path: String,
+    pub parent_proto_path: String,
+    pub parent_logical_path: String,
+    pub proto_name: String,
+    pub rust_name: String,
+    pub proto_number: u32,
+    pub source_field_index: usize,
+    pub source_logical_path: String,
+    pub source_rust_name: String,
+    pub source_presence_bit: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum JsonCsvOutputField {
+    Physical { field_index: usize },
+    DerivedUtc { derived_index: usize },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProtobufMessageModel {
+    pub logical_path: String,
+    pub proto_path: String,
+    pub rust_helper_stem: String,
+    pub enclosing_proto_number: Option<u32>,
+    pub fields: Vec<ProtobufOutputField>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProtobufOutputField {
+    Physical { field_index: usize },
+    DerivedUtc { derived_index: usize },
+    Message { message_index: usize },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

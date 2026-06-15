@@ -8,8 +8,9 @@ use prost_reflect::{Cardinality, DescriptorPool, FieldDescriptor, Kind, MessageD
 use crate::config::SchemaRequest;
 use crate::error::{CodegenError, Result};
 use crate::model::{
-    Dictionary, FieldKind, KeyPart, PhysicalField, ProjectionDefinitionModel,
-    ProjectionFieldMapping, ProjectionModel, SchemaModel, field_kind_hash_name, module_marker_type,
+    DerivedUtcField, Dictionary, FieldKind, JsonCsvOutputField, KeyPart, PhysicalField,
+    ProjectionDefinitionModel, ProjectionFieldMapping, ProjectionModel, ProtobufMessageModel,
+    ProtobufOutputField, SchemaModel, field_kind_hash_name, module_marker_type,
     payload_type_from_root, rust_type_name,
 };
 use crate::options::{
@@ -54,15 +55,34 @@ pub fn load_schema_model(request: &SchemaRequest) -> Result<SchemaModel> {
     let payload_type = payload_type_from_root(&root_type);
     let marker_type = module_marker_type(&request.module);
     let mut fields = Vec::new();
-    collect_physical_fields(
-        &row_payload.message,
-        &extensions,
-        &dictionaries,
-        "",
-        None,
-        &mut fields,
-    )?;
+    let mut derived_candidates = Vec::new();
+    let output_tree = {
+        let mut traversal = SchemaTraversal {
+            extensions: &extensions,
+            dictionaries: &dictionaries,
+            fields: &mut fields,
+            derived_fields: &mut derived_candidates,
+        };
+        collect_schema_fields(
+            &mut traversal,
+            &row_payload.message,
+            "",
+            row_payload.message.full_name(),
+            "row",
+            None,
+            None,
+        )?
+    };
     validate_physical_fields(&fields)?;
+    let derived_utc_fields = resolve_derived_utc_fields(&fields, derived_candidates)?;
+    let json_csv_output_fields = json_csv_outputs(&output_tree);
+    let protobuf_messages = protobuf_outputs(&output_tree);
+    validate_row_format_outputs(
+        &fields,
+        &derived_utc_fields,
+        &json_csv_output_fields,
+        &protobuf_messages,
+    )?;
     let key_parts = key_parts(&fields);
     let mut model = SchemaModel {
         module: request.module.clone(),
@@ -84,6 +104,9 @@ pub fn load_schema_model(request: &SchemaRequest) -> Result<SchemaModel> {
         row_field_number: row_payload.field.number(),
         dictionaries,
         fields,
+        derived_utc_fields,
+        json_csv_output_fields,
+        protobuf_messages,
         key_parts,
         normalized_schema_hash: 0,
         projections: Vec::new(),
@@ -125,46 +148,384 @@ fn row_payload_field(root: &MessageDescriptor, extensions: &MbtExtensions) -> Re
     found.ok_or_else(|| CodegenError::InvalidSchema("missing repeated_payload field".to_string()))
 }
 
-fn collect_physical_fields(
+struct OutputMessageNode {
+    logical_path: String,
+    proto_path: String,
+    rust_helper_stem: String,
+    enclosing_proto_number: Option<u32>,
+    items: Vec<OutputNodeItem>,
+}
+
+enum OutputNodeItem {
+    Physical { field_index: usize },
+    DerivedUtc { candidate_index: usize },
+    Message(OutputMessageNode),
+}
+
+struct DerivedUtcCandidate {
+    proto_path: String,
+    logical_path: String,
+    parent_proto_path: String,
+    parent_logical_path: String,
+    proto_name: String,
+    rust_name: String,
+    proto_number: u32,
+    source: String,
+}
+
+struct SchemaTraversal<'a> {
+    extensions: &'a MbtExtensions,
+    dictionaries: &'a [Dictionary],
+    fields: &'a mut Vec<PhysicalField>,
+    derived_fields: &'a mut Vec<DerivedUtcCandidate>,
+}
+
+fn collect_schema_fields(
+    traversal: &mut SchemaTraversal<'_>,
     message: &MessageDescriptor,
-    extensions: &MbtExtensions,
-    dictionaries: &[Dictionary],
     prefix: &str,
+    proto_path: &str,
+    rust_helper_stem: &str,
+    enclosing_proto_number: Option<u32>,
     inherited_projection_group: Option<&str>,
-    out: &mut Vec<PhysicalField>,
-) -> Result<()> {
+) -> Result<OutputMessageNode> {
+    let mut node = OutputMessageNode {
+        logical_path: prefix.to_string(),
+        proto_path: proto_path.to_string(),
+        rust_helper_stem: rust_helper_stem.to_string(),
+        enclosing_proto_number,
+        items: Vec::new(),
+    };
     for field in message.fields() {
-        if optional_bool(&field.options(), &extensions.repeated_payload)? {
+        if optional_bool(&field.options(), &traversal.extensions.repeated_payload)? {
             return Err(CodegenError::InvalidSchema(format!(
                 "{} repeated_payload is only valid on payload root",
                 field.full_name()
             )));
         }
-        if optional_bool(&field.options(), &extensions.ignored)? {
+        let options = field.options();
+        let ignored = optional_bool(&options, &traversal.extensions.ignored)?;
+        let derived_utc_from = optional_string(&options, &traversal.extensions.derived_utc_from)?;
+        if derived_utc_from.is_some() && !ignored {
+            return Err(CodegenError::InvalidSchema(format!(
+                "{} uses derived_utc_from without ignored=true",
+                field.full_name()
+            )));
+        }
+        if ignored {
+            if let Some(source) = derived_utc_from {
+                let candidate_index = traversal.derived_fields.len();
+                traversal
+                    .derived_fields
+                    .push(derived_utc_candidate(&field, prefix, proto_path, source)?);
+                node.items
+                    .push(OutputNodeItem::DerivedUtc { candidate_index });
+            }
             continue;
         }
-        let options = field.options();
-        let projection_group = optional_string(&options, &extensions.projection_group)?
+        let projection_group = optional_string(&options, &traversal.extensions.projection_group)?
             .or_else(|| inherited_projection_group.map(str::to_string));
         let logical_path = join_path(prefix, field.name());
         match field.kind() {
             Kind::Message(child) if field.cardinality() != Cardinality::Repeated => {
-                collect_physical_fields(
+                let child_node = collect_schema_fields(
+                    traversal,
                     &child,
-                    extensions,
-                    dictionaries,
                     &logical_path,
+                    child.full_name(),
+                    &message_helper_stem(&logical_path),
+                    Some(field.number()),
                     projection_group.as_deref(),
-                    out,
                 )?;
+                if !child_node.items.is_empty() {
+                    node.items.push(OutputNodeItem::Message(child_node));
+                }
             }
-            _ => out.push(physical_field(
-                &field,
-                extensions,
-                dictionaries,
-                &logical_path,
-                projection_group,
-            )?),
+            _ => {
+                let field_index = traversal.fields.len();
+                traversal.fields.push(physical_field(
+                    &field,
+                    traversal.extensions,
+                    traversal.dictionaries,
+                    &logical_path,
+                    projection_group,
+                )?);
+                node.items.push(OutputNodeItem::Physical { field_index });
+            }
+        }
+    }
+    Ok(node)
+}
+
+fn derived_utc_candidate(
+    field: &FieldDescriptor,
+    parent_logical_path: &str,
+    parent_proto_path: &str,
+    source: String,
+) -> Result<DerivedUtcCandidate> {
+    if field.cardinality() == Cardinality::Repeated {
+        return Err(CodegenError::InvalidSchema(format!(
+            "{} derived UTC field cannot be repeated",
+            field.full_name()
+        )));
+    }
+    if !matches!(field.kind(), Kind::String) {
+        return Err(CodegenError::InvalidSchema(format!(
+            "{} derived UTC field must be string",
+            field.full_name()
+        )));
+    }
+    if source.is_empty() {
+        return Err(CodegenError::InvalidOption {
+            name: "derived_utc_from",
+            reason: format!("{} has empty source", field.full_name()),
+        });
+    }
+    Ok(DerivedUtcCandidate {
+        proto_path: field.full_name().to_string(),
+        logical_path: join_path(parent_logical_path, field.name()),
+        parent_proto_path: parent_proto_path.to_string(),
+        parent_logical_path: parent_logical_path.to_string(),
+        proto_name: field.name().to_string(),
+        rust_name: field.name().to_string(),
+        proto_number: field.number(),
+        source,
+    })
+}
+
+fn resolve_derived_utc_fields(
+    fields: &[PhysicalField],
+    candidates: Vec<DerivedUtcCandidate>,
+) -> Result<Vec<DerivedUtcField>> {
+    let mut out = Vec::with_capacity(candidates.len());
+    for candidate in candidates {
+        let source_logical_path = if candidate.source.contains('.') {
+            candidate.source.clone()
+        } else {
+            join_path(&candidate.parent_logical_path, &candidate.source)
+        };
+        let matches = fields
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, field)| (field.logical_path == source_logical_path).then_some(idx))
+            .collect::<Vec<_>>();
+        let source_field_index = match matches.as_slice() {
+            [idx] => *idx,
+            [] => {
+                return Err(CodegenError::InvalidOption {
+                    name: "derived_utc_from",
+                    reason: format!(
+                        "{} references unknown source {}",
+                        candidate.proto_path, candidate.source
+                    ),
+                });
+            }
+            _ => {
+                return Err(CodegenError::InvalidOption {
+                    name: "derived_utc_from",
+                    reason: format!(
+                        "{} references ambiguous source {}",
+                        candidate.proto_path, candidate.source
+                    ),
+                });
+            }
+        };
+        let source = &fields[source_field_index];
+        if !matches!(source.kind, FieldKind::I64) {
+            return Err(CodegenError::InvalidOption {
+                name: "derived_utc_from",
+                reason: format!(
+                    "{} source {} is not an i64 field",
+                    candidate.proto_path, source.logical_path
+                ),
+            });
+        }
+        out.push(DerivedUtcField {
+            proto_path: candidate.proto_path,
+            logical_path: candidate.logical_path,
+            parent_proto_path: candidate.parent_proto_path,
+            parent_logical_path: candidate.parent_logical_path,
+            proto_name: candidate.proto_name,
+            rust_name: candidate.rust_name,
+            proto_number: candidate.proto_number,
+            source_field_index,
+            source_logical_path: source.logical_path.clone(),
+            source_rust_name: source.rust_name.clone(),
+            source_presence_bit: source.presence_bit,
+        });
+    }
+    Ok(out)
+}
+
+fn json_csv_outputs(node: &OutputMessageNode) -> Vec<JsonCsvOutputField> {
+    let mut out = Vec::new();
+    push_json_csv_outputs(node, &mut out);
+    out
+}
+
+fn push_json_csv_outputs(node: &OutputMessageNode, out: &mut Vec<JsonCsvOutputField>) {
+    for item in &node.items {
+        match item {
+            OutputNodeItem::Physical { field_index } => {
+                out.push(JsonCsvOutputField::Physical {
+                    field_index: *field_index,
+                });
+            }
+            OutputNodeItem::DerivedUtc { candidate_index } => {
+                out.push(JsonCsvOutputField::DerivedUtc {
+                    derived_index: *candidate_index,
+                });
+            }
+            OutputNodeItem::Message(child) => push_json_csv_outputs(child, out),
+        }
+    }
+}
+
+fn protobuf_outputs(node: &OutputMessageNode) -> Vec<ProtobufMessageModel> {
+    let mut out = Vec::new();
+    push_protobuf_message(node, &mut out);
+    out
+}
+
+fn push_protobuf_message(node: &OutputMessageNode, out: &mut Vec<ProtobufMessageModel>) -> usize {
+    let message_index = out.len();
+    out.push(ProtobufMessageModel {
+        logical_path: node.logical_path.clone(),
+        proto_path: node.proto_path.clone(),
+        rust_helper_stem: node.rust_helper_stem.clone(),
+        enclosing_proto_number: node.enclosing_proto_number,
+        fields: Vec::new(),
+    });
+
+    let mut fields = Vec::with_capacity(node.items.len());
+    for item in &node.items {
+        match item {
+            OutputNodeItem::Physical { field_index } => {
+                fields.push(ProtobufOutputField::Physical {
+                    field_index: *field_index,
+                });
+            }
+            OutputNodeItem::DerivedUtc { candidate_index } => {
+                fields.push(ProtobufOutputField::DerivedUtc {
+                    derived_index: *candidate_index,
+                });
+            }
+            OutputNodeItem::Message(child) => {
+                let child_index = push_protobuf_message(child, out);
+                fields.push(ProtobufOutputField::Message {
+                    message_index: child_index,
+                });
+            }
+        }
+    }
+    out[message_index].fields = fields;
+    message_index
+}
+
+fn message_helper_stem(logical_path: &str) -> String {
+    if logical_path.is_empty() {
+        return "row".to_string();
+    }
+    let mut out = String::new();
+    let mut previous_underscore = false;
+    for ch in logical_path.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+            previous_underscore = false;
+        } else if !previous_underscore {
+            out.push('_');
+            previous_underscore = true;
+        }
+    }
+    while out.ends_with('_') {
+        out.pop();
+    }
+    if out.is_empty() {
+        "message".to_string()
+    } else {
+        out
+    }
+}
+
+fn validate_row_format_outputs(
+    fields: &[PhysicalField],
+    derived_fields: &[DerivedUtcField],
+    json_csv_fields: &[JsonCsvOutputField],
+    protobuf_messages: &[ProtobufMessageModel],
+) -> Result<()> {
+    validate_json_csv_outputs(fields, derived_fields, json_csv_fields)?;
+    validate_protobuf_outputs(fields, derived_fields, protobuf_messages)
+}
+
+fn validate_json_csv_outputs(
+    fields: &[PhysicalField],
+    derived_fields: &[DerivedUtcField],
+    json_csv_fields: &[JsonCsvOutputField],
+) -> Result<()> {
+    let mut names = Vec::with_capacity(json_csv_fields.len());
+    for output in json_csv_fields {
+        let name = match output {
+            JsonCsvOutputField::Physical { field_index } => &fields[*field_index].logical_path,
+            JsonCsvOutputField::DerivedUtc { derived_index } => {
+                &derived_fields[*derived_index].logical_path
+            }
+        };
+        if names.iter().any(|seen| seen == name) {
+            return Err(CodegenError::InvalidSchema(format!(
+                "duplicate row-format field {name}"
+            )));
+        }
+        names.push(name.clone());
+    }
+    Ok(())
+}
+
+fn validate_protobuf_outputs(
+    fields: &[PhysicalField],
+    derived_fields: &[DerivedUtcField],
+    protobuf_messages: &[ProtobufMessageModel],
+) -> Result<()> {
+    if protobuf_messages.is_empty() {
+        return Err(CodegenError::InvalidSchema(
+            "schema has no protobuf output messages".to_string(),
+        ));
+    }
+    let mut helper_stems = Vec::with_capacity(protobuf_messages.len());
+    for message in protobuf_messages {
+        if helper_stems
+            .iter()
+            .any(|stem| stem == &message.rust_helper_stem)
+        {
+            return Err(CodegenError::InvalidSchema(format!(
+                "duplicate protobuf helper stem {}",
+                message.rust_helper_stem
+            )));
+        }
+        helper_stems.push(message.rust_helper_stem.clone());
+
+        let mut tags = Vec::with_capacity(message.fields.len());
+        for output in &message.fields {
+            let tag = match output {
+                ProtobufOutputField::Physical { field_index } => fields[*field_index].proto_number,
+                ProtobufOutputField::DerivedUtc { derived_index } => {
+                    derived_fields[*derived_index].proto_number
+                }
+                ProtobufOutputField::Message { message_index } => protobuf_messages[*message_index]
+                    .enclosing_proto_number
+                    .ok_or_else(|| {
+                        CodegenError::InvalidSchema(format!(
+                            "protobuf output message {} is nested without tag",
+                            protobuf_messages[*message_index].logical_path
+                        ))
+                    })?,
+            };
+            if tags.contains(&tag) {
+                return Err(CodegenError::InvalidSchema(format!(
+                    "duplicate protobuf tag {} in {}",
+                    tag, message.proto_path
+                )));
+            }
+            tags.push(tag);
         }
     }
     Ok(())

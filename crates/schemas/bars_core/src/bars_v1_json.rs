@@ -17,6 +17,8 @@ const JSON_FIELD_PAIR_ORDINAL: &[u8] = b"\"pair\":";
 const JSON_FIELD_TF_ORDINAL: &[u8] = b"\"tf\":";
 const JSON_FIELD_OPEN_MS: &[u8] = b"\"open_ms\":";
 const JSON_FIELD_CLOSE_MS: &[u8] = b"\"close_ms\":";
+const JSON_FIELD_OPEN_UTC: &[u8] = b"\"open_utc\":";
+const JSON_FIELD_CLOSE_UTC: &[u8] = b"\"close_utc\":";
 const JSON_FIELD_O: &[u8] = b"\"o\":";
 const JSON_FIELD_H: &[u8] = b"\"h\":";
 const JSON_FIELD_L: &[u8] = b"\"l\":";
@@ -36,11 +38,17 @@ const JSON_FIELD_PROCESS_ORDINAL: &[u8] = b"\"metadata.process\":";
 const JSON_FIELD_VENUES_EXPECTED_MASK: &[u8] = b"\"metadata.venues_expected\":";
 const JSON_FIELD_VENUES_WITH_TRADES_MASK: &[u8] = b"\"metadata.venues_with_trades\":";
 const JSON_FIELD_INGESTED_AT_MS: &[u8] = b"\"metadata.ingested_at_ms\":";
+const JSON_FIELD_INGESTED_AT_UTC: &[u8] = b"\"metadata.ingested_at_utc\":";
 const JSON_FIELD_TARGET_INGESTED_AT_MS: &[u8] = b"\"metadata.target_ingested_at_ms\":";
+const JSON_FIELD_TARGET_INGESTED_AT_UTC: &[u8] = b"\"metadata.target_ingested_at_utc\":";
 const JSON_FIELD_BUILT_AT_MS: &[u8] = b"\"metadata.built_at_ms\":";
+const JSON_FIELD_BUILT_AT_UTC: &[u8] = b"\"metadata.built_at_utc\":";
 const JSON_FIELD_COMMITTED_AT_MS: &[u8] = b"\"metadata.committed_at_ms\":";
+const JSON_FIELD_COMMITTED_AT_UTC: &[u8] = b"\"metadata.committed_at_utc\":";
 const JSON_FIELD_HARMONIZED_AT_MS: &[u8] = b"\"metadata.harmonized_at_ms\":";
+const JSON_FIELD_HARMONIZED_AT_UTC: &[u8] = b"\"metadata.harmonized_at_utc\":";
 const JSON_FIELD_RECOMPUTED_AT_MS: &[u8] = b"\"metadata.recomputed_at_ms\":";
+const JSON_FIELD_RECOMPUTED_AT_UTC: &[u8] = b"\"metadata.recomputed_at_utc\":";
 const JSON_FIELD_RECOMPUTED_REASON_ORDINAL: &[u8] = b"\"metadata.recomputed_reason\":";
 const JSON_FIELD_COVERED_1M_COUNT: &[u8] = b"\"metadata.covered_1m_count\":";
 const JSON_FIELD_EXPECTED_1M_COUNT: &[u8] = b"\"metadata.expected_1m_count\":";
@@ -134,6 +142,10 @@ fn write_json_row(
     writer.i64_value(row.open_ms.to_native())?;
     write_json_field_prefix(writer, &mut first, JSON_FIELD_CLOSE_MS)?;
     writer.i64_value(row.close_ms.to_native())?;
+    write_json_field_prefix(writer, &mut first, JSON_FIELD_OPEN_UTC)?;
+    writer.utc_value(row.open_ms.to_native())?;
+    write_json_field_prefix(writer, &mut first, JSON_FIELD_CLOSE_UTC)?;
+    writer.utc_value(row.close_ms.to_native())?;
     write_json_field_prefix(writer, &mut first, JSON_FIELD_O)?;
     writer.f64_value("o", row.o.to_native())?;
     write_json_field_prefix(writer, &mut first, JSON_FIELD_H)?;
@@ -180,25 +192,49 @@ fn write_json_row(
         write_json_field_prefix(writer, &mut first, JSON_FIELD_INGESTED_AT_MS)?;
         writer.i64_value(row.ingested_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_INGESTED_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_INGESTED_AT_UTC)?;
+        writer.utc_value(row.ingested_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_TARGET_INGESTED_AT_MS)?;
         writer.i64_value(row.target_ingested_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_TARGET_INGESTED_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_TARGET_INGESTED_AT_UTC)?;
+        writer.utc_value(row.target_ingested_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_BUILT_AT_MS)?;
         writer.i64_value(row.built_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_BUILT_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_BUILT_AT_UTC)?;
+        writer.utc_value(row.built_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_COMMITTED_AT_MS)?;
         writer.i64_value(row.committed_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_COMMITTED_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_COMMITTED_AT_UTC)?;
+        writer.utc_value(row.committed_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_HARMONIZED_AT_MS)?;
         writer.i64_value(row.harmonized_at_ms.to_native())?;
     }
+    if row.presence_bits.to_native() & PRESENCE_HARMONIZED_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_HARMONIZED_AT_UTC)?;
+        writer.utc_value(row.harmonized_at_ms.to_native())?;
+    }
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_RECOMPUTED_AT_MS)?;
         writer.i64_value(row.recomputed_at_ms.to_native())?;
+    }
+    if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_AT_MS != 0 {
+        write_json_field_prefix(writer, &mut first, JSON_FIELD_RECOMPUTED_AT_UTC)?;
+        writer.utc_value(row.recomputed_at_ms.to_native())?;
     }
     if row.presence_bits.to_native() & PRESENCE_RECOMPUTED_REASON_ORDINAL != 0 {
         write_json_field_prefix(writer, &mut first, JSON_FIELD_RECOMPUTED_REASON_ORDINAL)?;
