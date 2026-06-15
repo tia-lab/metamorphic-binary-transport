@@ -1,4 +1,2 @@
-#[test]
-fn skeleton_compiles() {}
-
+mod test_bars_regression_bench_output;
 mod test_projection_bench_output;

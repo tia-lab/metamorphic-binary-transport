@@ -3,7 +3,6 @@ resolver = "3"
 members = [
     "crates/core",
     "crates/codegen",
-    "crates/projection",
     "crates/metamorphose",
     "crates/transponding",
     "crates/adapters/json",
