@@ -20,6 +20,7 @@ schema crate opts into the matching adapter surface.
 - [Examples](#examples)
 - [Codegen](#codegen)
 - [Adapter Features](#adapter-features)
+- [Compression](#compression)
 - [Trusted Access](#trusted-access)
 - [Current Limits](#current-limits)
 - [What Not To Infer](#what-not-to-infer)
@@ -45,7 +46,7 @@ compiling every schema, adapter, or benchmark.
 ## What This Is Not
 
 This repository is not a feed server, database, cache policy, finality contract,
-compression layer, or general protobuf runtime.
+mandatory compression layer, or general protobuf runtime.
 
 It does not claim:
 
@@ -113,6 +114,15 @@ The row-to-column mechanism used internally by columnar metamorphose adapters.
 You are working on Arrow, Arrow IPC, or Parquet adapter internals. Normal users
 call metamorphose.
 
+### Compression
+
+**What it is:**
+An opt-in zstd wrapper for completed MBT bytes or projected MBT bytes.
+
+**Use it when:**
+You need to ship or store MBT payloads with fewer bytes while keeping MBT itself
+unchanged.
+
 ## Core Conventions
 
 - MBT bytes are the canonical internal transport artifact.
@@ -123,6 +133,7 @@ call metamorphose.
 - Trusted access is explicit and only valid after a prior checked validation
   boundary for the same schema.
 - Adapter compilation is opt-in per schema crate feature.
+- Compression is outside the MBT wire contract and wraps completed MBT bytes.
 
 ## Installation
 
@@ -155,6 +166,15 @@ metamorphic_binary_transport_schema_bars = {
 }
 metamorphic_binary_transport_metamorphose = {
   path = "../metamorphic-binary-transport/crates/metamorphose"
+}
+```
+
+Optional compression dependency:
+
+```toml
+[dependencies]
+metamorphic_binary_transport_compression = {
+  path = "../metamorphic-binary-transport/crates/compression"
 }
 ```
 
@@ -209,6 +229,9 @@ schema and should remain MBT.
 Use metamorphose when the caller explicitly asks for a boundary format.
 
 Use transponding only when implementing or auditing columnar adapter internals.
+
+Use compression only after MBT bytes have already been produced. Compressing a
+projection is valid because a projection is also completed MBT bytes.
 
 Use benches only for measurement. Bench code is not part of the runtime surface.
 
@@ -294,6 +317,33 @@ fn trusted_json(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u
     unsafe { metamorphose::json_trusted_unchecked::<BarsV1>(bytes, max_response_bytes) }
 }
 ```
+
+### Compress MBT Bytes
+
+Compression is opt-in and works on completed MBT bytes. It does not change the
+MBT header, schema hash, projection contract, or trusted-access contract.
+
+```rust
+use metamorphic_binary_transport_compression::{compress, decompress};
+
+fn compress_for_pipeline(
+    bytes: &[u8],
+    max_compressed_bytes: usize,
+) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+    compress(bytes, max_compressed_bytes)
+}
+
+fn decompress_from_pipeline(
+    bytes: &[u8],
+    max_decompressed_bytes: usize,
+) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+    decompress(bytes, max_decompressed_bytes)
+}
+```
+
+The default codec is zstd level 3. Latest recorded Bars evidence compressed
+`mbt_full` large payloads to ratio `0.167134`, about `6x` smaller, with
+compression at `290.39 MB/s` and decompression at `1031.67 MB/s`.
 
 ## Codegen
 
@@ -409,3 +459,4 @@ Do not infer performance from architecture. Use the recorded benchmark evidence.
 - [Architecture](architecture.md)
 - [Bars regression benchmark result](docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md)
 - [Projection direct writer result](docs/reviews/mbt_projection_direct_writer/mbt_projection_direct_writer_result_review.md)
+- [Compression benchmark summary](docs/evidence/mbt_compression/compression_summary.md)

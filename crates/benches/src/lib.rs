@@ -5,6 +5,7 @@
 //! boundaries and any required trusted-access calls.
 
 pub mod bars_regression;
+pub mod compression;
 pub mod projection;
 
 #[cfg(test)]

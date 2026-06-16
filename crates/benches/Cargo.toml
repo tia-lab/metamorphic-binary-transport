@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 metamorphic_binary_transport_core = { path = "../core" }
+metamorphic_binary_transport_compression = { path = "../compression" }
 metamorphic_binary_transport_schema_bars = { path = "../schemas/bars_core", features = ["json", "protobuf", "csv", "arrow_ipc", "parquet"] }
 metamorphic_binary_transport_schema_test_compatibility = { path = "../schemas/test_compatibility_core" }
 serde = { version = "=1.0.228", features = ["derive"] }

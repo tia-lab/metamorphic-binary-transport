@@ -17,7 +17,7 @@ Legal Contact: massimo.nicora@wnlegal.ch
 
 # `metamorphic-binary-transport` - Global Inventory (GENERATED; DO NOT EDIT)
 
-Generated: 2026-06-16T10:24:37Z
+Generated: 2026-06-16T12:03:37Z
 Protocol: code-only inventory; docs are excluded from source inventory.
 
 This file is generated from per-component inventories under `crates/*/docs/inventory.md` and `services/*/docs/inventory.md`.
@@ -35,6 +35,7 @@ If a file purpose is missing in a component inventory, this file will mark it as
 - `crate::adapters/protobuf`
 - `crate::benches`
 - `crate::codegen`
+- `crate::compression`
 - `crate::core`
 - `crate::metamorphose`
 - `crate::schemas/bars_core`
@@ -105,11 +106,14 @@ If a file purpose is missing in a component inventory, this file will mark it as
 
 - `crates/benches/src/bars_regression.rs`: Bars regression fixtures, timing rows, report metadata, old-evidence parsing, and report writing helpers.
 - `crates/benches/src/bin/mbt_bars_regression_bench.rs`: executable Bars regression benchmark timing MBT, projection, and metamorphose lanes.
+- `crates/benches/src/bin/mbt_compression_bench.rs`: executable compression benchmark for full and projected Bars MBT bytes.
 - `crates/benches/src/bin/mbt_projection_bench.rs`: executable projection benchmark for Bars and test-compatibility schemas.
+- `crates/benches/src/compression.rs`: compression benchmark source construction, zstd timing, report writing, environment writing, and summary helpers.
 - `crates/benches/src/lib.rs`: benchmark crate entrypoint and module exports.
 - `crates/benches/src/projection.rs`: projection benchmark fixtures, baseline parsing, measurement rows, and report helpers.
 - `crates/benches/src/tests/mod.rs`: benchmark test module registration.
 - `crates/benches/src/tests/test_bars_regression_bench_output.rs`: Bars regression report output tests.
+- `crates/benches/src/tests/test_compression_bench_output.rs`: compression benchmark report shape and row-count binding tests.
 - `crates/benches/src/tests/test_projection_bench_output.rs`: projection benchmark report output tests.
 
 ---
@@ -135,6 +139,17 @@ If a file purpose is missing in a component inventory, this file will mark it as
 - `crates/codegen/src/tests/test_rust_emit_core.rs`: generated core schema smoke and check tests.
 - `crates/codegen/src/tests/test_rust_emit_metamorphose.rs`: generated metamorphose adapter smoke and check tests.
 - `crates/codegen/src/tests/test_rust_emit_projection_direct_writer.rs`: generated direct projection writer smoke and check tests.
+
+---
+
+## `crates/compression`
+
+### Source Files
+
+- `crates/compression/src/lib.rs`: export-only compression crate entrypoint.
+- `crates/compression/src/runtime.rs`: opt-in zstd compression and decompression helpers for completed MBT bytes.
+- `crates/compression/src/tests/mod.rs`: compression test module registration.
+- `crates/compression/src/tests/test_runtime.rs`: compression roundtrip, cap, corrupt-input, and caller-buffer tests.
 
 ---
 

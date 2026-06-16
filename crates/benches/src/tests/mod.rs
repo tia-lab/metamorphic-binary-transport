@@ -1,2 +1,3 @@
 mod test_bars_regression_bench_output;
+mod test_compression_bench_output;
 mod test_projection_bench_output;

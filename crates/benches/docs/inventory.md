@@ -22,10 +22,13 @@ Protocol: code-only inventory. Documentation files are intentionally excluded.
 ## Source Files
 
 - `crates/benches/src/bars_regression.rs`: Bars regression fixtures, timing rows, report metadata, old-evidence parsing, and report writing helpers.
+- `crates/benches/src/compression.rs`: compression benchmark source construction, zstd timing, report writing, environment writing, and summary helpers.
 - `crates/benches/src/bin/mbt_bars_regression_bench.rs`: executable Bars regression benchmark timing MBT, projection, and metamorphose lanes.
+- `crates/benches/src/bin/mbt_compression_bench.rs`: executable compression benchmark for full and projected Bars MBT bytes.
 - `crates/benches/src/bin/mbt_projection_bench.rs`: executable projection benchmark for Bars and test-compatibility schemas.
 - `crates/benches/src/lib.rs`: benchmark crate entrypoint and module exports.
 - `crates/benches/src/projection.rs`: projection benchmark fixtures, baseline parsing, measurement rows, and report helpers.
 - `crates/benches/src/tests/mod.rs`: benchmark test module registration.
 - `crates/benches/src/tests/test_bars_regression_bench_output.rs`: Bars regression report output tests.
+- `crates/benches/src/tests/test_compression_bench_output.rs`: compression benchmark report shape and row-count binding tests.
 - `crates/benches/src/tests/test_projection_bench_output.rs`: projection benchmark report output tests.

@@ -5,6 +5,7 @@ members = [
     "crates/codegen",
     "crates/metamorphose",
     "crates/transponding",
+    "crates/compression",
     "crates/adapters/json",
     "crates/adapters/protobuf",
     "crates/adapters/csv",
