@@ -78,7 +78,6 @@ fn rel_path(repo_root: &Path, path: &Path) -> Result<String, String> {
 enum ComponentKind {
     Crate,
     Service,
-    Module,
 }
 
 #[derive(Debug, Clone)]
@@ -99,67 +98,56 @@ fn discover_component_inventories(repo_root: &Path) -> Result<Vec<ComponentInven
         if !base.is_dir() {
             continue;
         }
-        for entry in fs::read_dir(&base).map_err(|e| format!("read_dir failed: {base:?}: {e}"))? {
-            let entry = entry.map_err(|e| format!("read_dir entry failed: {e}"))?;
-            let p = entry.path();
-            if !p.is_dir() {
-                continue;
-            }
-            let name = p
-                .file_name()
-                .unwrap_or_else(|| OsStr::new(""))
-                .to_string_lossy()
-                .to_string();
-            if name.is_empty() {
-                continue;
-            }
-            let inv = p.join("docs").join("inventory.md");
-            if inv.is_file() {
-                out.push(ComponentInventory {
-                    kind,
-                    name: name.clone(),
-                    inventory_path: inv,
-                    source_root: p.clone(),
-                });
-            }
-
-            // TA-style module inventories: `crates/<crate>/src/<module>/docs/inventory.md`.
-            if kind == ComponentKind::Crate {
-                let modules_base = p.join("src");
-                if modules_base.is_dir() {
-                    for m_entry in fs::read_dir(&modules_base)
-                        .map_err(|e| format!("read_dir failed: {modules_base:?}: {e}"))?
-                    {
-                        let m_entry = m_entry.map_err(|e| format!("read_dir entry failed: {e}"))?;
-                        let m_dir = m_entry.path();
-                        if !m_dir.is_dir() {
-                            continue;
-                        }
-                        let module_name = m_dir
-                            .file_name()
-                            .unwrap_or_else(|| OsStr::new(""))
-                            .to_string_lossy()
-                            .to_string();
-                        if module_name.is_empty() {
-                            continue;
-                        }
-                        let m_inv = m_dir.join("docs").join("inventory.md");
-                        if !m_inv.is_file() {
-                            continue;
-                        }
-                        out.push(ComponentInventory {
-                            kind: ComponentKind::Module,
-                            name: format!("{name}::{module_name}"),
-                            inventory_path: m_inv,
-                            source_root: m_dir,
-                        });
-                    }
-                }
-            }
-        }
+        discover_cargo_component_inventories(repo_root, kind, &base, &mut out)?;
     }
     out.sort_by(|a, b| (a.kind as u8, &a.name).cmp(&(b.kind as u8, &b.name)));
     Ok(out)
+}
+
+fn discover_cargo_component_inventories(
+    repo_root: &Path,
+    kind: ComponentKind,
+    base: &Path,
+    out: &mut Vec<ComponentInventory>,
+) -> Result<(), String> {
+    let mut stack = vec![base.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in fs::read_dir(&dir).map_err(|e| format!("read_dir failed: {dir:?}: {e}"))? {
+            let entry = entry.map_err(|e| format!("read_dir entry failed: {e}"))?;
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let name = path.file_name().unwrap_or_else(|| OsStr::new(""));
+            if should_skip_dir(name) {
+                continue;
+            }
+            if path.join("Cargo.toml").is_file() {
+                let inv = path.join("docs").join("inventory.md");
+                if inv.is_file() {
+                    out.push(ComponentInventory {
+                        kind,
+                        name: rel_path(repo_root, &path)?
+                            .trim_start_matches("crates/")
+                            .trim_start_matches("services/")
+                            .to_string(),
+                        inventory_path: inv,
+                        source_root: path.clone(),
+                    });
+                }
+                continue;
+            }
+            stack.push(path);
+        }
+    }
+    Ok(())
+}
+
+fn should_skip_dir(name: &OsStr) -> bool {
+    name == OsStr::new("docs")
+        || name == OsStr::new("target")
+        || name == OsStr::new("node_modules")
+        || name == OsStr::new(".git")
 }
 
 fn collect_artifacts(
@@ -308,35 +296,6 @@ fn collect_artifacts(
                         continue;
                     }
                     benches.push(rel_path(repo_root, &p)?);
-                }
-            }
-        }
-        ComponentKind::Module => {
-            let crate_root = find_crate_root(component_root)?;
-            let module_name = component_root
-                .file_name()
-                .unwrap_or_else(|| OsStr::new(""))
-                .to_string_lossy()
-                .to_string();
-            let benches_dir = crate_root.join("benches");
-            if benches_dir.is_dir() {
-                let bench_prefix = format!("{module_name}_");
-                for entry in
-                    fs::read_dir(&benches_dir).map_err(|e| format!("read_dir benches failed: {e}"))?
-                {
-                    let entry = entry.map_err(|e| format!("read_dir benches entry failed: {e}"))?;
-                    let p = entry.path();
-                    if !p.is_file() || p.extension() != Some(OsStr::new("rs")) {
-                        continue;
-                    }
-                    let bench_name = p
-                        .file_name()
-                        .unwrap_or_else(|| OsStr::new(""))
-                        .to_string_lossy()
-                        .to_string();
-                    if bench_name.starts_with(&bench_prefix) {
-                        benches.push(rel_path(repo_root, &p)?);
-                    }
                 }
             }
         }
@@ -558,37 +517,32 @@ fn main() -> Result<(), String> {
     lines.push(LEGAL_HEADER.trim_end_matches('\n').to_string());
     lines.push("".to_string());
     lines.push(format!(
-        "# `{repo_name}` — Global Inventory (GENERATED; DO NOT EDIT)"
+        "# `{repo_name}` - Global Inventory (GENERATED; DO NOT EDIT)"
     ));
     lines.push("".to_string());
     lines.push(format!("Generated: {now}"));
-    lines.push("Protocol: `docs/REGIME_INVENTORY_SYSTEM_SPEC.md`".to_string());
+    lines.push("Protocol: code-only inventory; docs are excluded from source inventory.".to_string());
     lines.push("".to_string());
     lines.push(
         "This file is generated from per-component inventories under `crates/*/docs/inventory.md` and `services/*/docs/inventory.md`."
             .to_string(),
     );
     lines.push(
-        "If a crate does not have a top-level `docs/inventory.md`, this generator will also include module inventories under `crates/*/src/*/docs/inventory.md`."
+        "Nested crates under `crates/adapters/*` and `crates/schemas/*` are discovered by their `Cargo.toml` files."
             .to_string(),
     );
-    lines.push(
-        "If a file purpose is missing in a component inventory, this file will mark it as `INVENTORY GAP`."
-            .to_string(),
-    );
+    lines.push("Docs, target directories, and vendored dependency directories are excluded from source-file inventory.".to_string());
+    lines.push("If a file purpose is missing in a component inventory, this file will mark it as `INVENTORY GAP`.".to_string());
     lines.push("".to_string());
     lines.push("## Components".to_string());
     lines.push("".to_string());
 
     for inv in &inventories {
-        let inv_rel = rel_path(&repo_root, &inv.inventory_path)?;
-        validate_exists(&repo_root, &inv_rel)?;
         let kind_str = match inv.kind {
             ComponentKind::Crate => "crate",
             ComponentKind::Service => "service",
-            ComponentKind::Module => "module",
         };
-        lines.push(format!("- `{kind_str}::{}`: `{inv_rel}`", inv.name));
+        lines.push(format!("- `{kind_str}::{}`", inv.name));
     }
 
     lines.push("".to_string());
@@ -598,26 +552,9 @@ fn main() -> Result<(), String> {
     for inv in &inventories {
         let component_root = &inv.source_root;
 
-        let artifacts = collect_artifacts(&repo_root, inv.kind, component_root, &inv.inventory_path)?;
+        let artifacts =
+            collect_artifacts(&repo_root, inv.kind, component_root, &inv.inventory_path)?;
         validate_exists(&repo_root, &artifacts.inventory_md)?;
-        if let Some(scope) = &artifacts.scope_md {
-            validate_exists(&repo_root, scope)?;
-        }
-        for s in &artifacts.spec_mds {
-            validate_exists(&repo_root, s)?;
-        }
-        for r in &artifacts.math_reviews {
-            validate_exists(&repo_root, r)?;
-        }
-        for b in &artifacts.bench_logs {
-            validate_exists(&repo_root, b)?;
-        }
-        if let Some(t) = &artifacts.tests_dir {
-            validate_exists(&repo_root, t)?;
-        }
-        for b in &artifacts.benches {
-            validate_exists(&repo_root, b)?;
-        }
 
         let inv_text = fs::read_to_string(&inv.inventory_path)
             .map_err(|e| format!("read inventory failed: {:?}: {e}", inv.inventory_path))?;
@@ -649,33 +586,9 @@ fn main() -> Result<(), String> {
         let name = match inv.kind {
             ComponentKind::Crate => format!("crates/{}", inv.name),
             ComponentKind::Service => format!("services/{}", inv.name),
-            ComponentKind::Module => format!("crates/{}/src/{}", inv.name.split("::").next().unwrap_or(""), inv.name.split("::").nth(1).unwrap_or("")),
         };
 
         lines.push(format!("## `{name}`"));
-        lines.push("".to_string());
-        lines.push("### Artifacts".to_string());
-        lines.push("".to_string());
-        lines.push(format!("- Inventory: `{}`", artifacts.inventory_md));
-        if let Some(scope) = &artifacts.scope_md {
-            lines.push(format!("- Scope: `{scope}`"));
-        }
-        for s in &artifacts.spec_mds {
-            lines.push(format!("- Spec: `{s}`"));
-        }
-        for r in &artifacts.math_reviews {
-            lines.push(format!("- Math review: `{r}`"));
-        }
-        for b in &artifacts.bench_logs {
-            lines.push(format!("- Bench log: `{b}`"));
-        }
-        if let Some(t) = &artifacts.tests_dir {
-            lines.push(format!("- Tests: `{t}`"));
-        }
-        for b in &artifacts.benches {
-            lines.push(format!("- Benches: `{b}`"));
-        }
-
         lines.push("".to_string());
         lines.push("### Source Files".to_string());
         lines.push("".to_string());
