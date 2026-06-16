@@ -5,6 +5,7 @@ use crate::model::Dictionary;
 
 #[derive(Debug, Clone)]
 pub struct MbtExtensions {
+    // Centralized handles for every MBT custom option used during descriptor reads.
     pub dictionary_values: ExtensionDescriptor,
     pub schema_id: ExtensionDescriptor,
     pub schema_version: ExtensionDescriptor,
@@ -25,6 +26,7 @@ pub struct MbtExtensions {
 }
 
 pub fn extensions(pool: &DescriptorPool) -> Result<MbtExtensions> {
+    // Resolve option descriptors once so later parsing remains explicit and typed.
     Ok(MbtExtensions {
         dictionary_values: extension(pool, "mathilde.dictionary_values")?,
         schema_id: extension(pool, "mathilde.schema_id")?,
@@ -52,6 +54,7 @@ fn extension(pool: &DescriptorPool, name: &'static str) -> Result<ExtensionDescr
 }
 
 pub fn required_u32(options: &DynamicMessage, ext: &ExtensionDescriptor) -> Result<u32> {
+    // Required option helpers fail before any generated code is emitted.
     if !options.has_extension(ext) {
         return Err(CodegenError::MissingOption("u32"));
     }
@@ -65,6 +68,7 @@ pub fn required_u32(options: &DynamicMessage, ext: &ExtensionDescriptor) -> Resu
 }
 
 pub fn optional_u32(options: &DynamicMessage, ext: &ExtensionDescriptor) -> Result<Option<u32>> {
+    // Optional helpers keep absence distinct from invalid option values.
     if options.has_extension(ext) {
         required_u32(options, ext).map(Some)
     } else {
@@ -118,6 +122,7 @@ pub fn optional_string(
 }
 
 pub fn dictionary_from_value(value: &Value) -> Result<Dictionary> {
+    // Dictionary option payloads become the stable ordinal domain.
     let Value::Message(message) = value else {
         return Err(CodegenError::InvalidOption {
             name: "dictionary_values",

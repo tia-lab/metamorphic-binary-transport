@@ -2,11 +2,13 @@ use crate::error::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BinaryInspection {
+    // Inspection evidence is computed from MBT bytes without decoding into DTOs.
     pub row_count: usize,
     pub semantic_checksum: u64,
     pub minimal_projection_checksum: u64,
 }
 
+/// Generated schema marker dispatch for encode, access, and inspection.
 pub trait MbtSchema {
     type Row;
     type View<'a>

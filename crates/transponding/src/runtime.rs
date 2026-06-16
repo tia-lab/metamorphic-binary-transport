@@ -5,6 +5,7 @@ use metamorphic_binary_transport_core::error::{Result, TransportError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidityBitmap {
+    // One bit per row tracks optional/null state outside the physical values.
     pub words: Vec<u64>,
     pub len: usize,
 }
@@ -78,12 +79,14 @@ impl ValidityBitmap {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DictionaryMeta {
+    // Columnar adapters carry dictionary identity as metadata, not duplicated values.
     pub name: &'static str,
     pub values: &'static [&'static str],
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConstU16Column {
+    // Constant dictionary columns store the value once with the row count.
     pub value: u16,
     pub len: usize,
 }
@@ -105,6 +108,7 @@ impl ConstU16Column {
 }
 
 macro_rules! required_numeric_column {
+    // Required primitive columns share values-only storage across numeric types.
     ($name:ident, $ty:ty, $update:ident) => {
         #[derive(Debug, Clone, PartialEq)]
         pub struct $name {
@@ -140,6 +144,7 @@ macro_rules! required_numeric_column {
 }
 
 macro_rules! optional_numeric_column {
+    // Optional primitives keep physical defaults separate from validity bits.
     ($name:ident, $ty:ty, $update:ident) => {
         #[derive(Debug, Clone, PartialEq)]
         pub struct $name {
@@ -198,6 +203,7 @@ optional_numeric_column!(OptionalF32Column, f32, update_f32);
 optional_numeric_column!(OptionalF64Column, f64, update_f64);
 
 macro_rules! numeric_list_column {
+    // List columns preserve offsets, values, and optional null-versus-empty rows.
     ($name:ident, $ty:ty, $update:ident) => {
         #[derive(Debug, Clone, PartialEq)]
         pub struct $name {
@@ -308,6 +314,7 @@ numeric_list_column!(F32ListColumn, f32, update_f32);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BoolColumn {
+    // Bool columns account one byte per row before adapter-specific bit packing.
     pub values: Vec<bool>,
     pub validity: Option<ValidityBitmap>,
 }
@@ -369,6 +376,7 @@ impl BoolColumn {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Utf8Column {
+    // UTF-8 columns use Arrow-style offsets plus concatenated bytes.
     pub offsets: Vec<i32>,
     pub bytes: Vec<u8>,
     pub validity: Option<ValidityBitmap>,
@@ -460,6 +468,7 @@ impl Utf8Column {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinaryColumn {
+    // Binary columns mirror UTF-8 layout without string validation.
     pub offsets: Vec<i32>,
     pub bytes: Vec<u8>,
     pub validity: Option<ValidityBitmap>,
@@ -550,6 +559,7 @@ impl BinaryColumn {
 }
 
 pub fn ensure_columnar_size(observed: usize, cap: usize) -> Result<()> {
+    // Columnar batches are capped before any boundary format writer runs.
     if observed > cap {
         return Err(TransportError::ResponseTooLarge { observed, cap });
     }
@@ -557,6 +567,7 @@ pub fn ensure_columnar_size(observed: usize, cap: usize) -> Result<()> {
 }
 
 pub fn checksum_seed(name: &str) -> u64 {
+    // Columnar evidence checksums compose stable field names and typed values.
     update_str(FNV_OFFSET, name)
 }
 

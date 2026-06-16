@@ -9,6 +9,7 @@ fn main() {
 }
 
 fn run() -> metamorphic_binary_transport_codegen::error::Result<()> {
+    // Keep CLI failures typed until the process boundary in main.
     let config = parse_args(std::env::args().skip(1))?;
     match config.action {
         Action::Inspect => {

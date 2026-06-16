@@ -8,6 +8,7 @@ use metamorphic_binary_transport_core::error::{Result, TransportError};
 use metamorphic_binary_transport_core::output::{CheckedBytes, utc_bytes};
 
 pub struct ProtoWriter {
+    // Generated adapters write protobuf wire fields directly into this buffer.
     bytes: CheckedBytes,
 }
 
@@ -64,6 +65,7 @@ impl ProtoWriter {
     }
 
     pub fn string(&mut self, tag: u32, value: &str) -> Result<()> {
+        // Length-delimited fields write key, length, then borrowed bytes.
         self.bytes.encode_protobuf(|buf| {
             encoding::encode_key(tag, WireType::LengthDelimited, buf);
             encoding::encode_varint(value.len() as u64, buf);
@@ -90,6 +92,7 @@ impl ProtoWriter {
     }
 
     pub fn message_prefix(&mut self, tag: u32, len: usize) -> Result<()> {
+        // Nested message lengths are precomputed by generated helpers.
         self.bytes.encode_protobuf(|buf| {
             encoding::encode_key(tag, WireType::LengthDelimited, buf);
             encoding::encode_varint(len as u64, buf);

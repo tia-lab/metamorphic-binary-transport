@@ -11,6 +11,7 @@ pub const BUILD_ID_INPUT: &str = "mathilde_binary_transport:v1:synthetic_benchma
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SchemaHeaderSpec {
+    // Expected schema identity used by checked and trusted envelope gates.
     pub schema_id: u32,
     pub schema_version: u16,
     pub schema_hash: u64,
@@ -104,6 +105,7 @@ pub fn encode_header(header: &TransportHeader, dst: &mut [u8; HEADER_LEN]) {
 }
 
 pub fn decode_header(bytes: &[u8]) -> Result<TransportHeader> {
+    // Decode only the fixed header before any payload archive access.
     if bytes.len() < HEADER_LEN {
         return Err(TransportError::TruncatedPayload);
     }
@@ -141,6 +143,7 @@ pub fn validate_header_for_schema(
 ) -> Result<()> {
     validate_identity_and_len(header, payload, schema)?;
 
+    // Checked access validates payload integrity before rkyv archive access.
     let checksum = fnv1a64(payload);
     if checksum != header.payload_checksum {
         return Err(TransportError::PayloadChecksumMismatch {
@@ -159,6 +162,7 @@ pub fn trusted_payload_for_schema(bytes: &[u8], schema: SchemaHeaderSpec) -> Res
 
     let header = decode_header(bytes)?;
     let payload = &bytes[HEADER_LEN..];
+    // Trusted access checks identity and length; payload integrity is the caller contract.
     validate_identity_and_len(&header, payload, schema)?;
     Ok(payload)
 }
@@ -168,6 +172,7 @@ fn validate_identity_and_len(
     payload: &[u8],
     schema: SchemaHeaderSpec,
 ) -> Result<()> {
+    // Shared checked/trusted gate for envelope identity and declared payload length.
     if header.transport_version != TRANSPORT_VERSION {
         return Err(TransportError::UnsupportedTransportVersion(
             header.transport_version,

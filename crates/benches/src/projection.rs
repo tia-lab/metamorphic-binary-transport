@@ -12,12 +12,14 @@ use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v
 
 pub const MAX_RESPONSE_BYTES: usize = 1_073_741_824;
 pub const ROW_COUNTS: [usize; 6] = [1, 100, 500, 1_000, 10_000, 100_000];
+// Historical old-crate table is the regression baseline for Bars projections.
 pub const OLD_BENCH_RESULTS: &str = "/media/Development/MATHILDE/experiments/crates/mathilde-binary-transport/docs/bench_results.md";
 
 pub type BenchResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Clone, Copy, Debug)]
 pub enum SchemaName {
+    // Bench reports separate Bars from the all-fields compatibility schema.
     Bars,
     TestCompatibility,
 }
@@ -40,6 +42,7 @@ pub struct Comparison {
 
 #[derive(Clone, Debug)]
 pub struct BenchRow {
+    // One row records one projection path and its timing components.
     pub label: &'static str,
     pub schema: SchemaName,
     pub row_count: usize,
@@ -214,6 +217,7 @@ pub fn write_summary(report_dir: &Path) -> BenchResult<()> {
 }
 
 pub fn parse_old_crate_projection_baselines(path: &Path) -> BenchResult<Vec<BaselineEntry>> {
+    // Old MBT projection baselines are parsed from the canonical markdown table.
     let text = fs::read_to_string(path)?;
     let mut entries = Vec::new();
     for line in text.lines() {
@@ -245,6 +249,7 @@ pub fn parse_old_crate_projection_baselines(path: &Path) -> BenchResult<Vec<Base
 }
 
 pub fn parse_current_owned_baselines(path: &Path) -> BenchResult<Vec<BaselineEntry>> {
+    // Current owned-row baselines are optional because they are produced by a separate run.
     if !path.exists() {
         return Ok(Vec::new());
     }
@@ -282,6 +287,7 @@ pub fn response_checksum(bytes: &[u8]) -> u64 {
 }
 
 pub fn inspection_checksums(inspection: BinaryInspection) -> (Option<u64>, Option<u64>) {
+    // Projection inspections provide semantic and minimal checksum evidence.
     (
         Some(inspection.semantic_checksum),
         Some(inspection.minimal_projection_checksum),

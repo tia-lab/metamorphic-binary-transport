@@ -21,6 +21,7 @@ use crate::options::{
 static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 pub fn load_schema_model(request: &SchemaRequest) -> Result<SchemaModel> {
+    // Descriptor options are normalized into one SchemaModel before emission.
     let descriptor_set = raw_descriptor_set(request)?;
     let pool = DescriptorPool::decode(descriptor_set.as_slice())
         .map_err(|err| CodegenError::Descriptor(err.to_string()))?;
@@ -122,6 +123,7 @@ struct RowPayload {
 }
 
 fn row_payload_field(root: &MessageDescriptor, extensions: &MbtExtensions) -> Result<RowPayload> {
+    // A transport root must expose exactly one repeated row payload.
     let mut found = None;
     for field in root.fields() {
         if optional_bool(&field.options(), &extensions.repeated_payload)? {
@@ -189,6 +191,7 @@ fn collect_schema_fields(
     enclosing_proto_number: Option<u32>,
     inherited_projection_group: Option<&str>,
 ) -> Result<OutputMessageNode> {
+    // Traverse protobuf messages into physical fields and row-format output nodes.
     let mut node = OutputMessageNode {
         logical_path: prefix.to_string(),
         proto_path: proto_path.to_string(),
@@ -297,6 +300,7 @@ fn resolve_derived_utc_fields(
     fields: &[PhysicalField],
     candidates: Vec<DerivedUtcCandidate>,
 ) -> Result<Vec<DerivedUtcField>> {
+    // Derived UTC fields bind to one validated i64 source field.
     let mut out = Vec::with_capacity(candidates.len());
     for candidate in candidates {
         let source_logical_path = if candidate.source.contains('.') {
@@ -453,6 +457,7 @@ fn validate_row_format_outputs(
     json_csv_fields: &[JsonCsvOutputField],
     protobuf_messages: &[ProtobufMessageModel],
 ) -> Result<()> {
+    // Row-format models are checked before any adapter emitter can use them.
     validate_json_csv_outputs(fields, derived_fields, json_csv_fields)?;
     validate_protobuf_outputs(fields, derived_fields, protobuf_messages)
 }
@@ -538,6 +543,7 @@ fn physical_field(
     logical_path: &str,
     projection_group: Option<String>,
 ) -> Result<PhysicalField> {
+    // MBT physical annotations are mapped here; unannotated strings are rejected.
     let options = field.options();
     let dictionary = optional_string(&options, &extensions.dictionary)?;
     let bitmask_dictionary = optional_string(&options, &extensions.bitmask_dictionary)?;
@@ -684,6 +690,7 @@ fn dictionaries_from_file(
     file_options: &prost_reflect::DynamicMessage,
     extensions: &MbtExtensions,
 ) -> Result<Vec<Dictionary>> {
+    // File-level dictionary options are shared by dictionary and bitmask fields.
     if !file_options.has_extension(&extensions.dictionary_values) {
         return Ok(Vec::new());
     }
@@ -734,6 +741,7 @@ fn validate_dictionaries(dictionaries: &[Dictionary]) -> Result<()> {
 }
 
 fn validate_physical_fields(fields: &[PhysicalField]) -> Result<()> {
+    // Field validation enforces unique names, dense presence bits, and dense key order.
     if fields.is_empty() {
         return Err(CodegenError::InvalidSchema(
             "schema has no physical fields".to_string(),
@@ -811,6 +819,7 @@ fn projection_models(
     extensions: &MbtExtensions,
     model: &SchemaModel,
 ) -> Result<Vec<ProjectionModel>> {
+    // Root projection options become independent generated projection schema models.
     let definitions = projection_definitions(root_options, extensions)?;
     validate_projection_definitions(&definitions)?;
     let mut projections = Vec::with_capacity(definitions.len());
@@ -1006,6 +1015,7 @@ fn build_projection_model(
     model: &SchemaModel,
     definition: ProjectionDefinitionModel,
 ) -> Result<ProjectionModel> {
+    // Projection construction rebases presence bits and recomputes schema identity.
     let selected_indices = selected_projection_indices(model, &definition)?;
     let mut fields = Vec::with_capacity(selected_indices.len());
     let mut field_mappings = Vec::with_capacity(selected_indices.len());
@@ -1068,6 +1078,7 @@ fn selected_projection_indices(
     model: &SchemaModel,
     definition: &ProjectionDefinitionModel,
 ) -> Result<Vec<usize>> {
+    // Include/exclude rules are resolved against mandatory schema and key fields.
     for group in definition
         .include_groups
         .iter()
@@ -1162,6 +1173,7 @@ fn is_mandatory_projection_field(field: &PhysicalField) -> bool {
 }
 
 fn validate_projection_fields(model: &SchemaModel, fields: &[PhysicalField]) -> Result<()> {
+    // Projected payloads must keep schema version and deterministic key material.
     if !fields
         .iter()
         .any(|field| matches!(field.kind, FieldKind::ConstU16 { .. }))
@@ -1284,6 +1296,7 @@ fn require_dictionary<'a>(name: &str, dictionaries: &'a [Dictionary]) -> Result<
 }
 
 fn raw_descriptor_set(request: &SchemaRequest) -> Result<Vec<u8>> {
+    // protoc is used only to create a temporary descriptor set for this request.
     let tmp = temp_dir("descriptor")?;
     fs::create_dir_all(&tmp)?;
     let descriptor_path = tmp.join("schema-descriptor.pb");
@@ -1349,6 +1362,7 @@ fn temp_dir(label: &str) -> Result<PathBuf> {
 }
 
 pub fn normalized_hash(model: &SchemaModel) -> u64 {
+    // Schema hashes are derived from the normalized model, not file formatting.
     let mut text = String::new();
     text.push_str(&format!(
         "schema:{}:{}:{}:{}:{}:{}\n",

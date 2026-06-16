@@ -20,6 +20,7 @@ pub fn write_uncompressed_parquet(
     batch: &RecordBatch,
     max_response_bytes: usize,
 ) -> Result<Vec<u8>> {
+    // Parquet output is intentionally uncompressed; compression is an outer policy.
     let mut sink = CheckedParquetWriter::new(max_response_bytes);
     let properties = WriterProperties::builder()
         .set_compression(Compression::UNCOMPRESSED)
@@ -102,6 +103,7 @@ fn parquet_error(err: ParquetError) -> TransportError {
 }
 
 fn parquet_or_overflow_error(sink: &CheckedParquetWriter, err: ParquetError) -> TransportError {
+    // Preserve cap failures when Parquet reports the sink write as a Parquet error.
     match sink.overflow {
         Some(observed) => TransportError::ResponseTooLarge {
             observed,

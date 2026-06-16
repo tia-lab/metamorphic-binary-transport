@@ -43,6 +43,7 @@ fn parse_report_dir(args: &[String]) -> BenchResult<PathBuf> {
 }
 
 fn measure_row_count(row_count: usize) -> BenchResult<Vec<BarsRegressionRow>> {
+    // Each row count is measured across MBT, boundary formats, and the serde baseline.
     let source_rows = bars_rows(row_count);
     let serde_rows = serde_rows_from_bars(&source_rows);
     let encoded = BarsV1::encode(&source_rows, MAX_RESPONSE_BYTES)?;
@@ -146,6 +147,7 @@ fn measure_full_mbt(
     row_count: usize,
     source_rows: &[metamorphic_binary_transport_schema_bars::bars_v1::MathildeBarRowV1],
 ) -> BenchResult<BarsRegressionRow> {
+    // Full MBT timing includes encode plus checked inspection by design.
     let start = Instant::now();
     let bytes = BarsV1::encode(source_rows, MAX_RESPONSE_BYTES)?;
     let inspection = BarsV1::inspect(&bytes)?;
@@ -179,6 +181,7 @@ fn measure_output<F>(
 where
     F: FnOnce() -> BenchResult<Vec<u8>>,
 {
+    // Boundary-format timing starts inside the supplied closure.
     let start = Instant::now();
     let bytes = run()?;
     let milliseconds = start.elapsed().as_secs_f64() * 1_000.0;
@@ -203,6 +206,7 @@ fn measure_serde_json(
     row_count: usize,
     rows: &[metamorphic_binary_transport_benches::bars_regression::SerdeBarRow],
 ) -> BenchResult<BarsRegressionRow> {
+    // Serde JSON is the direct Rust DTO baseline for the same logical rows.
     let start = Instant::now();
     let bytes = serde_json::to_vec(rows)?;
     let milliseconds = start.elapsed().as_secs_f64() * 1_000.0;

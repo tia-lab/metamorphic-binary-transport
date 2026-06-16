@@ -9,7 +9,9 @@ use metamorphic_binary_transport_schema_bars::bars_v1::MathildeBarRowV1;
 
 pub const MAX_RESPONSE_BYTES: usize = 1_073_741_824;
 pub const ROW_COUNTS: [usize; 6] = [1, 100, 500, 1_000, 10_000, 100_000];
+// Old-crate evidence is read as a regression oracle, not recalculated here.
 pub const OLD_PARITY_EVIDENCE_GLOB: &str = "/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/evidences/bars_regression_parity/bars_regression_parity_run_*.json";
+// These features must be enabled for the Bars regression surface to be complete.
 pub const REQUIRED_SCHEMA_FEATURES: [&str; 5] = ["json", "protobuf", "csv", "arrow_ipc", "parquet"];
 pub const PROJECTION_EVIDENCE_GLOB: &str =
     "docs/evidence/mbt_projection_direct_writer/projection_run_*.json";
@@ -25,6 +27,7 @@ pub struct Comparison {
 
 #[derive(Clone, Debug)]
 pub struct BarsRegressionRow {
+    // One row records one measured boundary and its evidence checksums.
     pub label: &'static str,
     pub row_count: usize,
     pub output_bytes: usize,
@@ -63,6 +66,7 @@ pub struct BarsRegressionMetadata {
 
 #[derive(Clone, serde::Serialize)]
 pub struct SerdeBarRow {
+    // Serde exists only as the direct JSON baseline for this benchmark crate.
     pub schema_version: u16,
     pub pair_ordinal: u16,
     pub tf_ordinal: u16,
@@ -147,6 +151,7 @@ pub fn metadata_for_run(
     command: String,
     report_path: &Path,
 ) -> BenchResult<BarsRegressionMetadata> {
+    // Report metadata captures the run boundary required for later evidence review.
     Ok(BarsRegressionMetadata {
         slug: "mbt_bars_regression_benchmark",
         timestamp_utc: command_output("date", &["-u", "+%Y-%m-%dT%H:%M:%SZ"])?,
@@ -174,6 +179,7 @@ pub fn write_report(
     metadata: &BarsRegressionMetadata,
     rows: &[BarsRegressionRow],
 ) -> BenchResult<()> {
+    // Reports are append-only artifacts; existing run files are never overwritten.
     if path.exists() {
         return Err(io::Error::other("Bars regression report already exists").into());
     }

@@ -5,6 +5,7 @@ use crate::model::validate_module_name;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
+    // Inspect reads descriptors, Write updates output, Check compares regenerated output.
     Inspect,
     Write,
     Check,
@@ -12,6 +13,7 @@ pub enum Action {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Surface {
+    // Generation is split so schemas can opt into only the surfaces they need.
     Core,
     Projection,
     Metamorphose,
@@ -19,6 +21,7 @@ pub enum Surface {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Adapter {
+    // Adapter generation is only valid with the metamorphose surface.
     Json,
     Protobuf,
     Csv,
@@ -30,6 +33,7 @@ pub enum Adapter {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodegenConfig {
+    // Normalized CLI contract after argument validation.
     pub action: Action,
     pub proto_roots: Vec<PathBuf>,
     pub schema: PathBuf,
@@ -42,6 +46,7 @@ pub struct CodegenConfig {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SchemaRequest {
+    // Descriptor loading identity: proto roots, schema path, root message, and module name.
     pub proto_roots: Vec<PathBuf>,
     pub schema: PathBuf,
     pub root: String,
@@ -63,6 +68,7 @@ pub fn parse_args<I>(args: I) -> Result<CodegenConfig>
 where
     I: IntoIterator<Item = String>,
 {
+    // All schema intent is explicit; the generator never infers roots from Rust code.
     let args: Vec<String> = args.into_iter().collect();
     let mut action = None;
     let mut proto_roots = Vec::new();

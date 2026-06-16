@@ -18,6 +18,7 @@ pub use arrow_array::RecordBatch as ArrowRecordBatch;
 pub use arrow_bridge::*;
 
 pub fn write_ipc_stream(batch: &RecordBatch, max_response_bytes: usize) -> Result<Vec<u8>> {
+    // Arrow IPC is a boundary encoding; the sink enforces the response cap.
     let mut sink = CheckedArrowIpcWriter::new(
         max_response_bytes,
         initial_capacity(batch, max_response_bytes),
@@ -37,6 +38,7 @@ pub fn write_ipc_stream(batch: &RecordBatch, max_response_bytes: usize) -> Resul
 }
 
 pub fn record_batch_from_ipc_stream(bytes: &[u8]) -> Result<RecordBatch> {
+    // Decode helper is used by tests and validation, not by the hot writer path.
     let mut reader = StreamReader::try_new(Cursor::new(bytes), None).map_err(arrow_ipc_error)?;
     let first = match reader.next() {
         Some(result) => result.map_err(arrow_ipc_error)?,
@@ -118,6 +120,7 @@ fn arrow_ipc_error(err: ArrowError) -> TransportError {
 }
 
 fn initial_capacity(batch: &RecordBatch, max_response_bytes: usize) -> usize {
+    // This is only a sizing hint; CheckedArrowIpcWriter remains authoritative.
     record_batch_byte_len(batch)
         .saturating_add(IPC_STREAM_OVERHEAD_BYTES)
         .min(max_response_bytes)
@@ -130,6 +133,7 @@ fn record_batch_byte_len(batch: &RecordBatch) -> usize {
 }
 
 fn arrow_ipc_or_overflow_error(sink: &CheckedArrowIpcWriter, err: ArrowError) -> TransportError {
+    // Preserve cap failures when Arrow reports the sink write as an Arrow error.
     match sink.overflow {
         Some(observed) => TransportError::ResponseTooLarge {
             observed,

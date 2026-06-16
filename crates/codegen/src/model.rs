@@ -2,12 +2,14 @@ use crate::error::{CodegenError, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dictionary {
+    // File-level dictionary declared in proto options.
     pub name: String,
     pub values: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SchemaModel {
+    // Fully resolved schema contract consumed by the Rust emitters.
     pub module: String,
     pub proto: std::path::PathBuf,
     pub root: String,
@@ -37,6 +39,7 @@ pub struct SchemaModel {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DerivedUtcField {
+    // Row-format-only field derived from an i64 timestamp source.
     pub proto_path: String,
     pub logical_path: String,
     pub parent_proto_path: String,
@@ -52,12 +55,14 @@ pub struct DerivedUtcField {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JsonCsvOutputField {
+    // Row-format output can refer to stored physical fields or derived UTC fields.
     Physical { field_index: usize },
     DerivedUtc { derived_index: usize },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProtobufMessageModel {
+    // Nested protobuf output tree preserved from the descriptor traversal.
     pub logical_path: String,
     pub proto_path: String,
     pub rust_helper_stem: String,
@@ -91,6 +96,7 @@ pub struct ProjectionFieldMapping {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectionModel {
+    // Projection schemas carry rebased presence bits and their own schema hash.
     pub definition: ProjectionDefinitionModel,
     pub marker_type: String,
     pub payload_type: String,
@@ -108,6 +114,7 @@ pub struct ProjectionModel {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PhysicalField {
+    // Physical MBT field after proto option validation and Rust naming.
     pub proto_path: String,
     pub logical_path: String,
     pub proto_name: String,
@@ -121,6 +128,7 @@ pub struct PhysicalField {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FieldKind {
+    // Physical storage kinds understood by core, projection, and adapters.
     ConstU16 { value: u16 },
     U16Dictionary { dictionary: String, optional: bool },
     U64BitmaskDictionary { dictionary: String },
@@ -232,6 +240,7 @@ pub fn field_kind_hash_name(kind: &FieldKind) -> String {
 }
 
 pub fn validate_module_name(module: &str) -> Result<()> {
+    // Module names become Rust module identifiers and generated type prefixes.
     if module.is_empty() {
         return Err(CodegenError::UnsupportedArgument(
             "module cannot be empty".to_string(),

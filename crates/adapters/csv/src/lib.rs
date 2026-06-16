@@ -7,6 +7,7 @@ use metamorphic_binary_transport_core::error::{Result, TransportError};
 use metamorphic_binary_transport_core::output::{CheckedBytes, utc_bytes, write_base64};
 
 pub struct CsvWriter {
+    // Generated adapters write capped CSV bytes directly.
     bytes: CheckedBytes,
 }
 
@@ -34,6 +35,7 @@ impl CsvWriter {
     }
 
     pub fn string_cell(&mut self, value: &str) -> Result<()> {
+        // CSV quoting and escaping are boundary concerns.
         self.bytes.push(b'"')?;
         for byte in value.bytes() {
             if byte == b'"' {
@@ -83,6 +85,7 @@ impl CsvWriter {
     }
 
     pub fn bytes_cell(&mut self, value: &[u8]) -> Result<()> {
+        // Binary cells use base64 text so CSV remains printable.
         self.bytes.push(b'"')?;
         write_base64(&mut self.bytes, value)?;
         self.bytes.push(b'"')
@@ -150,6 +153,7 @@ impl CsvWriter {
         I: IntoIterator<Item = T>,
         F: FnMut(&mut Self, T) -> Result<()>,
     {
+        // Repeated values are stored as a JSON-style payload inside one CSV cell.
         self.begin_array_cell()?;
         let mut first = true;
         for value in values {

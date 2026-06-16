@@ -36,6 +36,7 @@ pub fn schema_metadata(
     schema_version: u32,
     schema_hash: u64,
 ) -> HashMap<String, String> {
+    // Arrow schema metadata carries MBT identity across the columnar boundary.
     let mut metadata = HashMap::with_capacity(4);
     metadata.insert("mbt.transport_name".to_string(), transport_name.to_string());
     metadata.insert("mbt.schema_id".to_string(), schema_id.to_string());
@@ -50,6 +51,7 @@ pub fn field_metadata(
     dictionary: Option<&'static str>,
     bitmask_dictionary: Option<&'static str>,
 ) -> HashMap<String, String> {
+    // Field metadata preserves physical, dictionary, and bitmask provenance.
     let mut metadata = HashMap::with_capacity(3);
     if field_name != physical_name {
         metadata.insert("mbt.physical_name".to_string(), physical_name.to_string());
@@ -69,6 +71,7 @@ pub fn const_u16_array(column: ConstU16Column) -> Result<ArrayRef> {
 }
 
 pub fn u16_array(column: U16Column) -> Result<ArrayRef> {
+    // Transponded primitive columns become Arrow primitive arrays.
     primitive_array_required::<UInt16Type>(column.values)
 }
 
@@ -152,6 +155,7 @@ pub fn binary_array(column: BinaryColumn) -> Result<ArrayRef> {
 }
 
 pub fn i64_list_array(column: I64ListColumn) -> Result<ArrayRef> {
+    // List arrays map offsets, child values, and optional row validity.
     primitive_list_array::<Int64Type>(column.offsets, column.values, column.validity)
 }
 
@@ -196,6 +200,7 @@ pub fn record_batch(
     columns: Vec<ArrayRef>,
     max_arrow_bytes: usize,
 ) -> Result<RecordBatch> {
+    // Assemble the schema and arrays, then enforce the caller response cap.
     let batch = RecordBatch::try_new(schema, columns).map_err(arrow_error)?;
     let observed = record_batch_byte_len(&batch);
     if observed > max_arrow_bytes {
@@ -208,12 +213,14 @@ pub fn record_batch(
 }
 
 pub fn record_batch_byte_len(batch: &RecordBatch) -> usize {
+    // Approximate in-memory Arrow response size for cap enforcement.
     batch.columns().iter().fold(0_usize, |len, column| {
         len.saturating_add(column.get_buffer_memory_size())
     })
 }
 
 pub fn record_batch_checksum(batch: &RecordBatch) -> Result<u64> {
+    // Deterministic evidence checksum for benchmark reports, not cryptographic hashing.
     let mut checksum = checksum_seed("arrow-record-batch");
     checksum = update_usize(checksum, batch.num_rows());
     checksum = update_usize(checksum, batch.num_columns());
@@ -271,6 +278,7 @@ fn null_buffer(
     validity: Option<ValidityBitmap>,
     expected_len: usize,
 ) -> Result<Option<NullBuffer>> {
+    // Convert MBT validity words into Arrow null buffers after row-count checks.
     match validity {
         Some(validity) => {
             let len = validity.len();
@@ -300,6 +308,7 @@ fn null_buffer(
 }
 
 fn ensure_offsets(offsets: &[i32], values_len: usize) -> Result<()> {
+    // Variable-width and list offsets must be monotonic and end at values_len.
     let Some(first) = offsets.first() else {
         return Err(TransportError::MalformedArchive(
             "Arrow offsets cannot be empty".to_string(),
@@ -337,6 +346,7 @@ fn ensure_offsets(offsets: &[i32], values_len: usize) -> Result<()> {
 }
 
 fn checksum_array(mut checksum: u64, array: &dyn Array) -> Result<u64> {
+    // Array checksum walks typed values so evidence is independent of buffer layout.
     checksum = update_usize(checksum, array.len());
     for idx in 0..array.len() {
         checksum = update_usize(checksum, usize::from(array.is_null(idx)));

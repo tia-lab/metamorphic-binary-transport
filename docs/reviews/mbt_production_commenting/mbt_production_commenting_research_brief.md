@@ -1,0 +1,209 @@
+```
+MATHILDE PROPRIETARY AND CONFIDENTIAL
+Copyright (c) 2024 MATHILDE. All Rights Reserved.
+
+This document contains trade secrets and confidential information owned
+exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
+
+PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
+works without prior written authorization from MATHILDE.
+
+ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
+or possession violates Swiss law. Violations subject to civil remedies,
+injunctive relief, damages, and criminal prosecution.
+
+Legal Contact: massimo.nicora@wnlegal.ch
+```
+
+# MBT Production Commenting Research Brief
+
+## Status
+
+Status: research brief.
+
+This brief authorizes no source-code change.
+
+## Source Materials
+
+Mandatory repository reads:
+
+- `AGENTS.md`
+- `docs/invariants/core_invariants.md`
+- `docs/protocols/lifecycle_protocol.md`
+- `docs/protocols/research_protocol.md`
+- `docs/protocols/spec_protocol.md`
+- `docs/protocols/peer_audit_protocol.md`
+- `docs/protocols/implementation_protocol.md`
+- `docs/protocols/codegen_protocol.md`
+- `docs/protocols/review_documentation_protocol.md`
+
+Reference commenting pass from the old experiment repository:
+
+- `/home/tia/_DEV/MATHILDE/experiments/docs/specs/mathilde_binary_transport_production_commenting_SPEC.md`
+- `/home/tia/_DEV/MATHILDE/experiments/docs/reviews/mathilde_binary_transport_production_commenting/mathilde_binary_transport_production_commenting_research_brief.md`
+- `/home/tia/_DEV/MATHILDE/experiments/docs/reviews/mathilde_binary_transport_production_commenting/mathilde_binary_transport_production_commenting_result_review.md`
+
+Current MBT architecture and migration specs inspected:
+
+- `docs/architecture/repository_structure.md`
+- `docs/specs/mbt_workspace_architecture_SPEC.md`
+- `docs/specs/mbt_core_runtime_migration_SPEC.md`
+- `docs/specs/mbt_codegen_migration_SPEC.md`
+- `docs/specs/mbt_schema_core_generation_SPEC.md`
+- `docs/specs/mbt_projection_direct_writer_SPEC.md`
+- `docs/specs/mbt_metamorphose_migration_SPEC.md`
+
+Current source paths inspected:
+
+- `crates/core/src/codec.rs`
+- `crates/core/src/envelope.rs`
+- `crates/core/src/output.rs`
+- `crates/core/src/runtime.rs`
+- `crates/metamorphose/src/lib.rs`
+- `crates/metamorphose/src/runtime.rs`
+- `crates/transponding/src/lib.rs`
+- `crates/transponding/src/runtime.rs`
+- `crates/adapters/json/src/lib.rs`
+- `crates/adapters/csv/src/lib.rs`
+- `crates/adapters/protobuf/src/lib.rs`
+- `crates/adapters/arrow/src/lib.rs`
+- `crates/adapters/arrow_ipc/src/arrow_bridge.rs`
+- `crates/adapters/arrow_ipc/src/lib.rs`
+- `crates/adapters/parquet/src/arrow_bridge.rs`
+- `crates/adapters/parquet/src/lib.rs`
+- `crates/codegen/src/config.rs`
+- `crates/codegen/src/descriptor.rs`
+- `crates/codegen/src/emit.rs`
+- `crates/codegen/src/model.rs`
+- `crates/codegen/src/options.rs`
+- `crates/codegen/src/rust_emit.rs`
+- `crates/benches/src/lib.rs`
+- `crates/benches/src/bars_regression.rs`
+- `crates/benches/src/projection.rs`
+- `crates/benches/src/bin/mbt_bars_regression_bench.rs`
+- `crates/benches/src/bin/mbt_projection_bench.rs`
+
+Generated and test paths classified:
+
+- `crates/schemas/bars_core/src/*.rs`
+- `crates/schemas/test_compatibility_core/src/*.rs`
+- `crates/**/src/tests/**`
+- `crates/**/tests/**`
+
+No external documentation was required. This task changes only local comments
+and documentation.
+
+## Measured Object
+
+The measured object is source-code reviewability of hand-owned MBT source
+files after the workspace split.
+
+The measured object is not runtime behavior, binary format, generated payload
+layout, adapter throughput, or compile-time improvement.
+
+## Candidate Approach
+
+Port the old MBT light-commenting policy to the new workspace:
+
+- add or refine sparse comments only where they explain non-obvious production
+  behavior;
+- focus on trust boundaries, schema/archive boundaries, cap enforcement,
+  zero-copy and copy boundaries, projection, metamorphose, transponding,
+  codegen dispatch, and benchmark timing boundaries;
+- do not comment generated schema files by hand;
+- do not add comments that restate Rust syntax;
+- do not change runtime code, generated output, dependencies, tests, or
+  benchmarks.
+
+The implementation, if later approved, must be comment-only except for review
+artifacts. Any non-comment source edit requires a separate spec or amendment.
+
+## MBT Binding Surface
+
+This task binds only documentation comments and local implementation comments
+inside:
+
+- core runtime crates;
+- adapter crates;
+- metamorphose and transponding support crates;
+- codegen source files;
+- benchmark/evidence support files where timing or baseline ownership would
+  otherwise be unclear.
+
+Generated schema modules remain codegen-owned. If generated API documentation
+is later changed, the source of that change must be `crates/codegen/src/rust_emit.rs`
+and the generated artifacts must be regenerated by an approved command.
+
+## Evidence Table
+
+| Evidence type | Source | Observation |
+| --- | --- | --- |
+| Code-read evidence | `AGENTS.md` | Rule 16 forbids code changes before approved spec and implementation plan; rule 17 states generated code must come only from approved codegen. |
+| Code-read evidence | `docs/invariants/core_invariants.md` | Generated files are not edited by hand; trusted access requires a documented safety contract; specs and peer audits are separate artifacts. |
+| Code-read evidence | Old `mathilde_binary_transport_production_commenting_SPEC.md` | The old accepted style was sparse local comments, no generated-file manual comments, no comments that restate Rust syntax, and comment-only implementation. |
+| Code-read evidence | `docs/architecture/repository_structure.md` | New MBT splits core, codegen, adapters, metamorphose, transponding, schemas, and benches into separate crates. |
+| Code-read evidence | `crates/core/src/envelope.rs` | Envelope code already has a few comments for header binding and fixed header shape; checked/trusted distinction can be made more explicit if not duplicated. |
+| Code-read evidence | `crates/core/src/output.rs` | `CheckedBytes`, UTC, base64, and protobuf length helpers centralize output-cap and no-intermediate-string behavior. |
+| Code-read evidence | `crates/metamorphose/src/runtime.rs` | Public metamorphose traits and trusted helpers exist; safety docs are present for unsafe public helpers. |
+| Code-read evidence | `crates/transponding/src/runtime.rs` | Column builders currently have no comments despite validity bitmap, optional/default value, and nullable array semantics. |
+| Code-read evidence | `crates/adapters/json/src/lib.rs` | JSON writer streams generated field output directly through `CheckedBytes`. |
+| Code-read evidence | `crates/adapters/csv/src/lib.rs` | CSV writer owns boundary quoting and JSON-style array cell representation. |
+| Code-read evidence | `crates/adapters/protobuf/src/lib.rs` | Protobuf writer emits wire fields through low-level prost encoding helpers. |
+| Code-read evidence | `crates/adapters/arrow/src/lib.rs` | Arrow adapter materializes arrays and batches from transponded columns and validates offsets/null buffers. |
+| Code-read evidence | `crates/adapters/arrow_ipc/src/lib.rs` | IPC output uses a checked writer to turn sink overflow into response-cap errors. |
+| Code-read evidence | `crates/adapters/parquet/src/lib.rs` | Parquet output is uncompressed and cap-aware through a checked writer. |
+| Code-read evidence | `crates/codegen/src/config.rs` | CLI parsing owns action/surface/adapter constraints and should be auditable. |
+| Code-read evidence | `crates/codegen/src/descriptor.rs` | Descriptor loading maps protobuf options into the full schema model, projections, and hashes. |
+| Code-read evidence | `crates/codegen/src/rust_emit.rs` | Emitter owns generated core, projection, metamorphose, transponding, Arrow, IPC, and Parquet source generation. |
+| Code-read evidence | `crates/benches/src/*` | Benchmark support owns evidence paths, old-baseline parsing, timing boundaries, and report writers. |
+| Code-read evidence | `crates/schemas/**/src/*.rs` | Schema crate source files are generated artifacts and must not be manually edited. |
+| Run evidence | Not run | No command was run for behavior, build, or benchmark evidence because this is the research/spec phase. |
+
+## Hypotheses
+
+- A sparse comment pass will improve auditability without changing behavior.
+  This remains a hypothesis until a later comment-only diff is inspected.
+- Some candidate anchors may already be clear enough locally and should be
+  omitted during implementation. This must be decided during the approved
+  implementation pass, not by adding redundant comments.
+
+## Unknowns
+
+- Whether the implementation pass will find duplicated nearby comments that
+  make a planned comment unnecessary.
+- Whether current workspace `cargo check --workspace --all-targets` is clean
+  before the commenting pass. The correctness oracle for this task is
+  comment-only diff plus narrow build checks, not a new behavior claim.
+
+## Risks
+
+- Excess comments can reduce reviewability.
+- Comments that describe implementation detail too narrowly can become stale.
+- Hand-editing generated schema modules would violate codegen ownership.
+- Changing codegen string literals could alter generated artifacts; that is out
+  of scope unless a later plan explicitly binds generated-output changes.
+
+## Required Decisions Before Spec
+
+No blocking design decision remains.
+
+The spec must choose:
+
+- exact file scope;
+- whether benchmark/evidence support files are in scope;
+- generated-file exclusion policy;
+- validation commands that prove a comment-only change did not alter behavior.
+
+## Required Evidence Before Coding
+
+- Approved spec.
+- Separate peer audit with `PEER_AUDIT_PASSED`.
+- Approved implementation plan binding exact files, comment anchors, and
+  validation commands.
+
+## Recommended Next Phase
+
+Write `docs/specs/mbt_production_commenting_SPEC.md`.
+
+The spec should adapt the old MBT commenting contract to the split workspace
+and must include an explicit pre-audit closure checklist before peer audit.

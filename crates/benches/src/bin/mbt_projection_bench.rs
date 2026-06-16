@@ -71,6 +71,7 @@ fn parse_report_dir(args: impl Iterator<Item = String>) -> BenchResult<PathBuf> 
 fn verify_old_baselines(
     baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
 ) -> BenchResult<()> {
+    // Missing old baselines make the regression comparison invalid.
     for label in [
         "mathilde_binary_project_no_metadata_public",
         "mathilde_binary_project_no_metadata_archived",
@@ -100,6 +101,7 @@ fn measure_bars(
     old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
     current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
 ) -> BenchResult<Vec<BenchRow>> {
+    // Bars projection paths are compared against the historical MBT crate.
     let mut out = Vec::with_capacity(6);
     out.push(measure_public(
         "mathilde_binary_project_no_metadata_public",
@@ -171,6 +173,7 @@ fn measure_compatibility(
     source: &[u8],
     current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
 ) -> BenchResult<Vec<BenchRow>> {
+    // Compatibility projections prove the generator path beyond the Bars schema.
     let empty_old = [];
     let mut out = Vec::with_capacity(6);
     out.push(measure_public(
@@ -261,6 +264,7 @@ where
     I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
+    // Public projection includes checked source access inside the generated API.
     let started = Instant::now();
     let projected = project(source)?;
     let projection_ms = elapsed_ms(started);
@@ -295,6 +299,7 @@ where
     I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
+    // Archived timing separates source access from trusted projection work.
     let access_started = Instant::now();
     access(source)?;
     let access_ms = elapsed_ms(access_started);
@@ -330,6 +335,7 @@ where
     I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
+    // Inspect timing measures projected-byte validation and checksum evidence.
     let projected = project(source)?;
     let inspect_started = Instant::now();
     let inspection = inspect(&projected)?;

@@ -7,6 +7,7 @@ use metamorphic_binary_transport_core::error::{Result, TransportError};
 use metamorphic_binary_transport_core::output::{CheckedBytes, write_base64, write_utc};
 
 pub struct JsonWriter {
+    // Generated adapters write archived fields directly into this capped buffer.
     bytes: CheckedBytes,
 }
 
@@ -46,6 +47,7 @@ impl JsonWriter {
     }
 
     pub fn string_value(&mut self, value: &str) -> Result<()> {
+        // JSON escaping happens only at the boundary.
         self.bytes.push(b'"')?;
         for byte in value.bytes() {
             match byte {
@@ -101,6 +103,7 @@ impl JsonWriter {
     }
 
     pub fn bytes_value(&mut self, value: &[u8]) -> Result<()> {
+        // Binary data is rendered as base64 text for JSON.
         self.bytes.push(b'"')?;
         write_base64(&mut self.bytes, value)?;
         self.bytes.push(b'"')
@@ -158,6 +161,7 @@ impl JsonWriter {
         I: IntoIterator<Item = T>,
         F: FnMut(&mut Self, T) -> Result<()>,
     {
+        // Arrays stream values directly without building row DTOs.
         self.begin_array()?;
         let mut first = true;
         for value in values {

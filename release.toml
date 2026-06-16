@@ -1,0 +1,15 @@
+allow-branch = ["main", "!HEAD"]
+
+shared-version = true
+publish = false
+push = true
+push-remote = "origin"
+
+tag = true
+tag-name = "mbt-v{{version}}"
+tag-message = "chore: Release mbt-v{{version}}"
+
+pre-release-commit-message = "chore: Release mbt-v{{version}}"
+
+sign-commit = false
+sign-tag = false

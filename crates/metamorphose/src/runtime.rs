@@ -19,6 +19,7 @@ impl TrustedUnchecked {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MetamorphoseFormat {
+    // Safe dispatch surface for row-format metamorphose outputs.
     Mbt,
     Json,
     Protobuf,
@@ -27,6 +28,7 @@ pub enum MetamorphoseFormat {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum MetamorphoseOutput<'a> {
+    // MBT remains borrowed; boundary formats are owned byte buffers.
     Mbt(&'a [u8]),
     Json(Vec<u8>),
     Protobuf(Vec<u8>),
@@ -34,6 +36,7 @@ pub enum MetamorphoseOutput<'a> {
 }
 
 pub trait MbtMetamorphoseSchema {
+    // Implemented by generated schema adapter modules, not hand-written DTOs.
     fn metamorphose_mbt(bytes: &[u8], max_response_bytes: usize) -> Result<&[u8]>;
 
     fn metamorphose_mbt_trusted_unchecked(
@@ -116,6 +119,7 @@ where
         + ProtobufMetamorphoseSchema
         + CsvMetamorphoseSchema,
 {
+    // Format selection delegates validation and writing to schema-specific adapters.
     match format {
         MetamorphoseFormat::Mbt => Ok(MetamorphoseOutput::Mbt(S::metamorphose_mbt(
             bytes,

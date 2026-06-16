@@ -62,6 +62,7 @@ impl CheckedBytes {
     where
         F: FnOnce(&mut Vec<u8>),
     {
+        // Prost appends directly into the owned response buffer; the cap is checked after append.
         encode(&mut self.bytes);
         self.ensure_len(self.bytes.len())
     }
@@ -82,6 +83,7 @@ impl CheckedBytes {
     }
 
     pub fn fmt_error(&self) -> TransportError {
+        // fmt::Write can only return fmt::Error, so recover the response-cap error here.
         let observed = match self.overflow_observed {
             Some(value) => value,
             None => self.cap.saturating_add(1),
@@ -100,6 +102,7 @@ impl fmt::Write for CheckedBytes {
 }
 
 pub fn checked_len_add(lhs: usize, rhs: usize, cap: usize) -> Result<usize> {
+    // Protobuf writers preflight nested lengths before emitting length-delimited fields.
     let observed = lhs
         .checked_add(rhs)
         .ok_or(TransportError::ResponseTooLarge {
@@ -139,6 +142,7 @@ pub fn utc_len(ms: i64) -> Result<usize> {
 }
 
 pub fn write_utc(out: &mut CheckedBytes, ms: i64) -> Result<()> {
+    // Write UTC text directly into the capped output without allocating a String.
     let seconds = ms.div_euclid(1_000);
     let days = seconds.div_euclid(86_400);
     let sod = seconds.rem_euclid(86_400);
@@ -161,6 +165,7 @@ pub fn write_utc(out: &mut CheckedBytes, ms: i64) -> Result<()> {
 }
 
 pub fn utc_bytes(ms: i64, out: &mut [u8; 64]) -> Result<&[u8]> {
+    // Stack-buffer variant for writers that need a borrowed byte slice.
     let seconds = ms.div_euclid(1_000);
     let days = seconds.div_euclid(86_400);
     let sod = seconds.rem_euclid(86_400);
@@ -185,6 +190,7 @@ pub fn utc_bytes(ms: i64, out: &mut [u8; 64]) -> Result<&[u8]> {
 }
 
 pub fn write_base64(out: &mut CheckedBytes, value: &[u8]) -> Result<()> {
+    // Bytes become text only at row-format boundaries.
     const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     for chunk in value.chunks(3) {
         let b0 = chunk[0];
@@ -271,6 +277,7 @@ fn write_byte(out: &mut [u8], idx: &mut usize, byte: u8) -> Result<()> {
 }
 
 fn civil_from_days(days_since_epoch: i64) -> (i64, i64, i64) {
+    // Local civil-date conversion avoids adding a time dependency to the core crate.
     let z = days_since_epoch + 719_468;
     let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
     let doe = z - era * 146_097;
