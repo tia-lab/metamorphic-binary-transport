@@ -340,8 +340,10 @@ impl BoolColumn {
 
     pub fn push_optional(&mut self, present: bool, value: bool) -> Result<()> {
         let idx = self.values.len();
-        if present && let Some(validity) = &mut self.validity {
-            validity.set_present(idx)?;
+        if present {
+            if let Some(validity) = &mut self.validity {
+                validity.set_present(idx)?;
+            }
         }
         self.values.push(value);
         Ok(())

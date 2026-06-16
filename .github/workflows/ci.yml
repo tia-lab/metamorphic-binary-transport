@@ -18,7 +18,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.86.0
+          toolchain: 1.90.0
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -27,7 +27,7 @@ jobs:
         run: cargo check --all-targets --all-features
 
   build:
-    name: cargo build --release (all features)
+    name: cargo build (all features)
     if: |
       (github.event_name == 'pull_request' && github.base_ref == 'main') ||
       github.ref == 'refs/heads/main'
@@ -39,10 +39,10 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.86.0
+          toolchain: 1.90.0
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --release --all-features
+        run: cargo build --all-features
