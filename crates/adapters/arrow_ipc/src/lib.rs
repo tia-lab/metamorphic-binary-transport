@@ -7,8 +7,8 @@ use arrow_array::RecordBatch;
 use arrow_ipc::reader::StreamReader;
 use arrow_ipc::writer::StreamWriter;
 use arrow_schema::ArrowError;
-use metamorphic_binary_transport_core::codec::response_checksum;
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::codec::response_checksum;
+use mbt_core::error::{Result, TransportError};
 
 mod arrow_bridge;
 

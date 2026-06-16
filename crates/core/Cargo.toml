@@ -1,5 +1,5 @@
 [package]
-name = "metamorphic_binary_transport_core"
+name = "mbt_core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

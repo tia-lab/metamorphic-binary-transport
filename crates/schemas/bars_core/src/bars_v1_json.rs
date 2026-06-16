@@ -3,11 +3,9 @@
 // schema_id=1 schema_version=1 schema_hash=6061383958499356843
 
 use crate::bars_v1::*;
-use metamorphic_binary_transport_adapter_json::JsonWriter;
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_metamorphose::{
-    JsonMetamorphoseSchema, runtime::TrustedUnchecked,
-};
+use mbt_adapter_json::JsonWriter;
+use mbt_core::error::Result;
+use mbt_metamorphose::{JsonMetamorphoseSchema, runtime::TrustedUnchecked};
 use rkyv::Archive;
 
 const JSON_SCHEMA_VERSION_FIELD: &[u8] = b"\"schema_version\":";

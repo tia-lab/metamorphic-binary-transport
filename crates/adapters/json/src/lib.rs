@@ -3,8 +3,8 @@
 
 use std::fmt::Write as _;
 
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_core::output::{CheckedBytes, write_base64, write_utc};
+use mbt_core::error::{Result, TransportError};
+use mbt_core::output::{CheckedBytes, write_base64, write_utc};
 
 pub struct JsonWriter {
     // Generated adapters write archived fields directly into this capped buffer.

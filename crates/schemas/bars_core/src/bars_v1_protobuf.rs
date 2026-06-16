@@ -3,12 +3,10 @@
 // schema_id=1 schema_version=1 schema_hash=6061383958499356843
 
 use crate::bars_v1::*;
-use metamorphic_binary_transport_adapter_protobuf::{self as proto, ProtoWriter};
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_core::output;
-use metamorphic_binary_transport_metamorphose::{
-    ProtobufMetamorphoseSchema, runtime::TrustedUnchecked,
-};
+use mbt_adapter_protobuf::{self as proto, ProtoWriter};
+use mbt_core::error::Result;
+use mbt_core::output;
+use mbt_metamorphose::{ProtobufMetamorphoseSchema, runtime::TrustedUnchecked};
 use rkyv::Archive;
 
 impl BarsV1 {

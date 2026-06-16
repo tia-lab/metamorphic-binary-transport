@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::error::{Result, TransportError};
 
 pub const DEFAULT_ZSTD_LEVEL: i32 = 3;
 

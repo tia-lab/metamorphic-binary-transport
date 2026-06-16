@@ -3,7 +3,7 @@ use std::sync::Arc;
 use arrow_array::{ArrayRef, Float64Array, RecordBatch};
 use arrow_schema::{DataType, Field, Schema};
 use bytes::Bytes;
-use metamorphic_binary_transport_core::error::TransportError;
+use mbt_core::error::TransportError;
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 
 use crate::{parquet_bytes_checksum, write_uncompressed_parquet};

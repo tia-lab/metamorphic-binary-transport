@@ -4,8 +4,8 @@
 use prost::bytes::BufMut;
 use prost::encoding::{self, WireType};
 
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_core::output::{CheckedBytes, utc_bytes};
+use mbt_core::error::{Result, TransportError};
+use mbt_core::output::{CheckedBytes, utc_bytes};
 
 pub struct ProtoWriter {
     // Generated adapters write protobuf wire fields directly into this buffer.

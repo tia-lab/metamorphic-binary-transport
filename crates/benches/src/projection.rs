@@ -3,12 +3,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use metamorphic_binary_transport_core::envelope::fnv1a64;
-use metamorphic_binary_transport_core::runtime::BinaryInspection;
-use metamorphic_binary_transport_schema_bars::bars_v1::{self, MathildeBarRowV1};
-use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v1::{
-    self as tc, TestCompatibilityRowV1,
-};
+use mbt_core::envelope::fnv1a64;
+use mbt_core::runtime::BinaryInspection;
+use mbt_schema_bars::bars_v1::{self, MathildeBarRowV1};
+use mbt_schema_test_compatibility::test_compatibility_v1::{self as tc, TestCompatibilityRowV1};
 
 pub const MAX_RESPONSE_BYTES: usize = 1_073_741_824;
 pub const ROW_COUNTS: [usize; 6] = [1, 100, 500, 1_000, 10_000, 100_000];

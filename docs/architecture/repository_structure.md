@@ -66,7 +66,7 @@ crates/benches
 
 The repository is already named `metamorphic-binary-transport`, so folder
 names are short. Cargo package names remain globally explicit, for example
-`metamorphic_binary_transport_core` for `crates/core`.
+`mbt_core` for `crates/core`.
 
 Generated schema crates are not part of the initial skeleton. When a shared
 schema crate is approved, the reserved workspace pattern is:

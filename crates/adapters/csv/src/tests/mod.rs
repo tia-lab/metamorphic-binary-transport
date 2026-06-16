@@ -1,4 +1,4 @@
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::error::{Result, TransportError};
 
 use crate::CsvWriter;
 

@@ -2,10 +2,8 @@ use std::sync::Arc;
 
 use arrow_array::{Array, Float64Array, Int32Array, Int64Array, ListArray, StringArray};
 use arrow_schema::{DataType, Field, Schema};
-use metamorphic_binary_transport_core::error::TransportError;
-use metamorphic_binary_transport_transponding::{
-    F64Column, I32ListColumn, OptionalI64Column, Utf8Column,
-};
+use mbt_core::error::TransportError;
+use mbt_transponding::{F64Column, I32ListColumn, OptionalI64Column, Utf8Column};
 
 use crate::{
     f64_array, i32_list_array, optional_i64_array, record_batch, record_batch_checksum, utf8_array,

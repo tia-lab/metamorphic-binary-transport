@@ -1,8 +1,8 @@
 use std::error::Error;
 use std::io;
 
-use metamorphic_binary_transport_core::runtime::encode;
-use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v1::*;
+use mbt_core::runtime::encode;
+use mbt_schema_test_compatibility::test_compatibility_v1::*;
 
 const MAX_RESPONSE_BYTES: usize = 1_000_000;
 

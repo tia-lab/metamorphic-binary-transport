@@ -1,5 +1,5 @@
 [package]
-name = "metamorphic_binary_transport_adapter_csv"
+name = "mbt_adapter_csv"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,4 +7,4 @@ publish = false
 
 [dependencies]
 itoa = "=1.0.18"
-metamorphic_binary_transport_core = { path = "../../core" }
+mbt_core = { path = "../../core" }

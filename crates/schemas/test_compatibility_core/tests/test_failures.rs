@@ -1,9 +1,9 @@
 use std::error::Error;
 use std::io;
 
-use metamorphic_binary_transport_core::envelope::HEADER_LEN;
-use metamorphic_binary_transport_core::error::TransportError;
-use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v1::*;
+use mbt_core::envelope::HEADER_LEN;
+use mbt_core::error::TransportError;
+use mbt_schema_test_compatibility::test_compatibility_v1::*;
 
 const MAX_RESPONSE_BYTES: usize = 1_000_000;
 const SCHEMA_ID_OFFSET: usize = 16;

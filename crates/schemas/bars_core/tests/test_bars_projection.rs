@@ -1,7 +1,7 @@
 use std::error::Error;
 
-use metamorphic_binary_transport_core::runtime::encode;
-use metamorphic_binary_transport_schema_bars::bars_v1::*;
+use mbt_core::runtime::encode;
+use mbt_schema_bars::bars_v1::*;
 
 const MAX_RESPONSE_BYTES: usize = 1_000_000;
 

@@ -1,5 +1,5 @@
 [package]
-name = "metamorphic_binary_transport_codegen"
+name = "mbt_codegen"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

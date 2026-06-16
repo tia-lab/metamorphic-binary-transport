@@ -1,7 +1,7 @@
 use std::mem::size_of;
 
-use metamorphic_binary_transport_core::envelope::{FNV_OFFSET, FNV_PRIME};
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::envelope::{FNV_OFFSET, FNV_PRIME};
+use mbt_core::error::{Result, TransportError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidityBitmap {

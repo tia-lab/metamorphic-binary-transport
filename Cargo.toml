@@ -20,7 +20,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-authors = ["MATHILDE"]
+authors = ["Tia lab: tia@mathilde.dev"]
 
 [workspace.dependencies]
 rkyv = { version = "=0.8.16", features = ["unaligned"] }

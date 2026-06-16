@@ -1,48 +1,48 @@
 [package]
-name = "metamorphic_binary_transport_schema_test_compatibility"
+name = "mbt_schema_test_compatibility"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 publish = false
 
 [dependencies]
-metamorphic_binary_transport_core = { path = "../../core" }
-metamorphic_binary_transport_metamorphose = { path = "../../metamorphose", optional = true }
-metamorphic_binary_transport_transponding = { path = "../../transponding", optional = true }
-metamorphic_binary_transport_adapter_json = { path = "../../adapters/json", optional = true }
-metamorphic_binary_transport_adapter_protobuf = { path = "../../adapters/protobuf", optional = true }
-metamorphic_binary_transport_adapter_csv = { path = "../../adapters/csv", optional = true }
-metamorphic_binary_transport_adapter_arrow = { path = "../../adapters/arrow", optional = true }
-metamorphic_binary_transport_adapter_arrow_ipc = { path = "../../adapters/arrow_ipc", optional = true }
-metamorphic_binary_transport_adapter_parquet = { path = "../../adapters/parquet", optional = true }
+mbt_core = { path = "../../core" }
+mbt_metamorphose = { path = "../../metamorphose", optional = true }
+mbt_transponding = { path = "../../transponding", optional = true }
+mbt_adapter_json = { path = "../../adapters/json", optional = true }
+mbt_adapter_protobuf = { path = "../../adapters/protobuf", optional = true }
+mbt_adapter_csv = { path = "../../adapters/csv", optional = true }
+mbt_adapter_arrow = { path = "../../adapters/arrow", optional = true }
+mbt_adapter_arrow_ipc = { path = "../../adapters/arrow_ipc", optional = true }
+mbt_adapter_parquet = { path = "../../adapters/parquet", optional = true }
 rkyv = { workspace = true }
 
 [features]
 default = []
 json = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_adapter_json",
+    "dep:mbt_metamorphose",
+    "dep:mbt_adapter_json",
 ]
 protobuf = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_adapter_protobuf",
+    "dep:mbt_metamorphose",
+    "dep:mbt_adapter_protobuf",
 ]
 csv = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_adapter_csv",
+    "dep:mbt_metamorphose",
+    "dep:mbt_adapter_csv",
 ]
 arrow = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_transponding",
-    "dep:metamorphic_binary_transport_adapter_arrow",
+    "dep:mbt_metamorphose",
+    "dep:mbt_transponding",
+    "dep:mbt_adapter_arrow",
 ]
 arrow_ipc = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_transponding",
-    "dep:metamorphic_binary_transport_adapter_arrow_ipc",
+    "dep:mbt_metamorphose",
+    "dep:mbt_transponding",
+    "dep:mbt_adapter_arrow_ipc",
 ]
 parquet = [
-    "dep:metamorphic_binary_transport_metamorphose",
-    "dep:metamorphic_binary_transport_transponding",
-    "dep:metamorphic_binary_transport_adapter_parquet",
+    "dep:mbt_metamorphose",
+    "dep:mbt_transponding",
+    "dep:mbt_adapter_parquet",
 ]

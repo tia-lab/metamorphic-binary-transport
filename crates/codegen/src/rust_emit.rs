@@ -133,8 +133,8 @@ pub fn generated_metamorphose_adapter_schema(
 fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) {
     // JSON emission writes archived fields directly through JsonWriter helpers.
     emit_adapter_prelude(out, model, true);
-    out.push_str("use metamorphic_binary_transport_adapter_json::JsonWriter;\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, JsonMetamorphoseSchema};\n\n");
+    out.push_str("use mbt_adapter_json::JsonWriter;\n");
+    out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, JsonMetamorphoseSchema};\n\n");
     emit_json_field_constants(out, model);
     emit_json_inherent_api(out, model);
     out.push_str(&format!(
@@ -154,11 +154,11 @@ fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) {
 fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) {
     // Protobuf emission keeps generated length accounting next to wire writes.
     emit_adapter_prelude(out, model, true);
+    out.push_str("use mbt_adapter_protobuf::{self as proto, ProtoWriter};\n");
+    out.push_str("use mbt_core::output;\n");
     out.push_str(
-        "use metamorphic_binary_transport_adapter_protobuf::{self as proto, ProtoWriter};\n",
+        "use mbt_metamorphose::{runtime::TrustedUnchecked, ProtobufMetamorphoseSchema};\n\n",
     );
-    out.push_str("use metamorphic_binary_transport_core::output;\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ProtobufMetamorphoseSchema};\n\n");
     emit_protobuf_inherent_api(out, model);
     out.push_str(&format!(
         "impl ProtobufMetamorphoseSchema for {} {{\n",
@@ -175,8 +175,8 @@ fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) {
 fn emit_metamorphose_csv(out: &mut String, model: &SchemaModel) {
     // CSV emission shares the row-format output order with JSON.
     emit_adapter_prelude(out, model, true);
-    out.push_str("use metamorphic_binary_transport_adapter_csv::CsvWriter;\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, CsvMetamorphoseSchema};\n\n");
+    out.push_str("use mbt_adapter_csv::CsvWriter;\n");
+    out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, CsvMetamorphoseSchema};\n\n");
     emit_csv_header(out, model);
     emit_csv_inherent_api(out, model);
     out.push_str(&format!(
@@ -198,7 +198,7 @@ fn emit_adapter_prelude(out: &mut String, model: &SchemaModel, include_archive: 
     if include_archive {
         out.push_str("use rkyv::Archive;\n");
     }
-    out.push_str("use metamorphic_binary_transport_core::error::Result;\n");
+    out.push_str("use mbt_core::error::Result;\n");
 }
 
 fn emit_json_field_constants(out: &mut String, model: &SchemaModel) {
@@ -864,7 +864,7 @@ fn emit_csv_bitmask_helpers(out: &mut String, model: &SchemaModel) {
 fn emit_metamorphose_transponding(out: &mut String, model: &SchemaModel) {
     // Transponding is generated only for adapters that need columnar batches.
     emit_adapter_prelude(out, model, false);
-    out.push_str("use metamorphic_binary_transport_transponding::*;\n\n");
+    out.push_str("use mbt_transponding::*;\n\n");
     emit_column_batch(out, model);
     emit_transponding_inherent_api(out, model);
 }
@@ -872,10 +872,10 @@ fn emit_metamorphose_transponding(out: &mut String, model: &SchemaModel) {
 fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
-    out.push_str("use metamorphic_binary_transport_adapter_arrow::{\n");
+    out.push_str("use mbt_adapter_arrow::{\n");
     out.push_str("    field_metadata, record_batch, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
     out.push_str("};\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ArrowMetamorphoseSchema};\n");
+    out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, ArrowMetamorphoseSchema};\n");
     out.push_str("use std::sync::Arc;\n\n");
     emit_arrow_inherent_api(out, model, "arrow");
     out.push_str(&format!(
@@ -888,16 +888,18 @@ fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_arrow");
+    emit_arrow_record_batch_helper(out, model, "mbt_adapter_arrow");
 }
 
 fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
-    out.push_str("use metamorphic_binary_transport_adapter_arrow_ipc::{\n");
+    out.push_str("use mbt_adapter_arrow_ipc::{\n");
     out.push_str("    field_metadata, record_batch, write_ipc_stream, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
     out.push_str("};\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ArrowIpcMetamorphoseSchema};\n\n");
+    out.push_str(
+        "use mbt_metamorphose::{runtime::TrustedUnchecked, ArrowIpcMetamorphoseSchema};\n\n",
+    );
     out.push_str("use std::sync::Arc;\n\n");
     emit_arrow_ipc_inherent_api(out, model);
     out.push_str(&format!(
@@ -909,16 +911,18 @@ fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_arrow_ipc_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_arrow_ipc");
+    emit_arrow_record_batch_helper(out, model, "mbt_adapter_arrow_ipc");
 }
 
 fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
-    out.push_str("use metamorphic_binary_transport_adapter_parquet::{\n");
+    out.push_str("use mbt_adapter_parquet::{\n");
     out.push_str("    field_metadata, record_batch, write_uncompressed_parquet, ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema,\n");
     out.push_str("};\n");
-    out.push_str("use metamorphic_binary_transport_metamorphose::{runtime::TrustedUnchecked, ParquetMetamorphoseSchema};\n\n");
+    out.push_str(
+        "use mbt_metamorphose::{runtime::TrustedUnchecked, ParquetMetamorphoseSchema};\n\n",
+    );
     out.push_str("use std::sync::Arc;\n\n");
     emit_parquet_inherent_api(out, model);
     out.push_str(&format!(
@@ -930,7 +934,7 @@ fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_parquet_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "metamorphic_binary_transport_adapter_parquet");
+    emit_arrow_record_batch_helper(out, model, "mbt_adapter_parquet");
 }
 
 fn emit_column_batch(out: &mut String, model: &SchemaModel) {
@@ -1532,12 +1536,12 @@ use rkyv::rancor::{Error as RkyvError, Fallible, Source};
 use rkyv::ser::{Allocator, Writer};
 use rkyv::vec::{ArchivedVec, VecResolver};
 
-use metamorphic_binary_transport_core::envelope::{
+use mbt_core::envelope::{
     decode_header, encode_header, fnv1a64, trusted_payload_for_schema,
     validate_header_for_schema, SchemaHeaderSpec, TransportHeader, HEADER_LEN,
 };
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_core::runtime::{BinaryInspection, MbtSchema};
+use mbt_core::error::{Result, TransportError};
+use mbt_core::runtime::{BinaryInspection, MbtSchema};
 
 "#,
     );

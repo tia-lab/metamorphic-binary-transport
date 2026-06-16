@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v1::*;
+use mbt_schema_test_compatibility::test_compatibility_v1::*;
 
 const MAX_RESPONSE_BYTES: usize = 1_000_000;
 

@@ -1,4 +1,4 @@
-use metamorphic_binary_transport_core::error::Result;
+use mbt_core::error::Result;
 
 use crate::{
     ArrowIpcMetamorphoseSchema, ArrowMetamorphoseSchema, CsvMetamorphoseSchema,

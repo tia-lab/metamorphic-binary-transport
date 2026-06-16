@@ -4,8 +4,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use metamorphic_binary_transport_core::codec;
-use metamorphic_binary_transport_schema_bars::bars_v1::MathildeBarRowV1;
+use mbt_core::codec;
+use mbt_schema_bars::bars_v1::MathildeBarRowV1;
 
 pub const MAX_RESPONSE_BYTES: usize = 1_073_741_824;
 pub const ROW_COUNTS: [usize; 6] = [1, 100, 500, 1_000, 10_000, 100_000];

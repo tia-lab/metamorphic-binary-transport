@@ -2,12 +2,12 @@ use std::io;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use metamorphic_binary_transport_benches::bars_regression::{
+use mbt_benches::bars_regression::{
     BarsRegressionRow, BenchResult, Comparison, MAX_RESPONSE_BYTES, ROW_COUNTS, bars_rows,
     measured_rates, metadata_for_run, next_bars_run_path, response_checksum, serde_rows_from_bars,
     write_report,
 };
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_schema_bars::bars_v1::BarsV1;
 
 fn main() {
     if let Err(err) = run() {
@@ -145,7 +145,7 @@ fn measure_row_count(row_count: usize) -> BenchResult<Vec<BarsRegressionRow>> {
 
 fn measure_full_mbt(
     row_count: usize,
-    source_rows: &[metamorphic_binary_transport_schema_bars::bars_v1::MathildeBarRowV1],
+    source_rows: &[mbt_schema_bars::bars_v1::MathildeBarRowV1],
 ) -> BenchResult<BarsRegressionRow> {
     // Full MBT timing includes encode plus checked inspection by design.
     let start = Instant::now();
@@ -204,7 +204,7 @@ where
 
 fn measure_serde_json(
     row_count: usize,
-    rows: &[metamorphic_binary_transport_benches::bars_regression::SerdeBarRow],
+    rows: &[mbt_benches::bars_regression::SerdeBarRow],
 ) -> BenchResult<BarsRegressionRow> {
     // Serde JSON is the direct Rust DTO baseline for the same logical rows.
     let start = Instant::now();

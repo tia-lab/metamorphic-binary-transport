@@ -13,8 +13,8 @@ use arrow_array::{
 };
 use arrow_buffer::{BooleanBuffer, Buffer, NullBuffer, OffsetBuffer, ScalarBuffer};
 use arrow_schema::{ArrowError, DataType, Field, SchemaRef};
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_transponding::{
+use mbt_core::error::{Result, TransportError};
+use mbt_transponding::{
     BinaryColumn, BoolColumn, ConstU16Column, F32Column, F32ListColumn, F64Column, F64ListColumn,
     I32Column, I32ListColumn, I64Column, I64ListColumn, OptionalF32Column, OptionalF64Column,
     OptionalI32Column, OptionalI64Column, OptionalU16Column, OptionalU32Column, OptionalU64Column,

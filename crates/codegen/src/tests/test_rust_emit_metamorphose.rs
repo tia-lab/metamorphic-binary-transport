@@ -93,17 +93,17 @@ fn transponding_adapter_is_hidden_and_schema_specific() -> Result<()> {
 fn arrow_family_adapters_keep_dependency_boundaries() -> Result<()> {
     let arrow = run_metamorphose_codegen_to_string(valid_scalar_proto(), Adapter::Arrow)?;
     assert!(arrow.contains("ArrowMetamorphoseSchema"));
-    assert!(arrow.contains("metamorphic_binary_transport_adapter_arrow::"));
+    assert!(arrow.contains("mbt_adapter_arrow::"));
     assert!(arrow.contains("fn arrow_record_batch"));
 
     let ipc = run_metamorphose_codegen_to_string(valid_scalar_proto(), Adapter::ArrowIpc)?;
     assert!(ipc.contains("ArrowIpcMetamorphoseSchema"));
     assert!(ipc.contains("write_ipc_stream"));
-    assert!(!ipc.contains("metamorphic_binary_transport_adapter_arrow::"));
+    assert!(!ipc.contains("mbt_adapter_arrow::"));
 
     let parquet = run_metamorphose_codegen_to_string(valid_scalar_proto(), Adapter::Parquet)?;
     assert!(parquet.contains("ParquetMetamorphoseSchema"));
     assert!(parquet.contains("write_uncompressed_parquet"));
-    assert!(!parquet.contains("metamorphic_binary_transport_adapter_arrow::"));
+    assert!(!parquet.contains("mbt_adapter_arrow::"));
     Ok(())
 }

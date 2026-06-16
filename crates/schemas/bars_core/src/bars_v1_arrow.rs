@@ -4,14 +4,12 @@
 
 use crate::bars_v1::*;
 use crate::bars_v1_transponding::*;
-use metamorphic_binary_transport_adapter_arrow::{
+use mbt_adapter_arrow::{
     ArrowArrayRef, ArrowDataType, ArrowField, ArrowRecordBatch, ArrowSchema, field_metadata,
     record_batch,
 };
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_metamorphose::{
-    ArrowMetamorphoseSchema, runtime::TrustedUnchecked,
-};
+use mbt_core::error::Result;
+use mbt_metamorphose::{ArrowMetamorphoseSchema, runtime::TrustedUnchecked};
 use std::sync::Arc;
 
 impl BarsV1 {
@@ -270,68 +268,50 @@ fn arrow_record_batch(
                 .with_metadata(field_metadata("age_ms", "age_ms", None, None)),
         ]));
     let columns: Vec<ArrowArrayRef> = vec![
-        metamorphic_binary_transport_adapter_arrow::const_u16_array(batch.schema_version)?,
-        metamorphic_binary_transport_adapter_arrow::u16_array(batch.pair_ordinal)?,
-        metamorphic_binary_transport_adapter_arrow::u16_array(batch.tf_ordinal)?,
-        metamorphic_binary_transport_adapter_arrow::i64_array(batch.open_ms)?,
-        metamorphic_binary_transport_adapter_arrow::i64_array(batch.close_ms)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.o)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.h)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.l)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.c)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.v)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.quote_v)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.taker_known_v)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.taker_signed_v)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.taker_known_quote_v)?,
-        metamorphic_binary_transport_adapter_arrow::f64_array(batch.taker_signed_quote_v)?,
-        metamorphic_binary_transport_adapter_arrow::i64_array(batch.taker_known_n)?,
-        metamorphic_binary_transport_adapter_arrow::i64_array(batch.taker_signed_n)?,
-        metamorphic_binary_transport_adapter_arrow::optional_f64_array(batch.vw)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.n)?,
-        metamorphic_binary_transport_adapter_arrow::u16_array(batch.source_ordinal)?,
-        metamorphic_binary_transport_adapter_arrow::optional_u16_array(batch.process_ordinal)?,
-        metamorphic_binary_transport_adapter_arrow::u64_array(batch.venues_expected_mask)?,
-        metamorphic_binary_transport_adapter_arrow::u64_array(batch.venues_with_trades_mask)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.ingested_at_ms)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(
-            batch.target_ingested_at_ms,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.built_at_ms)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.committed_at_ms)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.harmonized_at_ms)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.recomputed_at_ms)?,
-        metamorphic_binary_transport_adapter_arrow::optional_u16_array(
-            batch.recomputed_reason_ordinal,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.covered_1m_count)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.expected_1m_count)?,
-        metamorphic_binary_transport_adapter_arrow::optional_f64_array(batch.coverage_ratio)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(
-            batch.inputs_source_counts_frontier,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(
-            batch.inputs_source_counts_api,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(
-            batch.inputs_source_counts_synthetic,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(
-            batch.inputs_source_counts_fix_data,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_f64_array(
-            batch.frontier_5s_inputs_coverage_ratio,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.frontier_5s_expected)?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.frontier_5s_synth_n)?,
-        metamorphic_binary_transport_adapter_arrow::optional_f64_array(
-            batch.frontier_5s_synth_ratio,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.frontier_5s_trade_n)?,
-        metamorphic_binary_transport_adapter_arrow::optional_f64_array(
-            batch.frontier_5s_trade_ratio,
-        )?,
-        metamorphic_binary_transport_adapter_arrow::optional_i64_array(batch.age_ms)?,
+        mbt_adapter_arrow::const_u16_array(batch.schema_version)?,
+        mbt_adapter_arrow::u16_array(batch.pair_ordinal)?,
+        mbt_adapter_arrow::u16_array(batch.tf_ordinal)?,
+        mbt_adapter_arrow::i64_array(batch.open_ms)?,
+        mbt_adapter_arrow::i64_array(batch.close_ms)?,
+        mbt_adapter_arrow::f64_array(batch.o)?,
+        mbt_adapter_arrow::f64_array(batch.h)?,
+        mbt_adapter_arrow::f64_array(batch.l)?,
+        mbt_adapter_arrow::f64_array(batch.c)?,
+        mbt_adapter_arrow::f64_array(batch.v)?,
+        mbt_adapter_arrow::f64_array(batch.quote_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_known_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_signed_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_known_quote_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_signed_quote_v)?,
+        mbt_adapter_arrow::i64_array(batch.taker_known_n)?,
+        mbt_adapter_arrow::i64_array(batch.taker_signed_n)?,
+        mbt_adapter_arrow::optional_f64_array(batch.vw)?,
+        mbt_adapter_arrow::optional_i64_array(batch.n)?,
+        mbt_adapter_arrow::u16_array(batch.source_ordinal)?,
+        mbt_adapter_arrow::optional_u16_array(batch.process_ordinal)?,
+        mbt_adapter_arrow::u64_array(batch.venues_expected_mask)?,
+        mbt_adapter_arrow::u64_array(batch.venues_with_trades_mask)?,
+        mbt_adapter_arrow::optional_i64_array(batch.ingested_at_ms)?,
+        mbt_adapter_arrow::optional_i64_array(batch.target_ingested_at_ms)?,
+        mbt_adapter_arrow::optional_i64_array(batch.built_at_ms)?,
+        mbt_adapter_arrow::optional_i64_array(batch.committed_at_ms)?,
+        mbt_adapter_arrow::optional_i64_array(batch.harmonized_at_ms)?,
+        mbt_adapter_arrow::optional_i64_array(batch.recomputed_at_ms)?,
+        mbt_adapter_arrow::optional_u16_array(batch.recomputed_reason_ordinal)?,
+        mbt_adapter_arrow::optional_i64_array(batch.covered_1m_count)?,
+        mbt_adapter_arrow::optional_i64_array(batch.expected_1m_count)?,
+        mbt_adapter_arrow::optional_f64_array(batch.coverage_ratio)?,
+        mbt_adapter_arrow::optional_i64_array(batch.inputs_source_counts_frontier)?,
+        mbt_adapter_arrow::optional_i64_array(batch.inputs_source_counts_api)?,
+        mbt_adapter_arrow::optional_i64_array(batch.inputs_source_counts_synthetic)?,
+        mbt_adapter_arrow::optional_i64_array(batch.inputs_source_counts_fix_data)?,
+        mbt_adapter_arrow::optional_f64_array(batch.frontier_5s_inputs_coverage_ratio)?,
+        mbt_adapter_arrow::optional_i64_array(batch.frontier_5s_expected)?,
+        mbt_adapter_arrow::optional_i64_array(batch.frontier_5s_synth_n)?,
+        mbt_adapter_arrow::optional_f64_array(batch.frontier_5s_synth_ratio)?,
+        mbt_adapter_arrow::optional_i64_array(batch.frontier_5s_trade_n)?,
+        mbt_adapter_arrow::optional_f64_array(batch.frontier_5s_trade_ratio)?,
+        mbt_adapter_arrow::optional_i64_array(batch.age_ms)?,
     ];
     record_batch(schema, columns, max_response_bytes)
 }

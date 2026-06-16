@@ -4,8 +4,8 @@
 use std::io::{self, Write};
 
 use arrow_array::RecordBatch;
-use metamorphic_binary_transport_core::codec::response_checksum;
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::codec::response_checksum;
+use mbt_core::error::{Result, TransportError};
 use parquet::arrow::ArrowWriter;
 use parquet::basic::Compression;
 use parquet::errors::ParquetError;

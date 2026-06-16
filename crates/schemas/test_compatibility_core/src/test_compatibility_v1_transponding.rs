@@ -3,8 +3,8 @@
 // schema_id=40001 schema_version=1 schema_hash=3233278346470496550
 
 use crate::test_compatibility_v1::*;
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_transponding::*;
+use mbt_core::error::Result;
+use mbt_transponding::*;
 
 pub(crate) struct TestCompatibilityV1ColumnBatch {
     pub(crate) schema_version: ConstU16Column,

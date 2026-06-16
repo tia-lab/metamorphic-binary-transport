@@ -1,4 +1,4 @@
-# metamorphic-binary-transport
+# metamorphic-binary-transport (MBT)
 
 `metamorphic-binary-transport` is the Rust workspace for MBT, the schema-driven
 binary transport used to move validated row payloads without hand-written DTOs
@@ -80,8 +80,8 @@ You add or change a schema, projection, or adapter surface.
 **What it is:**
 Generated schema-specific Rust code. Current in-repo examples are:
 
-- `metamorphic_binary_transport_schema_bars`
-- `metamorphic_binary_transport_schema_test_compatibility`
+- `mbt_schema_bars`
+- `mbt_schema_test_compatibility`
 
 **Use it when:**
 Your application needs concrete row types, schema markers, projections, and
@@ -144,14 +144,14 @@ Core-only dependency:
 
 ```toml
 [dependencies]
-metamorphic_binary_transport_core = { path = "../metamorphic-binary-transport/crates/core" }
+mbt_core = { path = "../metamorphic-binary-transport/crates/core" }
 ```
 
 Generated Bars schema without adapters:
 
 ```toml
 [dependencies]
-metamorphic_binary_transport_schema_bars = {
+mbt_schema_bars = {
   path = "../metamorphic-binary-transport/crates/schemas/bars_core"
 }
 ```
@@ -160,11 +160,11 @@ Generated Bars schema with selected boundary adapters:
 
 ```toml
 [dependencies]
-metamorphic_binary_transport_schema_bars = {
+mbt_schema_bars = {
   path = "../metamorphic-binary-transport/crates/schemas/bars_core",
   features = ["json", "protobuf", "csv"]
 }
-metamorphic_binary_transport_metamorphose = {
+mbt_metamorphose = {
   path = "../metamorphic-binary-transport/crates/metamorphose"
 }
 ```
@@ -173,7 +173,7 @@ Optional compression dependency:
 
 ```toml
 [dependencies]
-metamorphic_binary_transport_compression = {
+mbt_compression = {
   path = "../metamorphic-binary-transport/crates/compression"
 }
 ```
@@ -183,11 +183,11 @@ metamorphic_binary_transport_compression = {
 Encode and read MBT bytes with a generated schema:
 
 ```rust
-use metamorphic_binary_transport_schema_bars::bars_v1::{
+use mbt_schema_bars::bars_v1::{
     BarsV1, MathildeBarRowV1,
 };
 
-fn encode_and_read(rows: Vec<MathildeBarRowV1>) -> metamorphic_binary_transport_core::Result<()> {
+fn encode_and_read(rows: Vec<MathildeBarRowV1>) -> mbt_core::Result<()> {
     let max_response_bytes = 64 * 1024 * 1024;
 
     let bytes = BarsV1::encode_owned(rows, max_response_bytes)?;
@@ -202,10 +202,10 @@ fn encode_and_read(rows: Vec<MathildeBarRowV1>) -> metamorphic_binary_transport_
 Use generic core helpers when the schema marker is already known:
 
 ```rust
-use metamorphic_binary_transport_core::{access, encode_owned, inspect};
-use metamorphic_binary_transport_schema_bars::bars_v1::{BarsV1, MathildeBarRowV1};
+use mbt_core::{access, encode_owned, inspect};
+use mbt_schema_bars::bars_v1::{BarsV1, MathildeBarRowV1};
 
-fn via_core_helpers(rows: Vec<MathildeBarRowV1>) -> metamorphic_binary_transport_core::Result<()> {
+fn via_core_helpers(rows: Vec<MathildeBarRowV1>) -> mbt_core::Result<()> {
     let max_response_bytes = 64 * 1024 * 1024;
 
     let bytes = encode_owned::<BarsV1>(rows, max_response_bytes)?;
@@ -240,9 +240,9 @@ Use benches only for measurement. Bench code is not part of the runtime surface.
 ### Inspect MBT Bytes
 
 ```rust
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn inspect_bytes(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<u64> {
+fn inspect_bytes(bytes: &[u8]) -> mbt_core::Result<u64> {
     let inspection = BarsV1::inspect(bytes)?;
     Ok(inspection.row_count)
 }
@@ -251,9 +251,9 @@ fn inspect_bytes(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<u64>
 ### Project MBT To MBT
 
 ```rust
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn project_ohlcv(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+fn project_ohlcv(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
     BarsV1::project_ohlcv_only(bytes, max_response_bytes)
 }
@@ -264,10 +264,10 @@ fn project_ohlcv(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<
 Requires the schema crate `json` feature.
 
 ```rust
-use metamorphic_binary_transport_metamorphose as metamorphose;
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_metamorphose as metamorphose;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn as_json(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+fn as_json(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
     metamorphose::json::<BarsV1>(bytes, max_response_bytes)
 }
@@ -278,10 +278,10 @@ fn as_json(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
 Requires the schema crate `protobuf` feature.
 
 ```rust
-use metamorphic_binary_transport_metamorphose as metamorphose;
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_metamorphose as metamorphose;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn as_protobuf(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+fn as_protobuf(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
     metamorphose::protobuf::<BarsV1>(bytes, max_response_bytes)
 }
@@ -292,10 +292,10 @@ fn as_protobuf(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8
 Requires the schema crate `arrow_ipc` feature.
 
 ```rust
-use metamorphic_binary_transport_metamorphose as metamorphose;
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_metamorphose as metamorphose;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn as_arrow_ipc(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+fn as_arrow_ipc(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
     metamorphose::arrow_ipc::<BarsV1>(bytes, max_response_bytes)
 }
@@ -307,10 +307,10 @@ Use trusted entrypoints only after the bytes were previously accepted by checked
 access for the same schema and then stored or transported without mutation.
 
 ```rust
-use metamorphic_binary_transport_metamorphose as metamorphose;
-use metamorphic_binary_transport_schema_bars::bars_v1::BarsV1;
+use mbt_metamorphose as metamorphose;
+use mbt_schema_bars::bars_v1::BarsV1;
 
-fn trusted_json(bytes: &[u8]) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+fn trusted_json(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
 
     // Safety: the caller must prove the checked-validation boundary.
@@ -324,19 +324,19 @@ Compression is opt-in and works on completed MBT bytes. It does not change the
 MBT header, schema hash, projection contract, or trusted-access contract.
 
 ```rust
-use metamorphic_binary_transport_compression::{compress, decompress};
+use mbt_compression::{compress, decompress};
 
 fn compress_for_pipeline(
     bytes: &[u8],
     max_compressed_bytes: usize,
-) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+) -> mbt_core::Result<Vec<u8>> {
     compress(bytes, max_compressed_bytes)
 }
 
 fn decompress_from_pipeline(
     bytes: &[u8],
     max_decompressed_bytes: usize,
-) -> metamorphic_binary_transport_core::Result<Vec<u8>> {
+) -> mbt_core::Result<Vec<u8>> {
     decompress(bytes, max_decompressed_bytes)
 }
 ```
@@ -352,7 +352,7 @@ Codegen takes explicit inputs. It does not infer schemas from Rust modules.
 Core generation example:
 
 ```bash
-cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- \
+cargo run -p mbt_codegen --bin mbt_codegen -- \
   --write \
   --proto-root crates/schemas/bars_core/proto \
   --proto-root proto \
@@ -366,7 +366,7 @@ cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- \
 Projection generation uses the same schema output module:
 
 ```bash
-cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- \
+cargo run -p mbt_codegen --bin mbt_codegen -- \
   --write \
   --proto-root crates/schemas/bars_core/proto \
   --proto-root proto \
@@ -380,7 +380,7 @@ cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- \
 Adapter generation writes one adapter module per selected adapter:
 
 ```bash
-cargo run -p metamorphic_binary_transport_codegen --bin mbt_codegen -- \
+cargo run -p mbt_codegen --bin mbt_codegen -- \
   --write \
   --proto-root crates/schemas/bars_core/proto \
   --proto-root proto \
@@ -403,7 +403,7 @@ path. The codegen contract is the `--out` path, not a fixed folder name.
 The in-repo Bars schema crate uses opt-in adapter features:
 
 ```toml
-metamorphic_binary_transport_schema_bars = {
+mbt_schema_bars = {
   path = "../metamorphic-binary-transport/crates/schemas/bars_core",
   features = ["json", "protobuf", "csv", "arrow_ipc"]
 }

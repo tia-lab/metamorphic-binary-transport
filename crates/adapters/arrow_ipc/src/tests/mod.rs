@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use arrow_array::{ArrayRef, Float64Array, RecordBatch};
 use arrow_schema::{DataType, Field, Schema};
-use metamorphic_binary_transport_core::error::TransportError;
+use mbt_core::error::TransportError;
 
 use crate::{arrow_ipc_bytes_checksum, record_batch_from_ipc_stream, write_ipc_stream};
 

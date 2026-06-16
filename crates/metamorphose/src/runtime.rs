@@ -1,6 +1,6 @@
 //! Public metamorphose traits, dispatch helpers, and trusted-access token.
 
-use metamorphic_binary_transport_core::error::Result;
+use mbt_core::error::Result;
 
 /// Construction token for trusted trait implementations.
 ///

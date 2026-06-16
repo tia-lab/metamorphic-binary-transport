@@ -1,4 +1,4 @@
-use metamorphic_binary_transport_schema_bars::bars_v1::*;
+use mbt_schema_bars::bars_v1::*;
 
 const MAX_RESPONSE_BYTES: usize = 1 << 20;
 

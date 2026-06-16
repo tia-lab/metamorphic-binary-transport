@@ -1,4 +1,4 @@
-use metamorphic_binary_transport_schema_bars::bars_v1::*;
+use mbt_schema_bars::bars_v1::*;
 
 #[test]
 fn bars_projection_inspect_binds_expected_shape() {

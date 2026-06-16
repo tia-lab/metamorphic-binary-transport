@@ -1,5 +1,5 @@
 [package]
-name = "metamorphic_binary_transport_adapter_arrow"
+name = "mbt_adapter_arrow"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -9,5 +9,5 @@ publish = false
 arrow-array = "=56.2.1"
 arrow-buffer = "=56.2.1"
 arrow-schema = "=56.2.1"
-metamorphic_binary_transport_core = { path = "../../core" }
-metamorphic_binary_transport_transponding = { path = "../../transponding" }
+mbt_core = { path = "../../core" }
+mbt_transponding = { path = "../../transponding" }

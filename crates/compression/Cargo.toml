@@ -1,10 +1,10 @@
 [package]
-name = "metamorphic_binary_transport_compression"
+name = "mbt_compression"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 publish = false
 
 [dependencies]
-metamorphic_binary_transport_core = { path = "../core" }
+mbt_core = { path = "../core" }
 zstd = "=0.13.3"

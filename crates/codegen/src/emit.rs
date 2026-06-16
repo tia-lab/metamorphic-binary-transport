@@ -79,7 +79,7 @@ publish = false
 [workspace]
 
 [dependencies]
-metamorphic_binary_transport_core = {{ path = {core_path:?} }}
+mbt_core = {{ path = {core_path:?} }}
 rkyv = "=0.8.16"
 "#
     );

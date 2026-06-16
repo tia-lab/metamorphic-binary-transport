@@ -1,5 +1,5 @@
-use metamorphic_binary_transport_codegen::config::{Action, parse_args};
-use metamorphic_binary_transport_codegen::emit;
+use mbt_codegen::config::{Action, parse_args};
+use mbt_codegen::emit;
 
 fn main() {
     if let Err(err) = run() {
@@ -8,7 +8,7 @@ fn main() {
     }
 }
 
-fn run() -> metamorphic_binary_transport_codegen::error::Result<()> {
+fn run() -> mbt_codegen::error::Result<()> {
     // Keep CLI failures typed until the process boundary in main.
     let config = parse_args(std::env::args().skip(1))?;
     match config.action {

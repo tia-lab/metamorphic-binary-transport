@@ -1,7 +1,7 @@
 use std::io;
 use std::path::PathBuf;
 
-use metamorphic_binary_transport_benches::compression::{BenchResult, run_benchmark};
+use mbt_benches::compression::{BenchResult, run_benchmark};
 
 fn main() {
     if let Err(err) = run() {

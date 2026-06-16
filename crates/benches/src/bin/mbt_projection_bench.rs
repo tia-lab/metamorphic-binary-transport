@@ -3,15 +3,13 @@ use std::io;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use metamorphic_binary_transport_benches::projection::{
+use mbt_benches::projection::{
     BenchResult, BenchRow, MAX_RESPONSE_BYTES, OLD_BENCH_RESULTS, SchemaName, comparison_for,
     inspection_checksums, measured_rates, next_run_path, parse_current_owned_baselines,
     parse_old_crate_projection_baselines, response_checksum, write_report, write_summary,
 };
-use metamorphic_binary_transport_schema_bars::bars_v1::{
-    BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly,
-};
-use metamorphic_binary_transport_schema_test_compatibility::test_compatibility_v1::{
+use mbt_schema_bars::bars_v1::{BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly};
+use mbt_schema_test_compatibility::test_compatibility_v1::{
     TestCompatibilityV1, TestCompatibilityV1NoOptional, TestCompatibilityV1NumericOnly,
 };
 
@@ -32,8 +30,8 @@ fn run() -> BenchResult<()> {
     )?;
 
     let mut rows = Vec::new();
-    for row_count in metamorphic_binary_transport_benches::projection::ROW_COUNTS {
-        let bars_rows = metamorphic_binary_transport_benches::projection::bars_rows(row_count);
+    for row_count in mbt_benches::projection::ROW_COUNTS {
+        let bars_rows = mbt_benches::projection::bars_rows(row_count);
         let bars_source = BarsV1::encode(&bars_rows, MAX_RESPONSE_BYTES)?;
         rows.extend(measure_bars(
             row_count,
@@ -42,8 +40,7 @@ fn run() -> BenchResult<()> {
             &current_baselines,
         )?);
 
-        let compatibility_rows =
-            metamorphic_binary_transport_benches::projection::test_compatibility_rows(row_count);
+        let compatibility_rows = mbt_benches::projection::test_compatibility_rows(row_count);
         let compatibility_source =
             TestCompatibilityV1::encode(&compatibility_rows, MAX_RESPONSE_BYTES)?;
         rows.extend(measure_compatibility(
@@ -68,9 +65,7 @@ fn parse_report_dir(args: impl Iterator<Item = String>) -> BenchResult<PathBuf> 
     Ok(PathBuf::from(&collected[1]))
 }
 
-fn verify_old_baselines(
-    baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-) -> BenchResult<()> {
+fn verify_old_baselines(baselines: &[mbt_benches::projection::BaselineEntry]) -> BenchResult<()> {
     // Missing old baselines make the regression comparison invalid.
     for label in [
         "mathilde_binary_project_no_metadata_public",
@@ -80,7 +75,7 @@ fn verify_old_baselines(
         "mathilde_binary_project_ohlcv_only_archived",
         "mathilde_binary_project_ohlcv_only_inspect",
     ] {
-        for row_count in metamorphic_binary_transport_benches::projection::ROW_COUNTS {
+        for row_count in mbt_benches::projection::ROW_COUNTS {
             if !baselines
                 .iter()
                 .any(|entry| entry.label == label && entry.row_count == row_count)
@@ -98,8 +93,8 @@ fn verify_old_baselines(
 fn measure_bars(
     row_count: usize,
     source: &[u8],
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<Vec<BenchRow>> {
     // Bars projection paths are compared against the historical MBT crate.
     let mut out = Vec::with_capacity(6);
@@ -171,7 +166,7 @@ fn measure_bars(
 fn measure_compatibility(
     row_count: usize,
     source: &[u8],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<Vec<BenchRow>> {
     // Compatibility projections prove the generator path beyond the Bars schema.
     let empty_old = [];
@@ -256,12 +251,12 @@ fn measure_public<F, I, E>(
     source: &[u8],
     project: F,
     inspect: I,
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     F: FnOnce(&[u8]) -> Result<Vec<u8>, E>,
-    I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
+    I: FnOnce(&[u8]) -> Result<mbt_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
     // Public projection includes checked source access inside the generated API.
@@ -290,13 +285,13 @@ fn measure_archived<A, F, I, E>(
     access: A,
     project: F,
     inspect: I,
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     A: FnOnce(&[u8]) -> Result<(), E>,
     F: FnOnce(&[u8]) -> Result<Vec<u8>, E>,
-    I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
+    I: FnOnce(&[u8]) -> Result<mbt_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
     // Archived timing separates source access from trusted projection work.
@@ -327,12 +322,12 @@ fn measure_inspect<F, I, E>(
     source: &[u8],
     project: F,
     inspect: I,
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     F: FnOnce(&[u8]) -> Result<Vec<u8>, E>,
-    I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
+    I: FnOnce(&[u8]) -> Result<mbt_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
     // Inspect timing measures projected-byte validation and checksum evidence.
@@ -363,11 +358,11 @@ fn build_row<I, E>(
     projection_ms: f64,
     inspect_ms: f64,
     inspect: I,
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
-    I: FnOnce(&[u8]) -> Result<metamorphic_binary_transport_core::runtime::BinaryInspection, E>,
+    I: FnOnce(&[u8]) -> Result<mbt_core::runtime::BinaryInspection, E>,
     E: Error + 'static,
 {
     let inspection = inspect(&projected)?;
@@ -393,9 +388,9 @@ fn build_inspected_row(
     access_ms: f64,
     projection_ms: f64,
     inspect_ms: f64,
-    inspection: metamorphic_binary_transport_core::runtime::BinaryInspection,
-    old_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
-    current_baselines: &[metamorphic_binary_transport_benches::projection::BaselineEntry],
+    inspection: mbt_core::runtime::BinaryInspection,
+    old_baselines: &[mbt_benches::projection::BaselineEntry],
+    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow> {
     let total_ms = access_ms + projection_ms + inspect_ms;
     let (rows_per_second, mb_per_second) = measured_rates(row_count, projected.len(), total_ms);

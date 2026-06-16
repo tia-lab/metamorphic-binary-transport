@@ -3,8 +3,8 @@
 // schema_id=1 schema_version=1 schema_hash=6061383958499356843
 
 use crate::bars_v1::*;
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_transponding::*;
+use mbt_core::error::Result;
+use mbt_transponding::*;
 
 pub(crate) struct BarsV1ColumnBatch {
     pub(crate) schema_version: ConstU16Column,

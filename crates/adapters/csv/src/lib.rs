@@ -3,8 +3,8 @@
 
 use std::fmt::Write as _;
 
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_core::output::{CheckedBytes, utc_bytes, write_base64};
+use mbt_core::error::{Result, TransportError};
+use mbt_core::output::{CheckedBytes, utc_bytes, write_base64};
 
 pub struct CsvWriter {
     // Generated adapters write capped CSV bytes directly.

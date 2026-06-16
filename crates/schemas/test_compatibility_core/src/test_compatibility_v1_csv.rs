@@ -3,9 +3,9 @@
 // schema_id=40001 schema_version=1 schema_hash=3233278346470496550
 
 use crate::test_compatibility_v1::*;
-use metamorphic_binary_transport_adapter_csv::CsvWriter;
-use metamorphic_binary_transport_core::error::Result;
-use metamorphic_binary_transport_metamorphose::{CsvMetamorphoseSchema, runtime::TrustedUnchecked};
+use mbt_adapter_csv::CsvWriter;
+use mbt_core::error::Result;
+use mbt_metamorphose::{CsvMetamorphoseSchema, runtime::TrustedUnchecked};
 use rkyv::Archive;
 
 const CSV_HEADER: &[u8] = b"schema_version,tenant,entity,close_ms,status,optional_status,venues,required_i64,optional_i64,required_i32,optional_i32,required_u32,optional_u32,required_f64,optional_f64,required_f32,optional_f32,required_bool,optional_bool,required_text,optional_text,required_bytes,optional_bytes,uuid_text,jsonb_text,timestamptz_text,numeric_text,required_i64_array,nullable_i64_array,required_i32_array,nullable_i32_array,required_u32_array,nullable_u32_array,required_f64_array,nullable_f64_array,required_f32_array,nullable_f32_array";

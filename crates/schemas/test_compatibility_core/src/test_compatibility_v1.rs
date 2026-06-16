@@ -7,12 +7,12 @@ use rkyv::ser::{Allocator, Writer};
 use rkyv::vec::{ArchivedVec, VecResolver};
 use rkyv::{Archive, Place, Serialize as RkyvSerialize};
 
-use metamorphic_binary_transport_core::envelope::{
+use mbt_core::envelope::{
     HEADER_LEN, SchemaHeaderSpec, TransportHeader, decode_header, encode_header, fnv1a64,
     trusted_payload_for_schema, validate_header_for_schema,
 };
-use metamorphic_binary_transport_core::error::{Result, TransportError};
-use metamorphic_binary_transport_core::runtime::{BinaryInspection, MbtSchema};
+use mbt_core::error::{Result, TransportError};
+use mbt_core::runtime::{BinaryInspection, MbtSchema};
 
 pub const SCHEMA_ID: u32 = 40001;
 pub const SCHEMA_VERSION_VALUE: u16 = 1;

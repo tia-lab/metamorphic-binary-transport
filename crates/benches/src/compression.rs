@@ -5,13 +5,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Instant;
 
-use metamorphic_binary_transport_compression::{
-    CompressionConfig, DEFAULT_ZSTD_LEVEL, compress_into, decompress_into,
-};
-use metamorphic_binary_transport_core::codec::response_checksum;
-use metamorphic_binary_transport_schema_bars::bars_v1::{
-    BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly,
-};
+use mbt_compression::{CompressionConfig, DEFAULT_ZSTD_LEVEL, compress_into, decompress_into};
+use mbt_core::codec::response_checksum;
+use mbt_schema_bars::bars_v1::{BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly};
 use serde::Serialize;
 
 use crate::projection::{MAX_RESPONSE_BYTES, bars_rows};

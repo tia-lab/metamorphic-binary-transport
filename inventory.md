@@ -17,7 +17,7 @@ Legal Contact: massimo.nicora@wnlegal.ch
 
 # `metamorphic-binary-transport` - Global Inventory (GENERATED; DO NOT EDIT)
 
-Generated: 2026-06-16T12:03:37Z
+Generated: 2026-06-16T13:03:16Z
 Protocol: code-only inventory; docs are excluded from source inventory.
 
 This file is generated from per-component inventories under `crates/*/docs/inventory.md` and `services/*/docs/inventory.md`.

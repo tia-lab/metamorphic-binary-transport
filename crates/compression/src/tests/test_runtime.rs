@@ -1,4 +1,4 @@
-use metamorphic_binary_transport_core::error::{Result, TransportError};
+use mbt_core::error::{Result, TransportError};
 
 use crate::{
     CompressionConfig, DEFAULT_ZSTD_LEVEL, compress, compress_into, decompress, decompress_into,
