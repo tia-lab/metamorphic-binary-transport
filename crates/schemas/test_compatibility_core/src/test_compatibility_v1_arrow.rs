@@ -329,3 +329,465 @@ fn arrow_record_batch(
     ];
     record_batch(schema, columns, max_response_bytes)
 }
+
+impl TestCompatibilityV1NoOptional {
+    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {
+        let archived = Self::access_archived(bytes)?;
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        no_optional_arrow_record_batch(batch, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into Arrow.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<ArrowRecordBatch> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        no_optional_arrow_record_batch(batch, max_response_bytes)
+    }
+}
+
+impl ArrowMetamorphoseSchema for TestCompatibilityV1NoOptional {
+    type RecordBatch = ArrowRecordBatch;
+    fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<Self::RecordBatch> {
+        Self::metamorphose_arrow(bytes, max_response_bytes)
+    }
+    fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Self::RecordBatch> {
+        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_optional_arrow_record_batch(
+    batch: TestCompatibilityV1NoOptionalColumnBatch,
+    max_response_bytes: usize,
+) -> Result<ArrowRecordBatch> {
+    let schema =
+        Arc::new(ArrowSchema::new(vec![
+            ArrowField::new("schema_version", ArrowDataType::UInt16, false).with_metadata(
+                field_metadata("schema_version", "schema_version", None, None),
+            ),
+            ArrowField::new("tenant", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+                "tenant",
+                "tenant_ordinal",
+                Some("tenant"),
+                None,
+            )),
+            ArrowField::new("entity", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+                "entity",
+                "entity_ordinal",
+                Some("entity"),
+                None,
+            )),
+            ArrowField::new("close_ms", ArrowDataType::Int64, false)
+                .with_metadata(field_metadata("close_ms", "close_ms", None, None)),
+            ArrowField::new("status", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+                "status",
+                "status_ordinal",
+                Some("status"),
+                None,
+            )),
+            ArrowField::new("venues", ArrowDataType::UInt64, false).with_metadata(field_metadata(
+                "venues",
+                "venues_mask",
+                None,
+                Some("venue"),
+            )),
+            ArrowField::new("required_i64", ArrowDataType::Int64, false)
+                .with_metadata(field_metadata("required_i64", "required_i64", None, None)),
+            ArrowField::new("required_i32", ArrowDataType::Int32, false)
+                .with_metadata(field_metadata("required_i32", "required_i32", None, None)),
+            ArrowField::new("required_u32", ArrowDataType::UInt32, false)
+                .with_metadata(field_metadata("required_u32", "required_u32", None, None)),
+            ArrowField::new("required_f64", ArrowDataType::Float64, false)
+                .with_metadata(field_metadata("required_f64", "required_f64", None, None)),
+            ArrowField::new("required_f32", ArrowDataType::Float32, false)
+                .with_metadata(field_metadata("required_f32", "required_f32", None, None)),
+            ArrowField::new("required_bool", ArrowDataType::Boolean, false)
+                .with_metadata(field_metadata("required_bool", "required_bool", None, None)),
+            ArrowField::new("required_text", ArrowDataType::Utf8, false)
+                .with_metadata(field_metadata("required_text", "required_text", None, None)),
+            ArrowField::new("required_bytes", ArrowDataType::Binary, false).with_metadata(
+                field_metadata("required_bytes", "required_bytes", None, None),
+            ),
+            ArrowField::new("uuid_text", ArrowDataType::Utf8, false).with_metadata(field_metadata(
+                "uuid_text",
+                "uuid_text",
+                None,
+                None,
+            )),
+            ArrowField::new("jsonb_text", ArrowDataType::Utf8, false)
+                .with_metadata(field_metadata("jsonb_text", "jsonb_text", None, None)),
+            ArrowField::new("timestamptz_text", ArrowDataType::Utf8, false).with_metadata(
+                field_metadata("timestamptz_text", "timestamptz_text", None, None),
+            ),
+            ArrowField::new("numeric_text", ArrowDataType::Utf8, false)
+                .with_metadata(field_metadata("numeric_text", "numeric_text", None, None)),
+            ArrowField::new(
+                "required_i64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int64,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_i64_array",
+                "required_i64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_i32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_i32_array",
+                "required_i32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_u32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::UInt32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_u32_array",
+                "required_u32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_f64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float64,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_f64_array",
+                "required_f64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_f32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_f32_array",
+                "required_f32_array",
+                None,
+                None,
+            )),
+        ]));
+    let columns: Vec<ArrowArrayRef> = vec![
+        mbt_adapter_arrow::const_u16_array(batch.schema_version)?,
+        mbt_adapter_arrow::u16_array(batch.tenant_ordinal)?,
+        mbt_adapter_arrow::u16_array(batch.entity_ordinal)?,
+        mbt_adapter_arrow::i64_array(batch.close_ms)?,
+        mbt_adapter_arrow::u16_array(batch.status_ordinal)?,
+        mbt_adapter_arrow::u64_array(batch.venues_mask)?,
+        mbt_adapter_arrow::i64_array(batch.required_i64)?,
+        mbt_adapter_arrow::i32_array(batch.required_i32)?,
+        mbt_adapter_arrow::u32_array(batch.required_u32)?,
+        mbt_adapter_arrow::f64_array(batch.required_f64)?,
+        mbt_adapter_arrow::f32_array(batch.required_f32)?,
+        mbt_adapter_arrow::bool_array(batch.required_bool)?,
+        mbt_adapter_arrow::utf8_array(batch.required_text)?,
+        mbt_adapter_arrow::binary_array(batch.required_bytes)?,
+        mbt_adapter_arrow::utf8_array(batch.uuid_text)?,
+        mbt_adapter_arrow::utf8_array(batch.jsonb_text)?,
+        mbt_adapter_arrow::utf8_array(batch.timestamptz_text)?,
+        mbt_adapter_arrow::utf8_array(batch.numeric_text)?,
+        mbt_adapter_arrow::i64_list_array(batch.required_i64_array)?,
+        mbt_adapter_arrow::i32_list_array(batch.required_i32_array)?,
+        mbt_adapter_arrow::u32_list_array(batch.required_u32_array)?,
+        mbt_adapter_arrow::f64_list_array(batch.required_f64_array)?,
+        mbt_adapter_arrow::f32_list_array(batch.required_f32_array)?,
+    ];
+    record_batch(schema, columns, max_response_bytes)
+}
+
+impl TestCompatibilityV1NumericOnly {
+    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {
+        let archived = Self::access_archived(bytes)?;
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        numeric_only_arrow_record_batch(batch, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into Arrow.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<ArrowRecordBatch> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        numeric_only_arrow_record_batch(batch, max_response_bytes)
+    }
+}
+
+impl ArrowMetamorphoseSchema for TestCompatibilityV1NumericOnly {
+    type RecordBatch = ArrowRecordBatch;
+    fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<Self::RecordBatch> {
+        Self::metamorphose_arrow(bytes, max_response_bytes)
+    }
+    fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Self::RecordBatch> {
+        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn numeric_only_arrow_record_batch(
+    batch: TestCompatibilityV1NumericOnlyColumnBatch,
+    max_response_bytes: usize,
+) -> Result<ArrowRecordBatch> {
+    let schema =
+        Arc::new(ArrowSchema::new(vec![
+            ArrowField::new("schema_version", ArrowDataType::UInt16, false).with_metadata(
+                field_metadata("schema_version", "schema_version", None, None),
+            ),
+            ArrowField::new("tenant", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+                "tenant",
+                "tenant_ordinal",
+                Some("tenant"),
+                None,
+            )),
+            ArrowField::new("entity", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+                "entity",
+                "entity_ordinal",
+                Some("entity"),
+                None,
+            )),
+            ArrowField::new("close_ms", ArrowDataType::Int64, false)
+                .with_metadata(field_metadata("close_ms", "close_ms", None, None)),
+            ArrowField::new("required_i64", ArrowDataType::Int64, false)
+                .with_metadata(field_metadata("required_i64", "required_i64", None, None)),
+            ArrowField::new("optional_i64", ArrowDataType::Int64, true)
+                .with_metadata(field_metadata("optional_i64", "optional_i64", None, None)),
+            ArrowField::new("required_i32", ArrowDataType::Int32, false)
+                .with_metadata(field_metadata("required_i32", "required_i32", None, None)),
+            ArrowField::new("optional_i32", ArrowDataType::Int32, true)
+                .with_metadata(field_metadata("optional_i32", "optional_i32", None, None)),
+            ArrowField::new("required_u32", ArrowDataType::UInt32, false)
+                .with_metadata(field_metadata("required_u32", "required_u32", None, None)),
+            ArrowField::new("optional_u32", ArrowDataType::UInt32, true)
+                .with_metadata(field_metadata("optional_u32", "optional_u32", None, None)),
+            ArrowField::new("required_f64", ArrowDataType::Float64, false)
+                .with_metadata(field_metadata("required_f64", "required_f64", None, None)),
+            ArrowField::new("optional_f64", ArrowDataType::Float64, true)
+                .with_metadata(field_metadata("optional_f64", "optional_f64", None, None)),
+            ArrowField::new("required_f32", ArrowDataType::Float32, false)
+                .with_metadata(field_metadata("required_f32", "required_f32", None, None)),
+            ArrowField::new("optional_f32", ArrowDataType::Float32, true)
+                .with_metadata(field_metadata("optional_f32", "optional_f32", None, None)),
+            ArrowField::new(
+                "required_i64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int64,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_i64_array",
+                "required_i64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "nullable_i64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int64,
+                    false,
+                ))),
+                true,
+            )
+            .with_metadata(field_metadata(
+                "nullable_i64_array",
+                "nullable_i64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_i32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_i32_array",
+                "required_i32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "nullable_i32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Int32,
+                    false,
+                ))),
+                true,
+            )
+            .with_metadata(field_metadata(
+                "nullable_i32_array",
+                "nullable_i32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_u32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::UInt32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_u32_array",
+                "required_u32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "nullable_u32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::UInt32,
+                    false,
+                ))),
+                true,
+            )
+            .with_metadata(field_metadata(
+                "nullable_u32_array",
+                "nullable_u32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_f64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float64,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_f64_array",
+                "required_f64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "nullable_f64_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float64,
+                    false,
+                ))),
+                true,
+            )
+            .with_metadata(field_metadata(
+                "nullable_f64_array",
+                "nullable_f64_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "required_f32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float32,
+                    false,
+                ))),
+                false,
+            )
+            .with_metadata(field_metadata(
+                "required_f32_array",
+                "required_f32_array",
+                None,
+                None,
+            )),
+            ArrowField::new(
+                "nullable_f32_array",
+                ArrowDataType::List(Arc::new(ArrowField::new(
+                    "item",
+                    ArrowDataType::Float32,
+                    false,
+                ))),
+                true,
+            )
+            .with_metadata(field_metadata(
+                "nullable_f32_array",
+                "nullable_f32_array",
+                None,
+                None,
+            )),
+        ]));
+    let columns: Vec<ArrowArrayRef> = vec![
+        mbt_adapter_arrow::const_u16_array(batch.schema_version)?,
+        mbt_adapter_arrow::u16_array(batch.tenant_ordinal)?,
+        mbt_adapter_arrow::u16_array(batch.entity_ordinal)?,
+        mbt_adapter_arrow::i64_array(batch.close_ms)?,
+        mbt_adapter_arrow::i64_array(batch.required_i64)?,
+        mbt_adapter_arrow::optional_i64_array(batch.optional_i64)?,
+        mbt_adapter_arrow::i32_array(batch.required_i32)?,
+        mbt_adapter_arrow::optional_i32_array(batch.optional_i32)?,
+        mbt_adapter_arrow::u32_array(batch.required_u32)?,
+        mbt_adapter_arrow::optional_u32_array(batch.optional_u32)?,
+        mbt_adapter_arrow::f64_array(batch.required_f64)?,
+        mbt_adapter_arrow::optional_f64_array(batch.optional_f64)?,
+        mbt_adapter_arrow::f32_array(batch.required_f32)?,
+        mbt_adapter_arrow::optional_f32_array(batch.optional_f32)?,
+        mbt_adapter_arrow::i64_list_array(batch.required_i64_array)?,
+        mbt_adapter_arrow::optional_i64_list_array(batch.nullable_i64_array)?,
+        mbt_adapter_arrow::i32_list_array(batch.required_i32_array)?,
+        mbt_adapter_arrow::optional_i32_list_array(batch.nullable_i32_array)?,
+        mbt_adapter_arrow::u32_list_array(batch.required_u32_array)?,
+        mbt_adapter_arrow::optional_u32_list_array(batch.nullable_u32_array)?,
+        mbt_adapter_arrow::f64_list_array(batch.required_f64_array)?,
+        mbt_adapter_arrow::optional_f64_list_array(batch.nullable_f64_array)?,
+        mbt_adapter_arrow::f32_list_array(batch.required_f32_array)?,
+        mbt_adapter_arrow::optional_f32_list_array(batch.nullable_f32_array)?,
+    ];
+    record_batch(schema, columns, max_response_bytes)
+}

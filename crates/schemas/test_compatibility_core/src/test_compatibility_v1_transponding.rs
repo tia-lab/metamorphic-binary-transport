@@ -261,3 +261,337 @@ impl TestCompatibilityV1 {
         Ok(batch)
     }
 }
+
+pub(crate) struct TestCompatibilityV1NoOptionalColumnBatch {
+    pub(crate) schema_version: ConstU16Column,
+    pub(crate) tenant_ordinal: U16Column,
+    pub(crate) entity_ordinal: U16Column,
+    pub(crate) close_ms: I64Column,
+    pub(crate) status_ordinal: U16Column,
+    pub(crate) venues_mask: U64Column,
+    pub(crate) required_i64: I64Column,
+    pub(crate) required_i32: I32Column,
+    pub(crate) required_u32: U32Column,
+    pub(crate) required_f64: F64Column,
+    pub(crate) required_f32: F32Column,
+    pub(crate) required_bool: BoolColumn,
+    pub(crate) required_text: Utf8Column,
+    pub(crate) required_bytes: BinaryColumn,
+    pub(crate) uuid_text: Utf8Column,
+    pub(crate) jsonb_text: Utf8Column,
+    pub(crate) timestamptz_text: Utf8Column,
+    pub(crate) numeric_text: Utf8Column,
+    pub(crate) required_i64_array: I64ListColumn,
+    pub(crate) required_i32_array: I32ListColumn,
+    pub(crate) required_u32_array: U32ListColumn,
+    pub(crate) required_f64_array: F64ListColumn,
+    pub(crate) required_f32_array: F32ListColumn,
+}
+
+impl TestCompatibilityV1NoOptionalColumnBatch {
+    pub(crate) fn byte_len(&self) -> usize {
+        let mut len = 0_usize;
+        len = len.saturating_add(self.schema_version.byte_len());
+        len = len.saturating_add(self.tenant_ordinal.byte_len());
+        len = len.saturating_add(self.entity_ordinal.byte_len());
+        len = len.saturating_add(self.close_ms.byte_len());
+        len = len.saturating_add(self.status_ordinal.byte_len());
+        len = len.saturating_add(self.venues_mask.byte_len());
+        len = len.saturating_add(self.required_i64.byte_len());
+        len = len.saturating_add(self.required_i32.byte_len());
+        len = len.saturating_add(self.required_u32.byte_len());
+        len = len.saturating_add(self.required_f64.byte_len());
+        len = len.saturating_add(self.required_f32.byte_len());
+        len = len.saturating_add(self.required_bool.byte_len());
+        len = len.saturating_add(self.required_text.byte_len());
+        len = len.saturating_add(self.required_bytes.byte_len());
+        len = len.saturating_add(self.uuid_text.byte_len());
+        len = len.saturating_add(self.jsonb_text.byte_len());
+        len = len.saturating_add(self.timestamptz_text.byte_len());
+        len = len.saturating_add(self.numeric_text.byte_len());
+        len = len.saturating_add(self.required_i64_array.byte_len());
+        len = len.saturating_add(self.required_i32_array.byte_len());
+        len = len.saturating_add(self.required_u32_array.byte_len());
+        len = len.saturating_add(self.required_f64_array.byte_len());
+        len = len.saturating_add(self.required_f32_array.byte_len());
+        len
+    }
+}
+
+impl TestCompatibilityV1NoOptional {
+    pub(crate) fn transpond_archived(
+        archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+        max_columnar_bytes: usize,
+    ) -> Result<TestCompatibilityV1NoOptionalColumnBatch> {
+        let row_count = archived.rows.len();
+        let schema_version = ConstU16Column::new(1, row_count);
+        let mut tenant_ordinal = U16Column::new(row_count);
+        let mut entity_ordinal = U16Column::new(row_count);
+        let mut close_ms = I64Column::new(row_count);
+        let mut status_ordinal = U16Column::new(row_count);
+        let mut venues_mask = U64Column::new(row_count);
+        let mut required_i64 = I64Column::new(row_count);
+        let mut required_i32 = I32Column::new(row_count);
+        let mut required_u32 = U32Column::new(row_count);
+        let mut required_f64 = F64Column::new(row_count);
+        let mut required_f32 = F32Column::new(row_count);
+        let mut required_bool = BoolColumn::required(row_count);
+        let mut required_text = Utf8Column::required(row_count);
+        let mut required_bytes = BinaryColumn::required(row_count);
+        let mut uuid_text = Utf8Column::required(row_count);
+        let mut jsonb_text = Utf8Column::required(row_count);
+        let mut timestamptz_text = Utf8Column::required(row_count);
+        let mut numeric_text = Utf8Column::required(row_count);
+        let mut required_i64_array = I64ListColumn::required(row_count);
+        let mut required_i32_array = I32ListColumn::required(row_count);
+        let mut required_u32_array = U32ListColumn::required(row_count);
+        let mut required_f64_array = F64ListColumn::required(row_count);
+        let mut required_f32_array = F32ListColumn::required(row_count);
+        for row in archived.rows.iter() {
+            tenant_ordinal.push_required(row.tenant_ordinal.to_native());
+            entity_ordinal.push_required(row.entity_ordinal.to_native());
+            close_ms.push_required(row.close_ms.to_native());
+            status_ordinal.push_required(row.status_ordinal.to_native());
+            venues_mask.push_required(row.venues_mask.to_native());
+            required_i64.push_required(row.required_i64.to_native());
+            required_i32.push_required(row.required_i32.to_native());
+            required_u32.push_required(row.required_u32.to_native());
+            required_f64.push_required(row.required_f64.to_native());
+            required_f32.push_required(row.required_f32.to_native());
+            required_bool.push_required(row.required_bool);
+            required_text.push_required(row.required_text.as_str())?;
+            required_bytes.push_required(row.required_bytes.as_slice())?;
+            uuid_text.push_required(row.uuid_text.as_str())?;
+            jsonb_text.push_required(row.jsonb_text.as_str())?;
+            timestamptz_text.push_required(row.timestamptz_text.as_str())?;
+            numeric_text.push_required(row.numeric_text.as_str())?;
+            required_i64_array
+                .push_required(row.required_i64_array.iter().map(|value| value.to_native()))?;
+            required_i32_array
+                .push_required(row.required_i32_array.iter().map(|value| value.to_native()))?;
+            required_u32_array
+                .push_required(row.required_u32_array.iter().map(|value| value.to_native()))?;
+            required_f64_array
+                .push_required(row.required_f64_array.iter().map(|value| value.to_native()))?;
+            required_f32_array
+                .push_required(row.required_f32_array.iter().map(|value| value.to_native()))?;
+        }
+        let batch = TestCompatibilityV1NoOptionalColumnBatch {
+            schema_version,
+            tenant_ordinal,
+            entity_ordinal,
+            close_ms,
+            status_ordinal,
+            venues_mask,
+            required_i64,
+            required_i32,
+            required_u32,
+            required_f64,
+            required_f32,
+            required_bool,
+            required_text,
+            required_bytes,
+            uuid_text,
+            jsonb_text,
+            timestamptz_text,
+            numeric_text,
+            required_i64_array,
+            required_i32_array,
+            required_u32_array,
+            required_f64_array,
+            required_f32_array,
+        };
+        ensure_columnar_size(batch.byte_len(), max_columnar_bytes)?;
+        Ok(batch)
+    }
+}
+
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I64: u64 = 1 << 0;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I32: u64 = 1 << 1;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_U32: u64 = 1 << 2;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F64: u64 = 1 << 3;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F32: u64 = 1 << 4;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY: u64 = 1 << 5;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY: u64 = 1 << 6;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY: u64 = 1 << 7;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY: u64 = 1 << 8;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY: u64 = 1 << 9;
+
+pub(crate) struct TestCompatibilityV1NumericOnlyColumnBatch {
+    pub(crate) schema_version: ConstU16Column,
+    pub(crate) tenant_ordinal: U16Column,
+    pub(crate) entity_ordinal: U16Column,
+    pub(crate) close_ms: I64Column,
+    pub(crate) required_i64: I64Column,
+    pub(crate) optional_i64: OptionalI64Column,
+    pub(crate) required_i32: I32Column,
+    pub(crate) optional_i32: OptionalI32Column,
+    pub(crate) required_u32: U32Column,
+    pub(crate) optional_u32: OptionalU32Column,
+    pub(crate) required_f64: F64Column,
+    pub(crate) optional_f64: OptionalF64Column,
+    pub(crate) required_f32: F32Column,
+    pub(crate) optional_f32: OptionalF32Column,
+    pub(crate) required_i64_array: I64ListColumn,
+    pub(crate) nullable_i64_array: I64ListColumn,
+    pub(crate) required_i32_array: I32ListColumn,
+    pub(crate) nullable_i32_array: I32ListColumn,
+    pub(crate) required_u32_array: U32ListColumn,
+    pub(crate) nullable_u32_array: U32ListColumn,
+    pub(crate) required_f64_array: F64ListColumn,
+    pub(crate) nullable_f64_array: F64ListColumn,
+    pub(crate) required_f32_array: F32ListColumn,
+    pub(crate) nullable_f32_array: F32ListColumn,
+}
+
+impl TestCompatibilityV1NumericOnlyColumnBatch {
+    pub(crate) fn byte_len(&self) -> usize {
+        let mut len = 0_usize;
+        len = len.saturating_add(self.schema_version.byte_len());
+        len = len.saturating_add(self.tenant_ordinal.byte_len());
+        len = len.saturating_add(self.entity_ordinal.byte_len());
+        len = len.saturating_add(self.close_ms.byte_len());
+        len = len.saturating_add(self.required_i64.byte_len());
+        len = len.saturating_add(self.optional_i64.byte_len());
+        len = len.saturating_add(self.required_i32.byte_len());
+        len = len.saturating_add(self.optional_i32.byte_len());
+        len = len.saturating_add(self.required_u32.byte_len());
+        len = len.saturating_add(self.optional_u32.byte_len());
+        len = len.saturating_add(self.required_f64.byte_len());
+        len = len.saturating_add(self.optional_f64.byte_len());
+        len = len.saturating_add(self.required_f32.byte_len());
+        len = len.saturating_add(self.optional_f32.byte_len());
+        len = len.saturating_add(self.required_i64_array.byte_len());
+        len = len.saturating_add(self.nullable_i64_array.byte_len());
+        len = len.saturating_add(self.required_i32_array.byte_len());
+        len = len.saturating_add(self.nullable_i32_array.byte_len());
+        len = len.saturating_add(self.required_u32_array.byte_len());
+        len = len.saturating_add(self.nullable_u32_array.byte_len());
+        len = len.saturating_add(self.required_f64_array.byte_len());
+        len = len.saturating_add(self.nullable_f64_array.byte_len());
+        len = len.saturating_add(self.required_f32_array.byte_len());
+        len = len.saturating_add(self.nullable_f32_array.byte_len());
+        len
+    }
+}
+
+impl TestCompatibilityV1NumericOnly {
+    pub(crate) fn transpond_archived(
+        archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+        max_columnar_bytes: usize,
+    ) -> Result<TestCompatibilityV1NumericOnlyColumnBatch> {
+        let row_count = archived.rows.len();
+        let schema_version = ConstU16Column::new(1, row_count);
+        let mut tenant_ordinal = U16Column::new(row_count);
+        let mut entity_ordinal = U16Column::new(row_count);
+        let mut close_ms = I64Column::new(row_count);
+        let mut required_i64 = I64Column::new(row_count);
+        let mut optional_i64 = OptionalI64Column::new(row_count);
+        let mut required_i32 = I32Column::new(row_count);
+        let mut optional_i32 = OptionalI32Column::new(row_count);
+        let mut required_u32 = U32Column::new(row_count);
+        let mut optional_u32 = OptionalU32Column::new(row_count);
+        let mut required_f64 = F64Column::new(row_count);
+        let mut optional_f64 = OptionalF64Column::new(row_count);
+        let mut required_f32 = F32Column::new(row_count);
+        let mut optional_f32 = OptionalF32Column::new(row_count);
+        let mut required_i64_array = I64ListColumn::required(row_count);
+        let mut nullable_i64_array = I64ListColumn::optional(row_count);
+        let mut required_i32_array = I32ListColumn::required(row_count);
+        let mut nullable_i32_array = I32ListColumn::optional(row_count);
+        let mut required_u32_array = U32ListColumn::required(row_count);
+        let mut nullable_u32_array = U32ListColumn::optional(row_count);
+        let mut required_f64_array = F64ListColumn::required(row_count);
+        let mut nullable_f64_array = F64ListColumn::optional(row_count);
+        let mut required_f32_array = F32ListColumn::required(row_count);
+        let mut nullable_f32_array = F32ListColumn::optional(row_count);
+        for row in archived.rows.iter() {
+            tenant_ordinal.push_required(row.tenant_ordinal.to_native());
+            entity_ordinal.push_required(row.entity_ordinal.to_native());
+            close_ms.push_required(row.close_ms.to_native());
+            required_i64.push_required(row.required_i64.to_native());
+            optional_i64.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0,
+                row.optional_i64.to_native(),
+            )?;
+            required_i32.push_required(row.required_i32.to_native());
+            optional_i32.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0,
+                row.optional_i32.to_native(),
+            )?;
+            required_u32.push_required(row.required_u32.to_native());
+            optional_u32.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0,
+                row.optional_u32.to_native(),
+            )?;
+            required_f64.push_required(row.required_f64.to_native());
+            optional_f64.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0,
+                row.optional_f64.to_native(),
+            )?;
+            required_f32.push_required(row.required_f32.to_native());
+            optional_f32.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0,
+                row.optional_f32.to_native(),
+            )?;
+            required_i64_array
+                .push_required(row.required_i64_array.iter().map(|value| value.to_native()))?;
+            nullable_i64_array.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0,
+                row.nullable_i64_array.iter().map(|value| value.to_native()),
+            )?;
+            required_i32_array
+                .push_required(row.required_i32_array.iter().map(|value| value.to_native()))?;
+            nullable_i32_array.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0,
+                row.nullable_i32_array.iter().map(|value| value.to_native()),
+            )?;
+            required_u32_array
+                .push_required(row.required_u32_array.iter().map(|value| value.to_native()))?;
+            nullable_u32_array.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0,
+                row.nullable_u32_array.iter().map(|value| value.to_native()),
+            )?;
+            required_f64_array
+                .push_required(row.required_f64_array.iter().map(|value| value.to_native()))?;
+            nullable_f64_array.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0,
+                row.nullable_f64_array.iter().map(|value| value.to_native()),
+            )?;
+            required_f32_array
+                .push_required(row.required_f32_array.iter().map(|value| value.to_native()))?;
+            nullable_f32_array.push_optional(
+                row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0,
+                row.nullable_f32_array.iter().map(|value| value.to_native()),
+            )?;
+        }
+        let batch = TestCompatibilityV1NumericOnlyColumnBatch {
+            schema_version,
+            tenant_ordinal,
+            entity_ordinal,
+            close_ms,
+            required_i64,
+            optional_i64,
+            required_i32,
+            optional_i32,
+            required_u32,
+            optional_u32,
+            required_f64,
+            optional_f64,
+            required_f32,
+            optional_f32,
+            required_i64_array,
+            nullable_i64_array,
+            required_i32_array,
+            nullable_i32_array,
+            required_u32_array,
+            nullable_u32_array,
+            required_f64_array,
+            nullable_f64_array,
+            required_f32_array,
+            nullable_f32_array,
+        };
+        ensure_columnar_size(batch.byte_len(), max_columnar_bytes)?;
+        Ok(batch)
+    }
+}

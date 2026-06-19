@@ -359,3 +359,287 @@ fn write_json_field_prefix(
     }
     writer.raw_static(field)
 }
+
+const NO_METADATA_PRESENCE_VW: u64 = 1 << 0;
+const NO_METADATA_PRESENCE_N: u64 = 1 << 1;
+const NO_METADATA_PRESENCE_AGE_MS: u64 = 1 << 2;
+
+const NO_METADATA_JSON_SCHEMA_VERSION_FIELD: &[u8] = b"\"schema_version\":";
+const NO_METADATA_JSON_ROWS_FIELD: &[u8] = b"\"rows\":";
+const NO_METADATA_JSON_FIELD_SCHEMA_VERSION: &[u8] = b"\"schema_version\":";
+const NO_METADATA_JSON_FIELD_PAIR_ORDINAL: &[u8] = b"\"pair\":";
+const NO_METADATA_JSON_FIELD_TF_ORDINAL: &[u8] = b"\"tf\":";
+const NO_METADATA_JSON_FIELD_OPEN_MS: &[u8] = b"\"open_ms\":";
+const NO_METADATA_JSON_FIELD_CLOSE_MS: &[u8] = b"\"close_ms\":";
+const NO_METADATA_JSON_FIELD_OPEN_UTC: &[u8] = b"\"open_utc\":";
+const NO_METADATA_JSON_FIELD_CLOSE_UTC: &[u8] = b"\"close_utc\":";
+const NO_METADATA_JSON_FIELD_O: &[u8] = b"\"o\":";
+const NO_METADATA_JSON_FIELD_H: &[u8] = b"\"h\":";
+const NO_METADATA_JSON_FIELD_L: &[u8] = b"\"l\":";
+const NO_METADATA_JSON_FIELD_C: &[u8] = b"\"c\":";
+const NO_METADATA_JSON_FIELD_V: &[u8] = b"\"v\":";
+const NO_METADATA_JSON_FIELD_QUOTE_V: &[u8] = b"\"quote_v\":";
+const NO_METADATA_JSON_FIELD_TAKER_KNOWN_V: &[u8] = b"\"taker_known_v\":";
+const NO_METADATA_JSON_FIELD_TAKER_SIGNED_V: &[u8] = b"\"taker_signed_v\":";
+const NO_METADATA_JSON_FIELD_TAKER_KNOWN_QUOTE_V: &[u8] = b"\"taker_known_quote_v\":";
+const NO_METADATA_JSON_FIELD_TAKER_SIGNED_QUOTE_V: &[u8] = b"\"taker_signed_quote_v\":";
+const NO_METADATA_JSON_FIELD_TAKER_KNOWN_N: &[u8] = b"\"taker_known_n\":";
+const NO_METADATA_JSON_FIELD_TAKER_SIGNED_N: &[u8] = b"\"taker_signed_n\":";
+const NO_METADATA_JSON_FIELD_VW: &[u8] = b"\"vw\":";
+const NO_METADATA_JSON_FIELD_N: &[u8] = b"\"n\":";
+const NO_METADATA_JSON_FIELD_AGE_MS: &[u8] = b"\"age_ms\":";
+
+impl BarsV1NoMetadata {
+    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_metadata_write_json_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into JSON.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_metadata_write_json_response(archived, max_response_bytes)
+    }
+}
+
+impl JsonMetamorphoseSchema for BarsV1NoMetadata {
+    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_json(bytes, max_response_bytes)
+    }
+    fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_json_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_metadata_write_json_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.begin_object()?;
+    writer.raw_static(NO_METADATA_JSON_SCHEMA_VERSION_FIELD)?;
+    writer.u32_value(u32::from(SCHEMA_VERSION_VALUE))?;
+    writer.comma()?;
+    writer.raw_static(NO_METADATA_JSON_ROWS_FIELD)?;
+    writer.begin_array()?;
+    let mut first_row = true;
+    for row in archived.rows.iter() {
+        if first_row {
+            first_row = false;
+        } else {
+            writer.comma()?;
+        }
+        no_metadata_write_json_row(row, &mut writer)?;
+    }
+    writer.end_array()?;
+    writer.end_object()?;
+    Ok(writer.finish())
+}
+
+fn no_metadata_write_json_row(
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+    writer: &mut JsonWriter,
+) -> Result<()> {
+    writer.begin_object()?;
+    let mut first = true;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_SCHEMA_VERSION)?;
+    writer.u32_value(u32::from(1_u16))?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_PAIR_ORDINAL)?;
+    writer.string_value(pair_symbol(row.pair_ordinal.to_native())?)?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_TF_ORDINAL)?;
+    writer.string_value(tf_symbol(row.tf_ordinal.to_native())?)?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_OPEN_MS)?;
+    writer.i64_value(row.open_ms.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_CLOSE_MS)?;
+    writer.i64_value(row.close_ms.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_OPEN_UTC)?;
+    writer.utc_value(row.open_ms.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_CLOSE_UTC)?;
+    writer.utc_value(row.close_ms.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_O)?;
+    writer.f64_value("o", row.o.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_H)?;
+    writer.f64_value("h", row.h.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_L)?;
+    writer.f64_value("l", row.l.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_C)?;
+    writer.f64_value("c", row.c.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_V)?;
+    writer.f64_value("v", row.v.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_QUOTE_V)?;
+    writer.f64_value("quote_v", row.quote_v.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_TAKER_KNOWN_V)?;
+    writer.f64_value("taker_known_v", row.taker_known_v.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_TAKER_SIGNED_V)?;
+    writer.f64_value("taker_signed_v", row.taker_signed_v.to_native())?;
+    no_metadata_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_METADATA_JSON_FIELD_TAKER_KNOWN_QUOTE_V,
+    )?;
+    writer.f64_value("taker_known_quote_v", row.taker_known_quote_v.to_native())?;
+    no_metadata_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_METADATA_JSON_FIELD_TAKER_SIGNED_QUOTE_V,
+    )?;
+    writer.f64_value("taker_signed_quote_v", row.taker_signed_quote_v.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_TAKER_KNOWN_N)?;
+    writer.i64_value(row.taker_known_n.to_native())?;
+    no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_TAKER_SIGNED_N)?;
+    writer.i64_value(row.taker_signed_n.to_native())?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_VW != 0 {
+        no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_VW)?;
+        writer.f64_value("vw", row.vw.to_native())?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_N != 0 {
+        no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_N)?;
+        writer.i64_value(row.n.to_native())?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_AGE_MS != 0 {
+        no_metadata_write_json_field_prefix(writer, &mut first, NO_METADATA_JSON_FIELD_AGE_MS)?;
+        writer.i64_value(row.age_ms.to_native())?;
+    }
+    writer.end_object()
+}
+
+fn no_metadata_write_json_field_prefix(
+    writer: &mut JsonWriter,
+    first: &mut bool,
+    field: &'static [u8],
+) -> Result<()> {
+    if *first {
+        *first = false;
+    } else {
+        writer.comma()?;
+    }
+    writer.raw_static(field)
+}
+
+const OHLCV_ONLY_JSON_SCHEMA_VERSION_FIELD: &[u8] = b"\"schema_version\":";
+const OHLCV_ONLY_JSON_ROWS_FIELD: &[u8] = b"\"rows\":";
+const OHLCV_ONLY_JSON_FIELD_SCHEMA_VERSION: &[u8] = b"\"schema_version\":";
+const OHLCV_ONLY_JSON_FIELD_PAIR_ORDINAL: &[u8] = b"\"pair\":";
+const OHLCV_ONLY_JSON_FIELD_TF_ORDINAL: &[u8] = b"\"tf\":";
+const OHLCV_ONLY_JSON_FIELD_OPEN_MS: &[u8] = b"\"open_ms\":";
+const OHLCV_ONLY_JSON_FIELD_CLOSE_MS: &[u8] = b"\"close_ms\":";
+const OHLCV_ONLY_JSON_FIELD_OPEN_UTC: &[u8] = b"\"open_utc\":";
+const OHLCV_ONLY_JSON_FIELD_CLOSE_UTC: &[u8] = b"\"close_utc\":";
+const OHLCV_ONLY_JSON_FIELD_O: &[u8] = b"\"o\":";
+const OHLCV_ONLY_JSON_FIELD_H: &[u8] = b"\"h\":";
+const OHLCV_ONLY_JSON_FIELD_L: &[u8] = b"\"l\":";
+const OHLCV_ONLY_JSON_FIELD_C: &[u8] = b"\"c\":";
+const OHLCV_ONLY_JSON_FIELD_V: &[u8] = b"\"v\":";
+
+impl BarsV1OhlcvOnly {
+    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        ohlcv_only_write_json_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into JSON.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        ohlcv_only_write_json_response(archived, max_response_bytes)
+    }
+}
+
+impl JsonMetamorphoseSchema for BarsV1OhlcvOnly {
+    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_json(bytes, max_response_bytes)
+    }
+    fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_json_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn ohlcv_only_write_json_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.begin_object()?;
+    writer.raw_static(OHLCV_ONLY_JSON_SCHEMA_VERSION_FIELD)?;
+    writer.u32_value(u32::from(SCHEMA_VERSION_VALUE))?;
+    writer.comma()?;
+    writer.raw_static(OHLCV_ONLY_JSON_ROWS_FIELD)?;
+    writer.begin_array()?;
+    let mut first_row = true;
+    for row in archived.rows.iter() {
+        if first_row {
+            first_row = false;
+        } else {
+            writer.comma()?;
+        }
+        ohlcv_only_write_json_row(row, &mut writer)?;
+    }
+    writer.end_array()?;
+    writer.end_object()?;
+    Ok(writer.finish())
+}
+
+fn ohlcv_only_write_json_row(
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+    writer: &mut JsonWriter,
+) -> Result<()> {
+    writer.begin_object()?;
+    let mut first = true;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_SCHEMA_VERSION)?;
+    writer.u32_value(u32::from(1_u16))?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_PAIR_ORDINAL)?;
+    writer.string_value(pair_symbol(row.pair_ordinal.to_native())?)?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_TF_ORDINAL)?;
+    writer.string_value(tf_symbol(row.tf_ordinal.to_native())?)?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_OPEN_MS)?;
+    writer.i64_value(row.open_ms.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_CLOSE_MS)?;
+    writer.i64_value(row.close_ms.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_OPEN_UTC)?;
+    writer.utc_value(row.open_ms.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_CLOSE_UTC)?;
+    writer.utc_value(row.close_ms.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_O)?;
+    writer.f64_value("o", row.o.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_H)?;
+    writer.f64_value("h", row.h.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_L)?;
+    writer.f64_value("l", row.l.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_C)?;
+    writer.f64_value("c", row.c.to_native())?;
+    ohlcv_only_write_json_field_prefix(writer, &mut first, OHLCV_ONLY_JSON_FIELD_V)?;
+    writer.f64_value("v", row.v.to_native())?;
+    writer.end_object()
+}
+
+fn ohlcv_only_write_json_field_prefix(
+    writer: &mut JsonWriter,
+    first: &mut bool,
+    field: &'static [u8],
+) -> Result<()> {
+    if *first {
+        *first = false;
+    } else {
+        writer.comma()?;
+    }
+    writer.raw_static(field)
+}

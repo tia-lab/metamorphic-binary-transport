@@ -321,3 +321,214 @@ impl BarsV1 {
         Ok(batch)
     }
 }
+
+const NO_METADATA_PRESENCE_VW: u64 = 1 << 0;
+const NO_METADATA_PRESENCE_N: u64 = 1 << 1;
+const NO_METADATA_PRESENCE_AGE_MS: u64 = 1 << 2;
+
+pub(crate) struct BarsV1NoMetadataColumnBatch {
+    pub(crate) schema_version: ConstU16Column,
+    pub(crate) pair_ordinal: U16Column,
+    pub(crate) tf_ordinal: U16Column,
+    pub(crate) open_ms: I64Column,
+    pub(crate) close_ms: I64Column,
+    pub(crate) o: F64Column,
+    pub(crate) h: F64Column,
+    pub(crate) l: F64Column,
+    pub(crate) c: F64Column,
+    pub(crate) v: F64Column,
+    pub(crate) quote_v: F64Column,
+    pub(crate) taker_known_v: F64Column,
+    pub(crate) taker_signed_v: F64Column,
+    pub(crate) taker_known_quote_v: F64Column,
+    pub(crate) taker_signed_quote_v: F64Column,
+    pub(crate) taker_known_n: I64Column,
+    pub(crate) taker_signed_n: I64Column,
+    pub(crate) vw: OptionalF64Column,
+    pub(crate) n: OptionalI64Column,
+    pub(crate) age_ms: OptionalI64Column,
+}
+
+impl BarsV1NoMetadataColumnBatch {
+    pub(crate) fn byte_len(&self) -> usize {
+        let mut len = 0_usize;
+        len = len.saturating_add(self.schema_version.byte_len());
+        len = len.saturating_add(self.pair_ordinal.byte_len());
+        len = len.saturating_add(self.tf_ordinal.byte_len());
+        len = len.saturating_add(self.open_ms.byte_len());
+        len = len.saturating_add(self.close_ms.byte_len());
+        len = len.saturating_add(self.o.byte_len());
+        len = len.saturating_add(self.h.byte_len());
+        len = len.saturating_add(self.l.byte_len());
+        len = len.saturating_add(self.c.byte_len());
+        len = len.saturating_add(self.v.byte_len());
+        len = len.saturating_add(self.quote_v.byte_len());
+        len = len.saturating_add(self.taker_known_v.byte_len());
+        len = len.saturating_add(self.taker_signed_v.byte_len());
+        len = len.saturating_add(self.taker_known_quote_v.byte_len());
+        len = len.saturating_add(self.taker_signed_quote_v.byte_len());
+        len = len.saturating_add(self.taker_known_n.byte_len());
+        len = len.saturating_add(self.taker_signed_n.byte_len());
+        len = len.saturating_add(self.vw.byte_len());
+        len = len.saturating_add(self.n.byte_len());
+        len = len.saturating_add(self.age_ms.byte_len());
+        len
+    }
+}
+
+impl BarsV1NoMetadata {
+    pub(crate) fn transpond_archived(
+        archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
+        max_columnar_bytes: usize,
+    ) -> Result<BarsV1NoMetadataColumnBatch> {
+        let row_count = archived.rows.len();
+        let schema_version = ConstU16Column::new(1, row_count);
+        let mut pair_ordinal = U16Column::new(row_count);
+        let mut tf_ordinal = U16Column::new(row_count);
+        let mut open_ms = I64Column::new(row_count);
+        let mut close_ms = I64Column::new(row_count);
+        let mut o = F64Column::new(row_count);
+        let mut h = F64Column::new(row_count);
+        let mut l = F64Column::new(row_count);
+        let mut c = F64Column::new(row_count);
+        let mut v = F64Column::new(row_count);
+        let mut quote_v = F64Column::new(row_count);
+        let mut taker_known_v = F64Column::new(row_count);
+        let mut taker_signed_v = F64Column::new(row_count);
+        let mut taker_known_quote_v = F64Column::new(row_count);
+        let mut taker_signed_quote_v = F64Column::new(row_count);
+        let mut taker_known_n = I64Column::new(row_count);
+        let mut taker_signed_n = I64Column::new(row_count);
+        let mut vw = OptionalF64Column::new(row_count);
+        let mut n = OptionalI64Column::new(row_count);
+        let mut age_ms = OptionalI64Column::new(row_count);
+        for row in archived.rows.iter() {
+            pair_ordinal.push_required(row.pair_ordinal.to_native());
+            tf_ordinal.push_required(row.tf_ordinal.to_native());
+            open_ms.push_required(row.open_ms.to_native());
+            close_ms.push_required(row.close_ms.to_native());
+            o.push_required(row.o.to_native());
+            h.push_required(row.h.to_native());
+            l.push_required(row.l.to_native());
+            c.push_required(row.c.to_native());
+            v.push_required(row.v.to_native());
+            quote_v.push_required(row.quote_v.to_native());
+            taker_known_v.push_required(row.taker_known_v.to_native());
+            taker_signed_v.push_required(row.taker_signed_v.to_native());
+            taker_known_quote_v.push_required(row.taker_known_quote_v.to_native());
+            taker_signed_quote_v.push_required(row.taker_signed_quote_v.to_native());
+            taker_known_n.push_required(row.taker_known_n.to_native());
+            taker_signed_n.push_required(row.taker_signed_n.to_native());
+            vw.push_optional(
+                row.presence_bits.to_native() & NO_METADATA_PRESENCE_VW != 0,
+                row.vw.to_native(),
+            )?;
+            n.push_optional(
+                row.presence_bits.to_native() & NO_METADATA_PRESENCE_N != 0,
+                row.n.to_native(),
+            )?;
+            age_ms.push_optional(
+                row.presence_bits.to_native() & NO_METADATA_PRESENCE_AGE_MS != 0,
+                row.age_ms.to_native(),
+            )?;
+        }
+        let batch = BarsV1NoMetadataColumnBatch {
+            schema_version,
+            pair_ordinal,
+            tf_ordinal,
+            open_ms,
+            close_ms,
+            o,
+            h,
+            l,
+            c,
+            v,
+            quote_v,
+            taker_known_v,
+            taker_signed_v,
+            taker_known_quote_v,
+            taker_signed_quote_v,
+            taker_known_n,
+            taker_signed_n,
+            vw,
+            n,
+            age_ms,
+        };
+        ensure_columnar_size(batch.byte_len(), max_columnar_bytes)?;
+        Ok(batch)
+    }
+}
+
+pub(crate) struct BarsV1OhlcvOnlyColumnBatch {
+    pub(crate) schema_version: ConstU16Column,
+    pub(crate) pair_ordinal: U16Column,
+    pub(crate) tf_ordinal: U16Column,
+    pub(crate) open_ms: I64Column,
+    pub(crate) close_ms: I64Column,
+    pub(crate) o: F64Column,
+    pub(crate) h: F64Column,
+    pub(crate) l: F64Column,
+    pub(crate) c: F64Column,
+    pub(crate) v: F64Column,
+}
+
+impl BarsV1OhlcvOnlyColumnBatch {
+    pub(crate) fn byte_len(&self) -> usize {
+        let mut len = 0_usize;
+        len = len.saturating_add(self.schema_version.byte_len());
+        len = len.saturating_add(self.pair_ordinal.byte_len());
+        len = len.saturating_add(self.tf_ordinal.byte_len());
+        len = len.saturating_add(self.open_ms.byte_len());
+        len = len.saturating_add(self.close_ms.byte_len());
+        len = len.saturating_add(self.o.byte_len());
+        len = len.saturating_add(self.h.byte_len());
+        len = len.saturating_add(self.l.byte_len());
+        len = len.saturating_add(self.c.byte_len());
+        len = len.saturating_add(self.v.byte_len());
+        len
+    }
+}
+
+impl BarsV1OhlcvOnly {
+    pub(crate) fn transpond_archived(
+        archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
+        max_columnar_bytes: usize,
+    ) -> Result<BarsV1OhlcvOnlyColumnBatch> {
+        let row_count = archived.rows.len();
+        let schema_version = ConstU16Column::new(1, row_count);
+        let mut pair_ordinal = U16Column::new(row_count);
+        let mut tf_ordinal = U16Column::new(row_count);
+        let mut open_ms = I64Column::new(row_count);
+        let mut close_ms = I64Column::new(row_count);
+        let mut o = F64Column::new(row_count);
+        let mut h = F64Column::new(row_count);
+        let mut l = F64Column::new(row_count);
+        let mut c = F64Column::new(row_count);
+        let mut v = F64Column::new(row_count);
+        for row in archived.rows.iter() {
+            pair_ordinal.push_required(row.pair_ordinal.to_native());
+            tf_ordinal.push_required(row.tf_ordinal.to_native());
+            open_ms.push_required(row.open_ms.to_native());
+            close_ms.push_required(row.close_ms.to_native());
+            o.push_required(row.o.to_native());
+            h.push_required(row.h.to_native());
+            l.push_required(row.l.to_native());
+            c.push_required(row.c.to_native());
+            v.push_required(row.v.to_native());
+        }
+        let batch = BarsV1OhlcvOnlyColumnBatch {
+            schema_version,
+            pair_ordinal,
+            tf_ordinal,
+            open_ms,
+            close_ms,
+            o,
+            h,
+            l,
+            c,
+            v,
+        };
+        ensure_columnar_size(batch.byte_len(), max_columnar_bytes)?;
+        Ok(batch)
+    }
+}

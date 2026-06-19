@@ -402,3 +402,524 @@ fn write_protobuf_row(
     }
     Ok(())
 }
+
+impl TestCompatibilityV1NoOptional {
+    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_optional_write_protobuf_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into protobuf.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_optional_write_protobuf_response(archived, max_response_bytes)
+    }
+}
+
+impl ProtobufMetamorphoseSchema for TestCompatibilityV1NoOptional {
+    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_protobuf(bytes, max_response_bytes)
+    }
+    fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_optional_write_protobuf_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.uint32(1, u32::from(SCHEMA_VERSION_VALUE))?;
+    for row in archived.rows.iter() {
+        let row_len = no_optional_encoded_len_row(row, max_response_bytes)?;
+        writer.message_prefix(2, row_len)?;
+        no_optional_write_protobuf_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn no_optional_encoded_len_row(
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+    max_response_bytes: usize,
+) -> Result<usize> {
+    let mut len = 0_usize;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(1, u32::from(1_u16)),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(2, tenant_symbol(row.tenant_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(3, entity_symbol(row.entity_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(4, row.close_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(5, status_symbol(row.status_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    if row.venues_mask.to_native() & (1_u64 << 0) != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_string(7, "binance"),
+            max_response_bytes,
+        )?;
+    }
+    if row.venues_mask.to_native() & (1_u64 << 1) != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_string(7, "bybit"),
+            max_response_bytes,
+        )?;
+    }
+    if row.venues_mask.to_native() & (1_u64 << 2) != 0 {
+        len = output::checked_len_add(
+            len,
+            output::encoded_len_string(7, "okx"),
+            max_response_bytes,
+        )?;
+    }
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(8, row.required_i64.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int32(10, row.required_i32.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(12, row.required_u32.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(14, row.required_f64.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_float(16, row.required_f32.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_bool(18, row.required_bool),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(20, row.required_text.as_str()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(22, row.required_bytes.as_slice().len()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(24, row.uuid_text.as_str()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(25, row.jsonb_text.as_str()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(26, row.timestamptz_text.as_str()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(27, row.numeric_text.as_str()),
+        max_response_bytes,
+    )?;
+    for value in row.required_i64_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_int64(28, value), max_response_bytes)?;
+    }
+    for value in row.required_i32_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_int32(30, value), max_response_bytes)?;
+    }
+    for value in row.required_u32_array.iter().map(|value| value.to_native()) {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_uint32(32, value),
+            max_response_bytes,
+        )?;
+    }
+    for value in row.required_f64_array.iter().map(|value| value.to_native()) {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_double(34, value),
+            max_response_bytes,
+        )?;
+    }
+    for value in row.required_f32_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_float(36, value), max_response_bytes)?;
+    }
+    Ok(len)
+}
+
+fn no_optional_write_protobuf_row(
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+    writer: &mut ProtoWriter,
+) -> Result<()> {
+    writer.uint32(1, u32::from(1_u16))?;
+    writer.string(2, tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    writer.string(3, entity_symbol(row.entity_ordinal.to_native())?)?;
+    writer.int64(4, row.close_ms.to_native())?;
+    writer.string(5, status_symbol(row.status_ordinal.to_native())?)?;
+    if row.venues_mask.to_native() & (1_u64 << 0) != 0 {
+        writer.string(7, "binance")?;
+    }
+    if row.venues_mask.to_native() & (1_u64 << 1) != 0 {
+        writer.string(7, "bybit")?;
+    }
+    if row.venues_mask.to_native() & (1_u64 << 2) != 0 {
+        writer.string(7, "okx")?;
+    }
+    writer.int64(8, row.required_i64.to_native())?;
+    writer.int32(10, row.required_i32.to_native())?;
+    writer.uint32(12, row.required_u32.to_native())?;
+    writer.double(14, "required_f64", row.required_f64.to_native())?;
+    writer.float(16, "required_f32", row.required_f32.to_native())?;
+    writer.bool(18, row.required_bool)?;
+    writer.string(20, row.required_text.as_str())?;
+    writer.bytes(22, row.required_bytes.as_slice())?;
+    writer.string(24, row.uuid_text.as_str())?;
+    writer.string(25, row.jsonb_text.as_str())?;
+    writer.string(26, row.timestamptz_text.as_str())?;
+    writer.string(27, row.numeric_text.as_str())?;
+    for value in row.required_i64_array.iter().map(|value| value.to_native()) {
+        writer.int64(28, value)?;
+    }
+    for value in row.required_i32_array.iter().map(|value| value.to_native()) {
+        writer.int32(30, value)?;
+    }
+    for value in row.required_u32_array.iter().map(|value| value.to_native()) {
+        writer.uint32(32, value)?;
+    }
+    for value in row.required_f64_array.iter().map(|value| value.to_native()) {
+        writer.double(34, "required_f64_array", value)?;
+    }
+    for value in row.required_f32_array.iter().map(|value| value.to_native()) {
+        writer.float(36, "required_f32_array", value)?;
+    }
+    Ok(())
+}
+
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I64: u64 = 1 << 0;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I32: u64 = 1 << 1;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_U32: u64 = 1 << 2;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F64: u64 = 1 << 3;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F32: u64 = 1 << 4;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY: u64 = 1 << 5;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY: u64 = 1 << 6;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY: u64 = 1 << 7;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY: u64 = 1 << 8;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY: u64 = 1 << 9;
+
+impl TestCompatibilityV1NumericOnly {
+    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        numeric_only_write_protobuf_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into protobuf.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        numeric_only_write_protobuf_response(archived, max_response_bytes)
+    }
+}
+
+impl ProtobufMetamorphoseSchema for TestCompatibilityV1NumericOnly {
+    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_protobuf(bytes, max_response_bytes)
+    }
+    fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn numeric_only_write_protobuf_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.uint32(1, u32::from(SCHEMA_VERSION_VALUE))?;
+    for row in archived.rows.iter() {
+        let row_len = numeric_only_encoded_len_row(row, max_response_bytes)?;
+        writer.message_prefix(2, row_len)?;
+        numeric_only_write_protobuf_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn numeric_only_encoded_len_row(
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+    max_response_bytes: usize,
+) -> Result<usize> {
+    let mut len = 0_usize;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(1, u32::from(1_u16)),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(2, tenant_symbol(row.tenant_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(3, entity_symbol(row.entity_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(4, row.close_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(8, row.required_i64.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_int64(9, row.optional_i64.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int32(10, row.required_i32.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_int32(11, row.optional_i32.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(12, row.required_u32.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_uint32(13, row.optional_u32.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(14, row.required_f64.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_double(15, row.optional_f64.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_float(16, row.required_f32.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_float(17, row.optional_f32.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    for value in row.required_i64_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_int64(28, value), max_response_bytes)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0 {
+        for value in row.nullable_i64_array.iter().map(|value| value.to_native()) {
+            len = output::checked_len_add(
+                len,
+                proto::encoded_len_int64(29, value),
+                max_response_bytes,
+            )?;
+        }
+    }
+    for value in row.required_i32_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_int32(30, value), max_response_bytes)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0 {
+        for value in row.nullable_i32_array.iter().map(|value| value.to_native()) {
+            len = output::checked_len_add(
+                len,
+                proto::encoded_len_int32(31, value),
+                max_response_bytes,
+            )?;
+        }
+    }
+    for value in row.required_u32_array.iter().map(|value| value.to_native()) {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_uint32(32, value),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0 {
+        for value in row.nullable_u32_array.iter().map(|value| value.to_native()) {
+            len = output::checked_len_add(
+                len,
+                proto::encoded_len_uint32(33, value),
+                max_response_bytes,
+            )?;
+        }
+    }
+    for value in row.required_f64_array.iter().map(|value| value.to_native()) {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_double(34, value),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0 {
+        for value in row.nullable_f64_array.iter().map(|value| value.to_native()) {
+            len = output::checked_len_add(
+                len,
+                proto::encoded_len_double(35, value),
+                max_response_bytes,
+            )?;
+        }
+    }
+    for value in row.required_f32_array.iter().map(|value| value.to_native()) {
+        len =
+            output::checked_len_add(len, proto::encoded_len_float(36, value), max_response_bytes)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0 {
+        for value in row.nullable_f32_array.iter().map(|value| value.to_native()) {
+            len = output::checked_len_add(
+                len,
+                proto::encoded_len_float(37, value),
+                max_response_bytes,
+            )?;
+        }
+    }
+    Ok(len)
+}
+
+fn numeric_only_write_protobuf_row(
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+    writer: &mut ProtoWriter,
+) -> Result<()> {
+    writer.uint32(1, u32::from(1_u16))?;
+    writer.string(2, tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    writer.string(3, entity_symbol(row.entity_ordinal.to_native())?)?;
+    writer.int64(4, row.close_ms.to_native())?;
+    writer.int64(8, row.required_i64.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0 {
+        writer.int64(9, row.optional_i64.to_native())?;
+    }
+    writer.int32(10, row.required_i32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0 {
+        writer.int32(11, row.optional_i32.to_native())?;
+    }
+    writer.uint32(12, row.required_u32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0 {
+        writer.uint32(13, row.optional_u32.to_native())?;
+    }
+    writer.double(14, "required_f64", row.required_f64.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0 {
+        writer.double(15, "optional_f64", row.optional_f64.to_native())?;
+    }
+    writer.float(16, "required_f32", row.required_f32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0 {
+        writer.float(17, "optional_f32", row.optional_f32.to_native())?;
+    }
+    for value in row.required_i64_array.iter().map(|value| value.to_native()) {
+        writer.int64(28, value)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0 {
+        for value in row.nullable_i64_array.iter().map(|value| value.to_native()) {
+            writer.int64(29, value)?;
+        }
+    }
+    for value in row.required_i32_array.iter().map(|value| value.to_native()) {
+        writer.int32(30, value)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0 {
+        for value in row.nullable_i32_array.iter().map(|value| value.to_native()) {
+            writer.int32(31, value)?;
+        }
+    }
+    for value in row.required_u32_array.iter().map(|value| value.to_native()) {
+        writer.uint32(32, value)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0 {
+        for value in row.nullable_u32_array.iter().map(|value| value.to_native()) {
+            writer.uint32(33, value)?;
+        }
+    }
+    for value in row.required_f64_array.iter().map(|value| value.to_native()) {
+        writer.double(34, "required_f64_array", value)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0 {
+        for value in row.nullable_f64_array.iter().map(|value| value.to_native()) {
+            writer.double(35, "nullable_f64_array", value)?;
+        }
+    }
+    for value in row.required_f32_array.iter().map(|value| value.to_native()) {
+        writer.float(36, "required_f32_array", value)?;
+    }
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0 {
+        for value in row.nullable_f32_array.iter().map(|value| value.to_native()) {
+            writer.float(37, "nullable_f32_array", value)?;
+        }
+    }
+    Ok(())
+}

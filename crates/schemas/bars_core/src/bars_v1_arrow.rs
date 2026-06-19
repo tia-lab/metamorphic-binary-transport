@@ -315,3 +315,207 @@ fn arrow_record_batch(
     ];
     record_batch(schema, columns, max_response_bytes)
 }
+
+impl BarsV1NoMetadata {
+    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {
+        let archived = Self::access_archived(bytes)?;
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        no_metadata_arrow_record_batch(batch, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into Arrow.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<ArrowRecordBatch> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        no_metadata_arrow_record_batch(batch, max_response_bytes)
+    }
+}
+
+impl ArrowMetamorphoseSchema for BarsV1NoMetadata {
+    type RecordBatch = ArrowRecordBatch;
+    fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<Self::RecordBatch> {
+        Self::metamorphose_arrow(bytes, max_response_bytes)
+    }
+    fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Self::RecordBatch> {
+        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_metadata_arrow_record_batch(
+    batch: BarsV1NoMetadataColumnBatch,
+    max_response_bytes: usize,
+) -> Result<ArrowRecordBatch> {
+    let schema = Arc::new(ArrowSchema::new(vec![
+        ArrowField::new("schema_version", ArrowDataType::UInt16, false).with_metadata(
+            field_metadata("schema_version", "schema_version", None, None),
+        ),
+        ArrowField::new("pair", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+            "pair",
+            "pair_ordinal",
+            Some("pair"),
+            None,
+        )),
+        ArrowField::new("tf", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+            "tf",
+            "tf_ordinal",
+            Some("timeframe"),
+            None,
+        )),
+        ArrowField::new("open_ms", ArrowDataType::Int64, false)
+            .with_metadata(field_metadata("open_ms", "open_ms", None, None)),
+        ArrowField::new("close_ms", ArrowDataType::Int64, false)
+            .with_metadata(field_metadata("close_ms", "close_ms", None, None)),
+        ArrowField::new("o", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("o", "o", None, None)),
+        ArrowField::new("h", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("h", "h", None, None)),
+        ArrowField::new("l", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("l", "l", None, None)),
+        ArrowField::new("c", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("c", "c", None, None)),
+        ArrowField::new("v", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("v", "v", None, None)),
+        ArrowField::new("quote_v", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("quote_v", "quote_v", None, None)),
+        ArrowField::new("taker_known_v", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("taker_known_v", "taker_known_v", None, None)),
+        ArrowField::new("taker_signed_v", ArrowDataType::Float64, false).with_metadata(
+            field_metadata("taker_signed_v", "taker_signed_v", None, None),
+        ),
+        ArrowField::new("taker_known_quote_v", ArrowDataType::Float64, false).with_metadata(
+            field_metadata("taker_known_quote_v", "taker_known_quote_v", None, None),
+        ),
+        ArrowField::new("taker_signed_quote_v", ArrowDataType::Float64, false).with_metadata(
+            field_metadata("taker_signed_quote_v", "taker_signed_quote_v", None, None),
+        ),
+        ArrowField::new("taker_known_n", ArrowDataType::Int64, false)
+            .with_metadata(field_metadata("taker_known_n", "taker_known_n", None, None)),
+        ArrowField::new("taker_signed_n", ArrowDataType::Int64, false).with_metadata(
+            field_metadata("taker_signed_n", "taker_signed_n", None, None),
+        ),
+        ArrowField::new("vw", ArrowDataType::Float64, true)
+            .with_metadata(field_metadata("vw", "vw", None, None)),
+        ArrowField::new("n", ArrowDataType::Int64, true)
+            .with_metadata(field_metadata("n", "n", None, None)),
+        ArrowField::new("age_ms", ArrowDataType::Int64, true)
+            .with_metadata(field_metadata("age_ms", "age_ms", None, None)),
+    ]));
+    let columns: Vec<ArrowArrayRef> = vec![
+        mbt_adapter_arrow::const_u16_array(batch.schema_version)?,
+        mbt_adapter_arrow::u16_array(batch.pair_ordinal)?,
+        mbt_adapter_arrow::u16_array(batch.tf_ordinal)?,
+        mbt_adapter_arrow::i64_array(batch.open_ms)?,
+        mbt_adapter_arrow::i64_array(batch.close_ms)?,
+        mbt_adapter_arrow::f64_array(batch.o)?,
+        mbt_adapter_arrow::f64_array(batch.h)?,
+        mbt_adapter_arrow::f64_array(batch.l)?,
+        mbt_adapter_arrow::f64_array(batch.c)?,
+        mbt_adapter_arrow::f64_array(batch.v)?,
+        mbt_adapter_arrow::f64_array(batch.quote_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_known_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_signed_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_known_quote_v)?,
+        mbt_adapter_arrow::f64_array(batch.taker_signed_quote_v)?,
+        mbt_adapter_arrow::i64_array(batch.taker_known_n)?,
+        mbt_adapter_arrow::i64_array(batch.taker_signed_n)?,
+        mbt_adapter_arrow::optional_f64_array(batch.vw)?,
+        mbt_adapter_arrow::optional_i64_array(batch.n)?,
+        mbt_adapter_arrow::optional_i64_array(batch.age_ms)?,
+    ];
+    record_batch(schema, columns, max_response_bytes)
+}
+
+impl BarsV1OhlcvOnly {
+    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {
+        let archived = Self::access_archived(bytes)?;
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        ohlcv_only_arrow_record_batch(batch, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into Arrow.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<ArrowRecordBatch> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        let batch = Self::transpond_archived(archived, max_response_bytes)?;
+        ohlcv_only_arrow_record_batch(batch, max_response_bytes)
+    }
+}
+
+impl ArrowMetamorphoseSchema for BarsV1OhlcvOnly {
+    type RecordBatch = ArrowRecordBatch;
+    fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<Self::RecordBatch> {
+        Self::metamorphose_arrow(bytes, max_response_bytes)
+    }
+    fn metamorphose_arrow_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Self::RecordBatch> {
+        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn ohlcv_only_arrow_record_batch(
+    batch: BarsV1OhlcvOnlyColumnBatch,
+    max_response_bytes: usize,
+) -> Result<ArrowRecordBatch> {
+    let schema = Arc::new(ArrowSchema::new(vec![
+        ArrowField::new("schema_version", ArrowDataType::UInt16, false).with_metadata(
+            field_metadata("schema_version", "schema_version", None, None),
+        ),
+        ArrowField::new("pair", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+            "pair",
+            "pair_ordinal",
+            Some("pair"),
+            None,
+        )),
+        ArrowField::new("tf", ArrowDataType::UInt16, false).with_metadata(field_metadata(
+            "tf",
+            "tf_ordinal",
+            Some("timeframe"),
+            None,
+        )),
+        ArrowField::new("open_ms", ArrowDataType::Int64, false)
+            .with_metadata(field_metadata("open_ms", "open_ms", None, None)),
+        ArrowField::new("close_ms", ArrowDataType::Int64, false)
+            .with_metadata(field_metadata("close_ms", "close_ms", None, None)),
+        ArrowField::new("o", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("o", "o", None, None)),
+        ArrowField::new("h", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("h", "h", None, None)),
+        ArrowField::new("l", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("l", "l", None, None)),
+        ArrowField::new("c", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("c", "c", None, None)),
+        ArrowField::new("v", ArrowDataType::Float64, false)
+            .with_metadata(field_metadata("v", "v", None, None)),
+    ]));
+    let columns: Vec<ArrowArrayRef> = vec![
+        mbt_adapter_arrow::const_u16_array(batch.schema_version)?,
+        mbt_adapter_arrow::u16_array(batch.pair_ordinal)?,
+        mbt_adapter_arrow::u16_array(batch.tf_ordinal)?,
+        mbt_adapter_arrow::i64_array(batch.open_ms)?,
+        mbt_adapter_arrow::i64_array(batch.close_ms)?,
+        mbt_adapter_arrow::f64_array(batch.o)?,
+        mbt_adapter_arrow::f64_array(batch.h)?,
+        mbt_adapter_arrow::f64_array(batch.l)?,
+        mbt_adapter_arrow::f64_array(batch.c)?,
+        mbt_adapter_arrow::f64_array(batch.v)?,
+    ];
+    record_batch(schema, columns, max_response_bytes)
+}

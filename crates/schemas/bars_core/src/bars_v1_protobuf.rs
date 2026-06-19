@@ -607,3 +607,353 @@ fn write_protobuf_metadata(
     }
     Ok(())
 }
+
+const NO_METADATA_PRESENCE_VW: u64 = 1 << 0;
+const NO_METADATA_PRESENCE_N: u64 = 1 << 1;
+const NO_METADATA_PRESENCE_AGE_MS: u64 = 1 << 2;
+
+impl BarsV1NoMetadata {
+    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_metadata_write_protobuf_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into protobuf.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_metadata_write_protobuf_response(archived, max_response_bytes)
+    }
+}
+
+impl ProtobufMetamorphoseSchema for BarsV1NoMetadata {
+    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_protobuf(bytes, max_response_bytes)
+    }
+    fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_metadata_write_protobuf_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.uint32(1, u32::from(SCHEMA_VERSION_VALUE))?;
+    for row in archived.rows.iter() {
+        let row_len = no_metadata_encoded_len_row(row, max_response_bytes)?;
+        writer.message_prefix(2, row_len)?;
+        no_metadata_write_protobuf_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn no_metadata_encoded_len_row(
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+    max_response_bytes: usize,
+) -> Result<usize> {
+    let mut len = 0_usize;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(1, u32::from(1_u16)),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(2, pair_symbol(row.pair_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(3, tf_symbol(row.tf_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(4, row.open_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(5, row.close_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(6, output::utc_len(row.open_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(7, output::utc_len(row.close_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(8, row.o.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(9, row.h.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(10, row.l.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(11, row.c.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(12, row.v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(13, row.quote_v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(14, row.taker_known_v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(15, row.taker_signed_v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(16, row.taker_known_quote_v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(17, row.taker_signed_quote_v.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(18, row.taker_known_n.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(19, row.taker_signed_n.to_native()),
+        max_response_bytes,
+    )?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_VW != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_double(20, row.vw.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_N != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_int64(21, row.n.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_AGE_MS != 0 {
+        len = output::checked_len_add(
+            len,
+            proto::encoded_len_int64(23, row.age_ms.to_native()),
+            max_response_bytes,
+        )?;
+    }
+    Ok(len)
+}
+
+fn no_metadata_write_protobuf_row(
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+    writer: &mut ProtoWriter,
+) -> Result<()> {
+    writer.uint32(1, u32::from(1_u16))?;
+    writer.string(2, pair_symbol(row.pair_ordinal.to_native())?)?;
+    writer.string(3, tf_symbol(row.tf_ordinal.to_native())?)?;
+    writer.int64(4, row.open_ms.to_native())?;
+    writer.int64(5, row.close_ms.to_native())?;
+    writer.utc(6, row.open_ms.to_native())?;
+    writer.utc(7, row.close_ms.to_native())?;
+    writer.double(8, "o", row.o.to_native())?;
+    writer.double(9, "h", row.h.to_native())?;
+    writer.double(10, "l", row.l.to_native())?;
+    writer.double(11, "c", row.c.to_native())?;
+    writer.double(12, "v", row.v.to_native())?;
+    writer.double(13, "quote_v", row.quote_v.to_native())?;
+    writer.double(14, "taker_known_v", row.taker_known_v.to_native())?;
+    writer.double(15, "taker_signed_v", row.taker_signed_v.to_native())?;
+    writer.double(
+        16,
+        "taker_known_quote_v",
+        row.taker_known_quote_v.to_native(),
+    )?;
+    writer.double(
+        17,
+        "taker_signed_quote_v",
+        row.taker_signed_quote_v.to_native(),
+    )?;
+    writer.int64(18, row.taker_known_n.to_native())?;
+    writer.int64(19, row.taker_signed_n.to_native())?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_VW != 0 {
+        writer.double(20, "vw", row.vw.to_native())?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_N != 0 {
+        writer.int64(21, row.n.to_native())?;
+    }
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_AGE_MS != 0 {
+        writer.int64(23, row.age_ms.to_native())?;
+    }
+    Ok(())
+}
+
+impl BarsV1OhlcvOnly {
+    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        ohlcv_only_write_protobuf_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into protobuf.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        ohlcv_only_write_protobuf_response(archived, max_response_bytes)
+    }
+}
+
+impl ProtobufMetamorphoseSchema for BarsV1OhlcvOnly {
+    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_protobuf(bytes, max_response_bytes)
+    }
+    fn metamorphose_protobuf_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn ohlcv_only_write_protobuf_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.uint32(1, u32::from(SCHEMA_VERSION_VALUE))?;
+    for row in archived.rows.iter() {
+        let row_len = ohlcv_only_encoded_len_row(row, max_response_bytes)?;
+        writer.message_prefix(2, row_len)?;
+        ohlcv_only_write_protobuf_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn ohlcv_only_encoded_len_row(
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+    max_response_bytes: usize,
+) -> Result<usize> {
+    let mut len = 0_usize;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_uint32(1, u32::from(1_u16)),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(2, pair_symbol(row.pair_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_string(3, tf_symbol(row.tf_ordinal.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(4, row.open_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_int64(5, row.close_ms.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(6, output::utc_len(row.open_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        output::encoded_len_message(7, output::utc_len(row.close_ms.to_native())?),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(8, row.o.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(9, row.h.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(10, row.l.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(11, row.c.to_native()),
+        max_response_bytes,
+    )?;
+    len = output::checked_len_add(
+        len,
+        proto::encoded_len_double(12, row.v.to_native()),
+        max_response_bytes,
+    )?;
+    Ok(len)
+}
+
+fn ohlcv_only_write_protobuf_row(
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+    writer: &mut ProtoWriter,
+) -> Result<()> {
+    writer.uint32(1, u32::from(1_u16))?;
+    writer.string(2, pair_symbol(row.pair_ordinal.to_native())?)?;
+    writer.string(3, tf_symbol(row.tf_ordinal.to_native())?)?;
+    writer.int64(4, row.open_ms.to_native())?;
+    writer.int64(5, row.close_ms.to_native())?;
+    writer.utc(6, row.open_ms.to_native())?;
+    writer.utc(7, row.close_ms.to_native())?;
+    writer.double(8, "o", row.o.to_native())?;
+    writer.double(9, "h", row.h.to_native())?;
+    writer.double(10, "l", row.l.to_native())?;
+    writer.double(11, "c", row.c.to_native())?;
+    writer.double(12, "v", row.v.to_native())?;
+    Ok(())
+}

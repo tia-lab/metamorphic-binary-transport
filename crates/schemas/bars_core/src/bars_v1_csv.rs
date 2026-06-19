@@ -266,3 +266,188 @@ fn write_csv_venue_bitmask(mask: u64, writer: &mut CsvWriter) -> Result<()> {
     let _ = first;
     writer.end_array_cell()
 }
+
+const NO_METADATA_PRESENCE_VW: u64 = 1 << 0;
+const NO_METADATA_PRESENCE_N: u64 = 1 << 1;
+const NO_METADATA_PRESENCE_AGE_MS: u64 = 1 << 2;
+
+const NO_METADATA_CSV_HEADER: &[u8] = b"schema_version,pair,tf,open_ms,close_ms,open_utc,close_utc,o,h,l,c,v,quote_v,taker_known_v,taker_signed_v,taker_known_quote_v,taker_signed_quote_v,taker_known_n,taker_signed_n,vw,n,age_ms";
+
+impl BarsV1NoMetadata {
+    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_metadata_write_csv_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into CSV.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_metadata_write_csv_response(archived, max_response_bytes)
+    }
+}
+
+impl CsvMetamorphoseSchema for BarsV1NoMetadata {
+    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_csv(bytes, max_response_bytes)
+    }
+    fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_csv_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_metadata_write_csv_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadNoMetadata,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.raw_static(NO_METADATA_CSV_HEADER)?;
+    writer.newline()?;
+    for row in archived.rows.iter() {
+        no_metadata_write_csv_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn no_metadata_write_csv_row(
+    row: &<MathildeBarRowV1NoMetadata as Archive>::Archived,
+    writer: &mut CsvWriter,
+) -> Result<()> {
+    writer.u32_cell(u32::from(1_u16))?;
+    writer.comma()?;
+    writer.string_cell(pair_symbol(row.pair_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.string_cell(tf_symbol(row.tf_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.i64_cell(row.open_ms.to_native())?;
+    writer.comma()?;
+    writer.i64_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.utc_cell(row.open_ms.to_native())?;
+    writer.comma()?;
+    writer.utc_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("o", row.o.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("h", row.h.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("l", row.l.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("c", row.c.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("v", row.v.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("quote_v", row.quote_v.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("taker_known_v", row.taker_known_v.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("taker_signed_v", row.taker_signed_v.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("taker_known_quote_v", row.taker_known_quote_v.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("taker_signed_quote_v", row.taker_signed_quote_v.to_native())?;
+    writer.comma()?;
+    writer.i64_cell(row.taker_known_n.to_native())?;
+    writer.comma()?;
+    writer.i64_cell(row.taker_signed_n.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_VW != 0 {
+        writer.f64_cell("vw", row.vw.to_native())?;
+    }
+    writer.comma()?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_N != 0 {
+        writer.i64_cell(row.n.to_native())?;
+    }
+    writer.comma()?;
+    if row.presence_bits.to_native() & NO_METADATA_PRESENCE_AGE_MS != 0 {
+        writer.i64_cell(row.age_ms.to_native())?;
+    }
+    writer.newline()
+}
+
+const OHLCV_ONLY_CSV_HEADER: &[u8] =
+    b"schema_version,pair,tf,open_ms,close_ms,open_utc,close_utc,o,h,l,c,v";
+
+impl BarsV1OhlcvOnly {
+    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        ohlcv_only_write_csv_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into CSV.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        ohlcv_only_write_csv_response(archived, max_response_bytes)
+    }
+}
+
+impl CsvMetamorphoseSchema for BarsV1OhlcvOnly {
+    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_csv(bytes, max_response_bytes)
+    }
+    fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_csv_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn ohlcv_only_write_csv_response(
+    archived: &ArchivedMathildeTransportResponseV1PayloadOhlcvOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.raw_static(OHLCV_ONLY_CSV_HEADER)?;
+    writer.newline()?;
+    for row in archived.rows.iter() {
+        ohlcv_only_write_csv_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn ohlcv_only_write_csv_row(
+    row: &<MathildeBarRowV1OhlcvOnly as Archive>::Archived,
+    writer: &mut CsvWriter,
+) -> Result<()> {
+    writer.u32_cell(u32::from(1_u16))?;
+    writer.comma()?;
+    writer.string_cell(pair_symbol(row.pair_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.string_cell(tf_symbol(row.tf_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.i64_cell(row.open_ms.to_native())?;
+    writer.comma()?;
+    writer.i64_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.utc_cell(row.open_ms.to_native())?;
+    writer.comma()?;
+    writer.utc_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("o", row.o.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("h", row.h.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("l", row.l.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("c", row.c.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("v", row.v.to_native())?;
+    writer.newline()
+}

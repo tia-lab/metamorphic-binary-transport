@@ -205,3 +205,283 @@ fn write_csv_venue_bitmask(mask: u64, writer: &mut CsvWriter) -> Result<()> {
     let _ = first;
     writer.end_array_cell()
 }
+
+const NO_OPTIONAL_CSV_HEADER: &[u8] = b"schema_version,tenant,entity,close_ms,status,venues,required_i64,required_i32,required_u32,required_f64,required_f32,required_bool,required_text,required_bytes,uuid_text,jsonb_text,timestamptz_text,numeric_text,required_i64_array,required_i32_array,required_u32_array,required_f64_array,required_f32_array";
+
+impl TestCompatibilityV1NoOptional {
+    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_optional_write_csv_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into CSV.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_optional_write_csv_response(archived, max_response_bytes)
+    }
+}
+
+impl CsvMetamorphoseSchema for TestCompatibilityV1NoOptional {
+    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_csv(bytes, max_response_bytes)
+    }
+    fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_csv_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_optional_write_csv_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.raw_static(NO_OPTIONAL_CSV_HEADER)?;
+    writer.newline()?;
+    for row in archived.rows.iter() {
+        no_optional_write_csv_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn no_optional_write_csv_row(
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+    writer: &mut CsvWriter,
+) -> Result<()> {
+    writer.u32_cell(u32::from(1_u16))?;
+    writer.comma()?;
+    writer.string_cell(tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.string_cell(entity_symbol(row.entity_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.i64_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.string_cell(status_symbol(row.status_ordinal.to_native())?)?;
+    writer.comma()?;
+    no_optional_write_csv_venue_bitmask(row.venues_mask.to_native(), writer)?;
+    writer.comma()?;
+    writer.i64_cell(row.required_i64.to_native())?;
+    writer.comma()?;
+    writer.i32_cell(row.required_i32.to_native())?;
+    writer.comma()?;
+    writer.u32_cell(row.required_u32.to_native())?;
+    writer.comma()?;
+    writer.f64_cell("required_f64", row.required_f64.to_native())?;
+    writer.comma()?;
+    writer.f32_cell("required_f32", row.required_f32.to_native())?;
+    writer.comma()?;
+    writer.bool_cell(row.required_bool)?;
+    writer.comma()?;
+    writer.string_cell(row.required_text.as_str())?;
+    writer.comma()?;
+    writer.bytes_cell(row.required_bytes.as_slice())?;
+    writer.comma()?;
+    writer.string_cell(row.uuid_text.as_str())?;
+    writer.comma()?;
+    writer.string_cell(row.jsonb_text.as_str())?;
+    writer.comma()?;
+    writer.string_cell(row.timestamptz_text.as_str())?;
+    writer.comma()?;
+    writer.string_cell(row.numeric_text.as_str())?;
+    writer.comma()?;
+    writer.i64_array_cell(row.required_i64_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    writer.i32_array_cell(row.required_i32_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    writer.u32_array_cell(row.required_u32_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    writer.f64_array_cell(
+        "required_f64_array",
+        row.required_f64_array.iter().map(|value| value.to_native()),
+    )?;
+    writer.comma()?;
+    writer.f32_array_cell(
+        "required_f32_array",
+        row.required_f32_array.iter().map(|value| value.to_native()),
+    )?;
+    writer.newline()
+}
+
+fn no_optional_write_csv_venue_bitmask(mask: u64, writer: &mut CsvWriter) -> Result<()> {
+    writer.begin_array_cell()?;
+    let mut first = true;
+    if mask & (1_u64 << 0) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.array_cell_comma()?;
+        }
+        writer.string_cell("binance")?;
+    }
+    if mask & (1_u64 << 1) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.array_cell_comma()?;
+        }
+        writer.string_cell("bybit")?;
+    }
+    if mask & (1_u64 << 2) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.array_cell_comma()?;
+        }
+        writer.string_cell("okx")?;
+    }
+    let _ = first;
+    writer.end_array_cell()
+}
+
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I64: u64 = 1 << 0;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I32: u64 = 1 << 1;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_U32: u64 = 1 << 2;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F64: u64 = 1 << 3;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F32: u64 = 1 << 4;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY: u64 = 1 << 5;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY: u64 = 1 << 6;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY: u64 = 1 << 7;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY: u64 = 1 << 8;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY: u64 = 1 << 9;
+
+const NUMERIC_ONLY_CSV_HEADER: &[u8] = b"schema_version,tenant,entity,close_ms,required_i64,optional_i64,required_i32,optional_i32,required_u32,optional_u32,required_f64,optional_f64,required_f32,optional_f32,required_i64_array,nullable_i64_array,required_i32_array,nullable_i32_array,required_u32_array,nullable_u32_array,required_f64_array,nullable_f64_array,required_f32_array,nullable_f32_array";
+
+impl TestCompatibilityV1NumericOnly {
+    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        numeric_only_write_csv_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into CSV.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        numeric_only_write_csv_response(archived, max_response_bytes)
+    }
+}
+
+impl CsvMetamorphoseSchema for TestCompatibilityV1NumericOnly {
+    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_csv(bytes, max_response_bytes)
+    }
+    fn metamorphose_csv_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_csv_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn numeric_only_write_csv_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.raw_static(NUMERIC_ONLY_CSV_HEADER)?;
+    writer.newline()?;
+    for row in archived.rows.iter() {
+        numeric_only_write_csv_row(row, &mut writer)?;
+    }
+    Ok(writer.finish())
+}
+
+fn numeric_only_write_csv_row(
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+    writer: &mut CsvWriter,
+) -> Result<()> {
+    writer.u32_cell(u32::from(1_u16))?;
+    writer.comma()?;
+    writer.string_cell(tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.string_cell(entity_symbol(row.entity_ordinal.to_native())?)?;
+    writer.comma()?;
+    writer.i64_cell(row.close_ms.to_native())?;
+    writer.comma()?;
+    writer.i64_cell(row.required_i64.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0 {
+        writer.i64_cell(row.optional_i64.to_native())?;
+    }
+    writer.comma()?;
+    writer.i32_cell(row.required_i32.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0 {
+        writer.i32_cell(row.optional_i32.to_native())?;
+    }
+    writer.comma()?;
+    writer.u32_cell(row.required_u32.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0 {
+        writer.u32_cell(row.optional_u32.to_native())?;
+    }
+    writer.comma()?;
+    writer.f64_cell("required_f64", row.required_f64.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0 {
+        writer.f64_cell("optional_f64", row.optional_f64.to_native())?;
+    }
+    writer.comma()?;
+    writer.f32_cell("required_f32", row.required_f32.to_native())?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0 {
+        writer.f32_cell("optional_f32", row.optional_f32.to_native())?;
+    }
+    writer.comma()?;
+    writer.i64_array_cell(row.required_i64_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0 {
+        writer.i64_array_cell(row.nullable_i64_array.iter().map(|value| value.to_native()))?;
+    }
+    writer.comma()?;
+    writer.i32_array_cell(row.required_i32_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0 {
+        writer.i32_array_cell(row.nullable_i32_array.iter().map(|value| value.to_native()))?;
+    }
+    writer.comma()?;
+    writer.u32_array_cell(row.required_u32_array.iter().map(|value| value.to_native()))?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0 {
+        writer.u32_array_cell(row.nullable_u32_array.iter().map(|value| value.to_native()))?;
+    }
+    writer.comma()?;
+    writer.f64_array_cell(
+        "required_f64_array",
+        row.required_f64_array.iter().map(|value| value.to_native()),
+    )?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0 {
+        writer.f64_array_cell(
+            "nullable_f64_array",
+            row.nullable_f64_array.iter().map(|value| value.to_native()),
+        )?;
+    }
+    writer.comma()?;
+    writer.f32_array_cell(
+        "required_f32_array",
+        row.required_f32_array.iter().map(|value| value.to_native()),
+    )?;
+    writer.comma()?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0 {
+        writer.f32_array_cell(
+            "nullable_f32_array",
+            row.nullable_f32_array.iter().map(|value| value.to_native()),
+        )?;
+    }
+    writer.newline()
+}

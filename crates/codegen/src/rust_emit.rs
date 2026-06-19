@@ -119,27 +119,33 @@ pub fn generated_metamorphose_adapter_schema(
     let mut out = String::new();
     emit_header(&mut out, model);
     match adapter {
-        Adapter::Json => emit_metamorphose_json(&mut out, model),
-        Adapter::Protobuf => emit_metamorphose_protobuf(&mut out, model),
-        Adapter::Csv => emit_metamorphose_csv(&mut out, model),
-        Adapter::Transponding => emit_metamorphose_transponding(&mut out, model),
-        Adapter::Arrow => emit_metamorphose_arrow(&mut out, model),
-        Adapter::ArrowIpc => emit_metamorphose_arrow_ipc(&mut out, model),
-        Adapter::Parquet => emit_metamorphose_parquet(&mut out, model),
-    }
+        Adapter::Json => emit_metamorphose_json(&mut out, model)?,
+        Adapter::Protobuf => emit_metamorphose_protobuf(&mut out, model)?,
+        Adapter::Csv => emit_metamorphose_csv(&mut out, model)?,
+        Adapter::Transponding => emit_metamorphose_transponding(&mut out, model)?,
+        Adapter::Arrow => emit_metamorphose_arrow(&mut out, model)?,
+        Adapter::ArrowIpc => emit_metamorphose_arrow_ipc(&mut out, model)?,
+        Adapter::Parquet => emit_metamorphose_parquet(&mut out, model)?,
+    };
     Ok(out)
 }
 
-fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) -> Result<()> {
     // JSON emission writes archived fields directly through JsonWriter helpers.
     emit_adapter_prelude(out, model, true);
     out.push_str("use mbt_adapter_json::JsonWriter;\n");
     out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, JsonMetamorphoseSchema};\n\n");
-    emit_json_field_constants(out, model);
-    emit_json_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_json_adapter_section)
+}
+
+fn emit_json_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    ensure_json_csv_outputs(scope.model, "JSON")?;
+    emit_projection_adapter_presence_constants(out, scope)?;
+    emit_json_field_constants(out, scope);
+    emit_json_inherent_api(out, scope);
     out.push_str(&format!(
         "impl JsonMetamorphoseSchema for {} {{\n",
-        model.marker_type
+        scope.model.marker_type
     ));
     out.push_str("    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_json(bytes, max_response_bytes) }\n");
     out.push_str("    fn metamorphose_json_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
@@ -148,10 +154,11 @@ fn emit_metamorphose_json(out: &mut String, model: &SchemaModel) {
     );
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_json_writer_helpers(out, model);
+    emit_json_writer_helpers(out, scope);
+    Ok(())
 }
 
-fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) -> Result<()> {
     // Protobuf emission keeps generated length accounting next to wire writes.
     emit_adapter_prelude(out, model, true);
     out.push_str("use mbt_adapter_protobuf::{self as proto, ProtoWriter};\n");
@@ -159,29 +166,42 @@ fn emit_metamorphose_protobuf(out: &mut String, model: &SchemaModel) {
     out.push_str(
         "use mbt_metamorphose::{runtime::TrustedUnchecked, ProtobufMetamorphoseSchema};\n\n",
     );
-    emit_protobuf_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_protobuf_adapter_section)
+}
+
+fn emit_protobuf_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    ensure_protobuf_outputs(scope.model)?;
+    emit_projection_adapter_presence_constants(out, scope)?;
+    emit_protobuf_inherent_api(out, scope);
     out.push_str(&format!(
         "impl ProtobufMetamorphoseSchema for {} {{\n",
-        model.marker_type
+        scope.model.marker_type
     ));
     out.push_str("    fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_protobuf(bytes, max_response_bytes) }\n");
     out.push_str("    fn metamorphose_protobuf_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
     out.push_str("        unsafe { Self::metamorphose_protobuf_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_protobuf_writer_helpers(out, model);
+    emit_protobuf_writer_helpers(out, scope);
+    Ok(())
 }
 
-fn emit_metamorphose_csv(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_csv(out: &mut String, model: &SchemaModel) -> Result<()> {
     // CSV emission shares the row-format output order with JSON.
     emit_adapter_prelude(out, model, true);
     out.push_str("use mbt_adapter_csv::CsvWriter;\n");
     out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, CsvMetamorphoseSchema};\n\n");
-    emit_csv_header(out, model);
-    emit_csv_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_csv_adapter_section)
+}
+
+fn emit_csv_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    ensure_json_csv_outputs(scope.model, "CSV")?;
+    emit_projection_adapter_presence_constants(out, scope)?;
+    emit_csv_header(out, scope);
+    emit_csv_inherent_api(out, scope);
     out.push_str(&format!(
         "impl CsvMetamorphoseSchema for {} {{\n",
-        model.marker_type
+        scope.model.marker_type
     ));
     out.push_str("    fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> { Self::metamorphose_csv(bytes, max_response_bytes) }\n");
     out.push_str("    fn metamorphose_csv_trusted_unchecked(bytes: &[u8], max_response_bytes: usize, _trusted: TrustedUnchecked) -> Result<Vec<u8>> {\n");
@@ -190,7 +210,8 @@ fn emit_metamorphose_csv(out: &mut String, model: &SchemaModel) {
     );
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_csv_writer_helpers(out, model);
+    emit_csv_writer_helpers(out, scope);
+    Ok(())
 }
 
 fn emit_adapter_prelude(out: &mut String, model: &SchemaModel, include_archive: bool) {
@@ -201,27 +222,116 @@ fn emit_adapter_prelude(out: &mut String, model: &SchemaModel, include_archive: 
     out.push_str("use mbt_core::error::Result;\n");
 }
 
-fn emit_json_field_constants(out: &mut String, model: &SchemaModel) {
-    out.push_str("const JSON_SCHEMA_VERSION_FIELD: &[u8] = b\"\\\"schema_version\\\":\";\n");
+fn emit_projection_adapter_presence_constants(
+    out: &mut String,
+    scope: &EmitScope<'_>,
+) -> Result<()> {
+    if scope.public_free_items {
+        return Ok(());
+    }
+    let model = scope.model;
+    for field in presence_fields(model) {
+        let bit = field
+            .presence_bit
+            .ok_or_else(|| CodegenError::InvalidSchema("presence field without bit".to_string()))?;
+        if presence_is_wide(model) {
+            out.push_str(&format!(
+                "const {}: usize = {};\n",
+                presence_word_const(scope, field),
+                presence_word(bit)
+            ));
+            out.push_str(&format!(
+                "const {}: u64 = {};\n",
+                presence_mask_const(scope, field),
+                presence_mask(bit)
+            ));
+        } else {
+            out.push_str(&format!(
+                "const {}: u64 = 1 << {bit};\n",
+                presence_const(scope, field)
+            ));
+        }
+    }
+    if has_presence(model) {
+        out.push('\n');
+    }
+    Ok(())
+}
+
+fn emit_adapter_sections(
+    out: &mut String,
+    model: &SchemaModel,
+    emit_section: fn(&mut String, &EmitScope<'_>) -> Result<()>,
+) -> Result<()> {
+    let source_scope = EmitScope::source(model);
+    emit_section(out, &source_scope)?;
+
+    let projection_sections = model
+        .projections
+        .iter()
+        .map(|projection| projection_adapter_schema_model(model, projection))
+        .collect::<Result<Vec<_>>>()?;
+    for (projection, projection_model) in model.projections.iter().zip(projection_sections.iter()) {
+        validate_model(projection_model)?;
+        let scope = EmitScope::projection(projection_model, &projection.definition.name);
+        emit_section(out, &scope)?;
+    }
+    Ok(())
+}
+
+fn ensure_json_csv_outputs(model: &SchemaModel, adapter: &str) -> Result<()> {
+    if model.json_csv_output_fields.is_empty() {
+        return Err(CodegenError::InvalidSchema(format!(
+            "{adapter} adapter for {} has no retained row-format fields",
+            model.marker_type
+        )));
+    }
+    Ok(())
+}
+
+fn ensure_protobuf_outputs(model: &SchemaModel) -> Result<()> {
+    if model.protobuf_messages.is_empty() || model.protobuf_messages[0].fields.is_empty() {
+        return Err(CodegenError::InvalidSchema(format!(
+            "protobuf adapter for {} has no retained row-format fields",
+            model.marker_type
+        )));
+    }
+    Ok(())
+}
+
+fn emit_json_field_constants(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     out.push_str(&format!(
-        "const JSON_ROWS_FIELD: &[u8] = b\"\\\"{}\\\":\";\n",
+        "const {}: &[u8] = b\"\\\"schema_version\\\":\";\n",
+        scope.const_name("JSON_SCHEMA_VERSION_FIELD")
+    ));
+    out.push_str(&format!(
+        "const {}: &[u8] = b\"\\\"{}\\\":\";\n",
+        scope.const_name("JSON_ROWS_FIELD"),
         model.row_field_name
     ));
     for output in &model.json_csv_output_fields {
         out.push_str(&format!(
-            "const JSON_FIELD_{}: &[u8] = b\"\\\"{}\\\":\";\n",
-            json_output_const_name(model, output),
+            "const {}: &[u8] = b\"\\\"{}\\\":\";\n",
+            scope.const_name(&format!(
+                "JSON_FIELD_{}",
+                json_output_const_name(model, output)
+            )),
             json_output_field_name(model, output)
         ));
     }
     out.push('\n');
 }
 
-fn emit_json_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_json_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let response_fn = scope.fn_name("write_json_response");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
-    out.push_str("        write_json_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n\n");
     out.push_str(
         "    /// Metamorphoses immutable bytes already validated for this schema into JSON.\n",
@@ -233,25 +343,36 @@ fn emit_json_inherent_api(out: &mut String, model: &SchemaModel) {
     out.push_str(
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
-    out.push_str("        write_json_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn emit_json_writer_helpers(out: &mut String, model: &SchemaModel) {
+fn emit_json_writer_helpers(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let response_fn = scope.fn_name("write_json_response");
+    let row_fn = scope.fn_name("write_json_row");
     out.push_str(&format!(
-        "fn write_json_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        "fn {response_fn}(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.payload_type
     ));
     out.push_str("    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
     out.push_str("    writer.begin_object()?;\n");
-    out.push_str("    writer.raw_static(JSON_SCHEMA_VERSION_FIELD)?;\n");
+    out.push_str(&format!(
+        "    writer.raw_static({})?;\n",
+        scope.const_name("JSON_SCHEMA_VERSION_FIELD")
+    ));
     out.push_str(&format!(
         "    writer.u32_value(u32::from({}_VALUE))?;\n",
         "SCHEMA_VERSION"
     ));
     out.push_str("    writer.comma()?;\n");
-    out.push_str("    writer.raw_static(JSON_ROWS_FIELD)?;\n");
+    out.push_str(&format!(
+        "    writer.raw_static({})?;\n",
+        scope.const_name("JSON_ROWS_FIELD")
+    ));
     out.push_str("    writer.begin_array()?;\n");
     out.push_str("    let mut first_row = true;\n");
     out.push_str(&format!(
@@ -259,7 +380,7 @@ fn emit_json_writer_helpers(out: &mut String, model: &SchemaModel) {
         model.row_field_name
     ));
     out.push_str("        if first_row { first_row = false; } else { writer.comma()?; }\n");
-    out.push_str("        write_json_row(row, &mut writer)?;\n");
+    out.push_str(&format!("        {row_fn}(row, &mut writer)?;\n"));
     out.push_str("    }\n");
     out.push_str("    writer.end_array()?;\n");
     out.push_str("    writer.end_object()?;\n");
@@ -267,39 +388,44 @@ fn emit_json_writer_helpers(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 
     out.push_str(&format!(
-        "fn write_json_row(row: &<{} as Archive>::Archived, writer: &mut JsonWriter) -> Result<()> {{\n",
+        "fn {row_fn}(row: &<{} as Archive>::Archived, writer: &mut JsonWriter) -> Result<()> {{\n",
         model.row_type
     ));
     out.push_str("    writer.begin_object()?;\n");
     out.push_str("    let mut first = true;\n");
     for output in &model.json_csv_output_fields {
-        if let Some(condition) = json_output_optional_condition(model, output) {
+        if let Some(condition) = json_output_optional_condition(scope, output) {
             out.push_str(&format!("    if {condition} {{\n"));
-            emit_json_output_write(out, model, output, "        ");
+            emit_json_output_write(out, scope, output, "        ");
             out.push_str("    }\n");
         } else {
-            emit_json_output_write(out, model, output, "    ");
+            emit_json_output_write(out, scope, output, "    ");
         }
     }
     out.push_str("    writer.end_object()\n");
     out.push_str("}\n\n");
-    emit_json_bitmask_helpers(out, model);
-    emit_json_field_prefix_helper(out);
+    emit_json_bitmask_helpers(out, scope);
+    emit_json_field_prefix_helper(out, scope);
 }
 
 fn emit_json_output_write(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &JsonCsvOutputField,
     indent: &str,
 ) {
+    let model = scope.model;
+    let prefix_fn = scope.fn_name("write_json_field_prefix");
     out.push_str(&format!(
-        "{indent}write_json_field_prefix(writer, &mut first, JSON_FIELD_{})?;\n",
-        json_output_const_name(model, output)
+        "{indent}{prefix_fn}(writer, &mut first, {})?;\n",
+        scope.const_name(&format!(
+            "JSON_FIELD_{}",
+            json_output_const_name(model, output)
+        ))
     ));
     match output {
         JsonCsvOutputField::Physical { field_index } => {
-            emit_json_value_write(out, model, &model.fields[*field_index], indent);
+            emit_json_value_write(out, scope, &model.fields[*field_index], indent);
         }
         JsonCsvOutputField::DerivedUtc { derived_index } => {
             let field = &model.derived_utc_fields[*derived_index];
@@ -313,10 +439,11 @@ fn emit_json_output_write(
 
 fn emit_json_value_write(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     field: &PhysicalField,
     indent: &str,
 ) {
+    let model = scope.model;
     let value = archived_value_access_for("row", field);
     match &field.kind {
         FieldKind::ConstU16 { value } => out.push_str(&format!(
@@ -328,8 +455,11 @@ fn emit_json_value_write(
             field.rust_name
         )),
         FieldKind::U64BitmaskDictionary { dictionary } => out.push_str(&format!(
-            "{indent}write_json_{}_bitmask(row.{}.to_native(), writer)?;\n",
-            const_name(dictionary).to_ascii_lowercase(),
+            "{indent}{}(row.{}.to_native(), writer)?;\n",
+            scope.fn_name(&format!(
+                "write_json_{}_bitmask",
+                const_name(dictionary).to_ascii_lowercase()
+            )),
             field.rust_name
         )),
         FieldKind::I32 => out.push_str(&format!("{indent}writer.i32_value({value})?;\n")),
@@ -366,14 +496,18 @@ fn emit_json_value_write(
     }
 }
 
-fn emit_json_bitmask_helpers(out: &mut String, model: &SchemaModel) {
+fn emit_json_bitmask_helpers(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     for dictionary in &model.dictionaries {
         if !dictionary_is_bitmask(model, &dictionary.name) {
             continue;
         }
-        out.push_str(&format!(
-            "fn write_json_{}_bitmask(mask: u64, writer: &mut JsonWriter) -> Result<()> {{\n",
+        let helper = scope.fn_name(&format!(
+            "write_json_{}_bitmask",
             const_name(&dictionary.name).to_ascii_lowercase()
+        ));
+        out.push_str(&format!(
+            "fn {helper}(mask: u64, writer: &mut JsonWriter) -> Result<()> {{\n"
         ));
         out.push_str("    writer.begin_array()?;\n");
         out.push_str("    let mut first = true;\n");
@@ -389,18 +523,25 @@ fn emit_json_bitmask_helpers(out: &mut String, model: &SchemaModel) {
     }
 }
 
-fn emit_json_field_prefix_helper(out: &mut String) {
-    out.push_str("fn write_json_field_prefix(writer: &mut JsonWriter, first: &mut bool, field: &'static [u8]) -> Result<()> {\n");
+fn emit_json_field_prefix_helper(out: &mut String, scope: &EmitScope<'_>) {
+    out.push_str(&format!(
+        "fn {}(writer: &mut JsonWriter, first: &mut bool, field: &'static [u8]) -> Result<()> {{\n",
+        scope.fn_name("write_json_field_prefix")
+    ));
     out.push_str("    if *first { *first = false; } else { writer.comma()?; }\n");
     out.push_str("    writer.raw_static(field)\n");
     out.push_str("}\n\n");
 }
 
-fn emit_protobuf_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_protobuf_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let response_fn = scope.fn_name("write_protobuf_response");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_protobuf(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
-    out.push_str("        write_protobuf_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n\n");
     out.push_str(
         "    /// Metamorphoses immutable bytes already validated for this schema into protobuf.\n",
@@ -412,17 +553,21 @@ fn emit_protobuf_inherent_api(out: &mut String, model: &SchemaModel) {
     out.push_str(
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
-    out.push_str("        write_protobuf_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn emit_protobuf_writer_helpers(out: &mut String, model: &SchemaModel) {
+fn emit_protobuf_writer_helpers(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     let root = &model.protobuf_messages[0];
-    let root_len_fn = protobuf_len_fn_name(root);
-    let root_write_fn = protobuf_write_fn_name(root);
+    let root_len_fn = scoped_protobuf_len_fn_name(scope, root);
+    let root_write_fn = scoped_protobuf_write_fn_name(scope, root);
+    let response_fn = scope.fn_name("write_protobuf_response");
     out.push_str(&format!(
-        "fn write_protobuf_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        "fn {response_fn}(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.payload_type
     ));
     out.push_str("    let mut writer = ProtoWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
@@ -447,29 +592,30 @@ fn emit_protobuf_writer_helpers(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 
     for message in &model.protobuf_messages {
-        emit_protobuf_message_len_helper(out, model, message);
-        emit_protobuf_message_write_helper(out, model, message);
+        emit_protobuf_message_len_helper(out, scope, message);
+        emit_protobuf_message_write_helper(out, scope, message);
     }
 }
 
 fn emit_protobuf_message_len_helper(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     message: &ProtobufMessageModel,
 ) {
+    let model = scope.model;
+    let len_fn = scoped_protobuf_len_fn_name(scope, message);
     out.push_str(&format!(
-        "fn {}(row: &<{} as Archive>::Archived, max_response_bytes: usize) -> Result<usize> {{\n",
-        protobuf_len_fn_name(message),
+        "fn {len_fn}(row: &<{} as Archive>::Archived, max_response_bytes: usize) -> Result<usize> {{\n",
         model.row_type
     ));
     out.push_str("    let mut len = 0_usize;\n");
     for output in &message.fields {
-        if let Some(condition) = protobuf_output_optional_condition(model, output) {
+        if let Some(condition) = protobuf_output_optional_condition(scope, output) {
             out.push_str(&format!("    if {condition} {{\n"));
-            emit_protobuf_output_len_line(out, model, output, "        ");
+            emit_protobuf_output_len_line(out, scope, output, "        ");
             out.push_str("    }\n");
         } else {
-            emit_protobuf_output_len_line(out, model, output, "    ");
+            emit_protobuf_output_len_line(out, scope, output, "    ");
         }
     }
     out.push_str("    Ok(len)\n");
@@ -478,21 +624,22 @@ fn emit_protobuf_message_len_helper(
 
 fn emit_protobuf_message_write_helper(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     message: &ProtobufMessageModel,
 ) {
+    let model = scope.model;
+    let write_fn = scoped_protobuf_write_fn_name(scope, message);
     out.push_str(&format!(
-        "fn {}(row: &<{} as Archive>::Archived, writer: &mut ProtoWriter) -> Result<()> {{\n",
-        protobuf_write_fn_name(message),
+        "fn {write_fn}(row: &<{} as Archive>::Archived, writer: &mut ProtoWriter) -> Result<()> {{\n",
         model.row_type
     ));
     for output in &message.fields {
-        if let Some(condition) = protobuf_output_optional_condition(model, output) {
+        if let Some(condition) = protobuf_output_optional_condition(scope, output) {
             out.push_str(&format!("    if {condition} {{\n"));
-            emit_protobuf_output_write_line(out, model, output, "        ");
+            emit_protobuf_output_write_line(out, scope, output, "        ");
             out.push_str("    }\n");
         } else {
-            emit_protobuf_output_write_line(out, model, output, "    ");
+            emit_protobuf_output_write_line(out, scope, output, "    ");
         }
     }
     out.push_str("    Ok(())\n");
@@ -501,10 +648,11 @@ fn emit_protobuf_message_write_helper(
 
 fn emit_protobuf_output_len_line(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &ProtobufOutputField,
     indent: &str,
 ) {
+    let model = scope.model;
     match output {
         ProtobufOutputField::Physical { field_index } => {
             emit_protobuf_len_line(out, model, &model.fields[*field_index], indent);
@@ -519,7 +667,7 @@ fn emit_protobuf_output_len_line(
         ProtobufOutputField::Message { message_index } => {
             let child = &model.protobuf_messages[*message_index];
             if let Some(tag) = child.enclosing_proto_number {
-                let child_len_fn = protobuf_len_fn_name(child);
+                let child_len_fn = scoped_protobuf_len_fn_name(scope, child);
                 out.push_str(&format!(
                     "{indent}let message_len = {child_len_fn}(row, max_response_bytes)?;\n"
                 ));
@@ -533,10 +681,11 @@ fn emit_protobuf_output_len_line(
 
 fn emit_protobuf_output_write_line(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &ProtobufOutputField,
     indent: &str,
 ) {
+    let model = scope.model;
     match output {
         ProtobufOutputField::Physical { field_index } => {
             emit_protobuf_write_line(out, model, &model.fields[*field_index], indent);
@@ -551,8 +700,8 @@ fn emit_protobuf_output_write_line(
         ProtobufOutputField::Message { message_index } => {
             let child = &model.protobuf_messages[*message_index];
             if let Some(tag) = child.enclosing_proto_number {
-                let child_len_fn = protobuf_len_fn_name(child);
-                let child_write_fn = protobuf_write_fn_name(child);
+                let child_len_fn = scoped_protobuf_len_fn_name(scope, child);
+                let child_write_fn = scoped_protobuf_write_fn_name(scope, child);
                 out.push_str(&format!(
                     "{indent}let message_len = {child_len_fn}(row, usize::MAX)?;\n"
                 ));
@@ -698,21 +847,29 @@ fn emit_protobuf_write_line(
     }
 }
 
-fn emit_csv_header(out: &mut String, model: &SchemaModel) {
+fn emit_csv_header(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     let header = model
         .json_csv_output_fields
         .iter()
         .map(|output| csv_output_field_name(model, output))
         .collect::<Vec<_>>()
         .join(",");
-    out.push_str(&format!("const CSV_HEADER: &[u8] = b{header:?};\n\n"));
+    out.push_str(&format!(
+        "const {}: &[u8] = b{header:?};\n\n",
+        scope.const_name("CSV_HEADER")
+    ));
 }
 
-fn emit_csv_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_csv_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let response_fn = scope.fn_name("write_csv_response");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_csv(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
-    out.push_str("        write_csv_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n\n");
     out.push_str(
         "    /// Metamorphoses immutable bytes already validated for this schema into CSV.\n",
@@ -724,55 +881,64 @@ fn emit_csv_inherent_api(out: &mut String, model: &SchemaModel) {
     out.push_str(
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
-    out.push_str("        write_csv_response(archived, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {response_fn}(archived, max_response_bytes)\n"
+    ));
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn emit_csv_writer_helpers(out: &mut String, model: &SchemaModel) {
+fn emit_csv_writer_helpers(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let response_fn = scope.fn_name("write_csv_response");
+    let row_fn = scope.fn_name("write_csv_row");
     out.push_str(&format!(
-        "fn write_csv_response(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
+        "fn {response_fn}(archived: &Archived{}, max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.payload_type
     ));
     out.push_str("    let mut writer = CsvWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));\n");
-    out.push_str("    writer.raw_static(CSV_HEADER)?;\n");
+    out.push_str(&format!(
+        "    writer.raw_static({})?;\n",
+        scope.const_name("CSV_HEADER")
+    ));
     out.push_str("    writer.newline()?;\n");
     out.push_str(&format!(
         "    for row in archived.{}.iter() {{\n",
         model.row_field_name
     ));
-    out.push_str("        write_csv_row(row, &mut writer)?;\n");
+    out.push_str(&format!("        {row_fn}(row, &mut writer)?;\n"));
     out.push_str("    }\n");
     out.push_str("    Ok(writer.finish())\n");
     out.push_str("}\n\n");
 
     out.push_str(&format!(
-        "fn write_csv_row(row: &<{} as Archive>::Archived, writer: &mut CsvWriter) -> Result<()> {{\n",
+        "fn {row_fn}(row: &<{} as Archive>::Archived, writer: &mut CsvWriter) -> Result<()> {{\n",
         model.row_type
     ));
     for (idx, output) in model.json_csv_output_fields.iter().enumerate() {
         if idx > 0 {
             out.push_str("    writer.comma()?;\n");
         }
-        if let Some(condition) = json_output_optional_condition(model, output) {
+        if let Some(condition) = json_output_optional_condition(scope, output) {
             out.push_str(&format!("    if {condition} {{\n"));
-            emit_csv_output_write(out, model, output, "        ");
+            emit_csv_output_write(out, scope, output, "        ");
             out.push_str("    }\n");
         } else {
-            emit_csv_output_write(out, model, output, "    ");
+            emit_csv_output_write(out, scope, output, "    ");
         }
     }
     out.push_str("    writer.newline()\n");
     out.push_str("}\n\n");
-    emit_csv_bitmask_helpers(out, model);
+    emit_csv_bitmask_helpers(out, scope);
 }
 
 fn emit_csv_value_write(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     field: &PhysicalField,
     indent: &str,
 ) {
+    let model = scope.model;
     let value = archived_value_access_for("row", field);
     match &field.kind {
         FieldKind::ConstU16 { value } => out.push_str(&format!(
@@ -784,8 +950,11 @@ fn emit_csv_value_write(
             field.rust_name
         )),
         FieldKind::U64BitmaskDictionary { dictionary } => out.push_str(&format!(
-            "{indent}write_csv_{}_bitmask(row.{}.to_native(), writer)?;\n",
-            const_name(dictionary).to_ascii_lowercase(),
+            "{indent}{}(row.{}.to_native(), writer)?;\n",
+            scope.fn_name(&format!(
+                "write_csv_{}_bitmask",
+                const_name(dictionary).to_ascii_lowercase()
+            )),
             field.rust_name
         )),
         FieldKind::I32 => out.push_str(&format!("{indent}writer.i32_cell({value})?;\n")),
@@ -818,13 +987,14 @@ fn emit_csv_value_write(
 
 fn emit_csv_output_write(
     out: &mut String,
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &JsonCsvOutputField,
     indent: &str,
 ) {
+    let model = scope.model;
     match output {
         JsonCsvOutputField::Physical { field_index } => {
-            emit_csv_value_write(out, model, &model.fields[*field_index], indent);
+            emit_csv_value_write(out, scope, &model.fields[*field_index], indent);
         }
         JsonCsvOutputField::DerivedUtc { derived_index } => {
             let field = &model.derived_utc_fields[*derived_index];
@@ -836,14 +1006,18 @@ fn emit_csv_output_write(
     }
 }
 
-fn emit_csv_bitmask_helpers(out: &mut String, model: &SchemaModel) {
+fn emit_csv_bitmask_helpers(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     for dictionary in &model.dictionaries {
         if !dictionary_is_bitmask(model, &dictionary.name) {
             continue;
         }
-        out.push_str(&format!(
-            "fn write_csv_{}_bitmask(mask: u64, writer: &mut CsvWriter) -> Result<()> {{\n",
+        let helper = scope.fn_name(&format!(
+            "write_csv_{}_bitmask",
             const_name(&dictionary.name).to_ascii_lowercase()
+        ));
+        out.push_str(&format!(
+            "fn {helper}(mask: u64, writer: &mut CsvWriter) -> Result<()> {{\n"
         ));
         out.push_str("    writer.begin_array_cell()?;\n");
         out.push_str("    let mut first = true;\n");
@@ -861,15 +1035,21 @@ fn emit_csv_bitmask_helpers(out: &mut String, model: &SchemaModel) {
     }
 }
 
-fn emit_metamorphose_transponding(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_transponding(out: &mut String, model: &SchemaModel) -> Result<()> {
     // Transponding is generated only for adapters that need columnar batches.
     emit_adapter_prelude(out, model, false);
     out.push_str("use mbt_transponding::*;\n\n");
-    emit_column_batch(out, model);
-    emit_transponding_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_transponding_adapter_section)
 }
 
-fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
+fn emit_transponding_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    emit_projection_adapter_presence_constants(out, scope)?;
+    emit_column_batch(out, scope.model);
+    emit_transponding_inherent_api(out, scope);
+    Ok(())
+}
+
+fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) -> Result<()> {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
     out.push_str("use mbt_adapter_arrow::{\n");
@@ -877,7 +1057,12 @@ fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
     out.push_str("};\n");
     out.push_str("use mbt_metamorphose::{runtime::TrustedUnchecked, ArrowMetamorphoseSchema};\n");
     out.push_str("use std::sync::Arc;\n\n");
-    emit_arrow_inherent_api(out, model, "arrow");
+    emit_adapter_sections(out, model, emit_arrow_adapter_section)
+}
+
+fn emit_arrow_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
+    emit_arrow_inherent_api(out, scope);
     out.push_str(&format!(
         "impl ArrowMetamorphoseSchema for {} {{\n",
         model.marker_type
@@ -888,10 +1073,11 @@ fn emit_metamorphose_arrow(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_arrow_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "mbt_adapter_arrow");
+    emit_arrow_record_batch_helper(out, scope, "mbt_adapter_arrow");
+    Ok(())
 }
 
-fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) -> Result<()> {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
     out.push_str("use mbt_adapter_arrow_ipc::{\n");
@@ -901,7 +1087,12 @@ fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
         "use mbt_metamorphose::{runtime::TrustedUnchecked, ArrowIpcMetamorphoseSchema};\n\n",
     );
     out.push_str("use std::sync::Arc;\n\n");
-    emit_arrow_ipc_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_arrow_ipc_adapter_section)
+}
+
+fn emit_arrow_ipc_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
+    emit_arrow_ipc_inherent_api(out, scope);
     out.push_str(&format!(
         "impl ArrowIpcMetamorphoseSchema for {} {{\n",
         model.marker_type
@@ -911,10 +1102,11 @@ fn emit_metamorphose_arrow_ipc(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_arrow_ipc_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "mbt_adapter_arrow_ipc");
+    emit_arrow_record_batch_helper(out, scope, "mbt_adapter_arrow_ipc");
+    Ok(())
 }
 
-fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
+fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) -> Result<()> {
     emit_adapter_prelude(out, model, false);
     out.push_str(&format!("use crate::{}_transponding::*;\n", model.module));
     out.push_str("use mbt_adapter_parquet::{\n");
@@ -924,7 +1116,12 @@ fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
         "use mbt_metamorphose::{runtime::TrustedUnchecked, ParquetMetamorphoseSchema};\n\n",
     );
     out.push_str("use std::sync::Arc;\n\n");
-    emit_parquet_inherent_api(out, model);
+    emit_adapter_sections(out, model, emit_parquet_adapter_section)
+}
+
+fn emit_parquet_adapter_section(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
+    emit_parquet_inherent_api(out, scope);
     out.push_str(&format!(
         "impl ParquetMetamorphoseSchema for {} {{\n",
         model.marker_type
@@ -934,7 +1131,8 @@ fn emit_metamorphose_parquet(out: &mut String, model: &SchemaModel) {
     out.push_str("        unsafe { Self::metamorphose_parquet_trusted_unchecked(bytes, max_response_bytes) }\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
-    emit_arrow_record_batch_helper(out, model, "mbt_adapter_parquet");
+    emit_arrow_record_batch_helper(out, scope, "mbt_adapter_parquet");
+    Ok(())
 }
 
 fn emit_column_batch(out: &mut String, model: &SchemaModel) {
@@ -965,7 +1163,8 @@ fn emit_column_batch(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 }
 
-fn emit_transponding_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_transponding_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str(&format!(
         "    pub(crate) fn transpond_archived(archived: &Archived{}, max_columnar_bytes: usize) -> Result<{}ColumnBatch> {{\n",
@@ -992,7 +1191,7 @@ fn emit_transponding_inherent_api(out: &mut String, model: &SchemaModel) {
         model.row_field_name
     ));
     for field in &model.fields {
-        emit_column_push(out, model, field, "            ");
+        emit_column_push(out, scope, field, "            ");
     }
     out.push_str("        }\n");
     out.push_str(&format!(
@@ -1010,12 +1209,16 @@ fn emit_transponding_inherent_api(out: &mut String, model: &SchemaModel) {
     out.push_str("}\n\n");
 }
 
-fn emit_arrow_inherent_api(out: &mut String, model: &SchemaModel, _label: &str) {
+fn emit_arrow_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let record_batch_fn = scope.fn_name("arrow_record_batch");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_arrow(bytes: &[u8], max_response_bytes: usize) -> Result<ArrowRecordBatch> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        arrow_record_batch(batch, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {record_batch_fn}(batch, max_response_bytes)\n"
+    ));
     out.push_str("    }\n\n");
     out.push_str(
         "    /// Metamorphoses immutable bytes already validated for this schema into Arrow.\n",
@@ -1028,14 +1231,18 @@ fn emit_arrow_inherent_api(out: &mut String, model: &SchemaModel, _label: &str) 
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        arrow_record_batch(batch, max_response_bytes)\n");
+    out.push_str(&format!(
+        "        {record_batch_fn}(batch, max_response_bytes)\n"
+    ));
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn emit_arrow_record_batch_helper(out: &mut String, model: &SchemaModel, adapter_crate: &str) {
+fn emit_arrow_record_batch_helper(out: &mut String, scope: &EmitScope<'_>, adapter_crate: &str) {
+    let model = scope.model;
+    let record_batch_fn = scope.fn_name("arrow_record_batch");
     out.push_str(&format!(
-        "fn arrow_record_batch(batch: {}ColumnBatch, max_response_bytes: usize) -> Result<ArrowRecordBatch> {{\n",
+        "fn {record_batch_fn}(batch: {}ColumnBatch, max_response_bytes: usize) -> Result<ArrowRecordBatch> {{\n",
         model.marker_type
     ));
     out.push_str("    let schema = Arc::new(ArrowSchema::new(vec![\n");
@@ -1066,12 +1273,16 @@ fn emit_arrow_record_batch_helper(out: &mut String, model: &SchemaModel, adapter
     out.push_str("}\n\n");
 }
 
-fn emit_arrow_ipc_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_arrow_ipc_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let record_batch_fn = scope.fn_name("arrow_record_batch");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_arrow_ipc(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str(&format!(
+        "        let arrow = {record_batch_fn}(batch, max_response_bytes)?;\n"
+    ));
     out.push_str("        write_ipc_stream(&arrow, max_response_bytes)\n");
     out.push_str("    }\n\n");
     out.push_str(
@@ -1085,18 +1296,24 @@ fn emit_arrow_ipc_inherent_api(out: &mut String, model: &SchemaModel) {
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str(&format!(
+        "        let arrow = {record_batch_fn}(batch, max_response_bytes)?;\n"
+    ));
     out.push_str("        write_ipc_stream(&arrow, max_response_bytes)\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn emit_parquet_inherent_api(out: &mut String, model: &SchemaModel) {
+fn emit_parquet_inherent_api(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    let record_batch_fn = scope.fn_name("arrow_record_batch");
     out.push_str(&format!("impl {} {{\n", model.marker_type));
     out.push_str("    pub fn metamorphose_parquet(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {\n");
     out.push_str("        let archived = Self::access_archived(bytes)?;\n");
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str(&format!(
+        "        let arrow = {record_batch_fn}(batch, max_response_bytes)?;\n"
+    ));
     out.push_str("        write_uncompressed_parquet(&arrow, max_response_bytes)\n");
     out.push_str("    }\n\n");
     out.push_str(
@@ -1110,51 +1327,59 @@ fn emit_parquet_inherent_api(out: &mut String, model: &SchemaModel) {
         "        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };\n",
     );
     out.push_str("        let batch = Self::transpond_archived(archived, max_response_bytes)?;\n");
-    out.push_str("        let arrow = arrow_record_batch(batch, max_response_bytes)?;\n");
+    out.push_str(&format!(
+        "        let arrow = {record_batch_fn}(batch, max_response_bytes)?;\n"
+    ));
     out.push_str("        write_uncompressed_parquet(&arrow, max_response_bytes)\n");
     out.push_str("    }\n");
     out.push_str("}\n\n");
 }
 
-fn archived_optional_condition(model: &SchemaModel, field: &PhysicalField) -> Option<String> {
+fn archived_optional_condition(scope: &EmitScope<'_>, field: &PhysicalField) -> Option<String> {
     field
         .presence_bit
-        .map(|_| archived_presence_has_expr(&EmitScope::source(model), "row.presence_bits", field))
+        .map(|_| archived_presence_has_expr(scope, "row.presence_bits", field))
 }
 
 fn json_output_optional_condition(
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &JsonCsvOutputField,
 ) -> Option<String> {
+    let model = scope.model;
     match output {
         JsonCsvOutputField::Physical { field_index } => {
-            archived_optional_condition(model, &model.fields[*field_index])
+            archived_optional_condition(scope, &model.fields[*field_index])
         }
         JsonCsvOutputField::DerivedUtc { derived_index } => {
-            derived_utc_optional_condition(model, &model.derived_utc_fields[*derived_index])
+            derived_utc_optional_condition(scope, &model.derived_utc_fields[*derived_index])
         }
     }
 }
 
 fn protobuf_output_optional_condition(
-    model: &SchemaModel,
+    scope: &EmitScope<'_>,
     output: &ProtobufOutputField,
 ) -> Option<String> {
+    let model = scope.model;
     match output {
         ProtobufOutputField::Physical { field_index } => {
-            archived_optional_condition(model, &model.fields[*field_index])
+            archived_optional_condition(scope, &model.fields[*field_index])
         }
         ProtobufOutputField::DerivedUtc { derived_index } => {
-            derived_utc_optional_condition(model, &model.derived_utc_fields[*derived_index])
+            derived_utc_optional_condition(scope, &model.derived_utc_fields[*derived_index])
         }
         ProtobufOutputField::Message { .. } => None,
     }
 }
 
-fn derived_utc_optional_condition(model: &SchemaModel, field: &DerivedUtcField) -> Option<String> {
+fn derived_utc_optional_condition(
+    scope: &EmitScope<'_>,
+    field: &DerivedUtcField,
+) -> Option<String> {
+    let model = scope.model;
     field.source_presence_bit.map(|_| {
         archived_presence_has_expr(
-            &EmitScope::source(model),
+            scope,
             "row.presence_bits",
             &model.fields[field.source_field_index],
         )
@@ -1254,6 +1479,14 @@ fn protobuf_write_fn_name(message: &ProtobufMessageModel) -> String {
     format!("write_protobuf_{}", message.rust_helper_stem)
 }
 
+fn scoped_protobuf_len_fn_name(scope: &EmitScope<'_>, message: &ProtobufMessageModel) -> String {
+    scope.fn_name(&protobuf_len_fn_name(message))
+}
+
+fn scoped_protobuf_write_fn_name(scope: &EmitScope<'_>, message: &ProtobufMessageModel) -> String {
+    scope.fn_name(&protobuf_write_fn_name(message))
+}
+
 fn column_type(field: &PhysicalField) -> &'static str {
     match field.kind {
         FieldKind::ConstU16 { .. } => "ConstU16Column",
@@ -1348,14 +1581,13 @@ fn column_init(field: &PhysicalField, row_count: &str) -> String {
     }
 }
 
-fn emit_column_push(out: &mut String, model: &SchemaModel, field: &PhysicalField, indent: &str) {
+fn emit_column_push(out: &mut String, scope: &EmitScope<'_>, field: &PhysicalField, indent: &str) {
     let value = archived_value_access_for("row", field);
     if matches!(field.kind, FieldKind::ConstU16 { .. }) {
         return;
     }
     if field.presence_bit.is_some() {
-        let present =
-            archived_presence_has_expr(&EmitScope::source(model), "row.presence_bits", field);
+        let present = archived_presence_has_expr(scope, "row.presence_bits", field);
         out.push_str(&format!(
             "{indent}{}.push_optional({present}, {value})?;\n",
             field.rust_name
@@ -1498,6 +1730,142 @@ fn projection_schema_model(source: &SchemaModel, projection: &ProjectionModel) -
         normalized_schema_hash: projection.normalized_schema_hash,
         projections: Vec::new(),
     }
+}
+
+fn projection_adapter_schema_model(
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+) -> Result<SchemaModel> {
+    let mut model = projection_schema_model(source, projection);
+    let field_map = projection_field_index_map(source, projection)?;
+    let derived_map =
+        remap_projection_derived_utc_fields(source, projection, &field_map, &mut model);
+    model.json_csv_output_fields = remap_json_csv_outputs(source, &field_map, &derived_map);
+    model.protobuf_messages = remap_protobuf_messages(source, &field_map, &derived_map);
+    Ok(model)
+}
+
+fn projection_field_index_map(
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+) -> Result<Vec<Option<usize>>> {
+    let mut field_map = vec![None; source.fields.len()];
+    for (projected_index, mapping) in projection.field_mappings.iter().enumerate() {
+        if mapping.source_index >= field_map.len() {
+            return Err(CodegenError::InvalidSchema(format!(
+                "projection {} references unknown source field index {}",
+                projection.definition.name, mapping.source_index
+            )));
+        }
+        field_map[mapping.source_index] = Some(projected_index);
+    }
+    Ok(field_map)
+}
+
+fn remap_projection_derived_utc_fields(
+    source: &SchemaModel,
+    projection: &ProjectionModel,
+    field_map: &[Option<usize>],
+    model: &mut SchemaModel,
+) -> Vec<Option<usize>> {
+    let mut derived_map = vec![None; source.derived_utc_fields.len()];
+    for (source_derived_index, source_derived) in source.derived_utc_fields.iter().enumerate() {
+        let Some(projected_field_index) = field_map[source_derived.source_field_index] else {
+            continue;
+        };
+        let projected_field = &projection.fields[projected_field_index];
+        let mut projected_derived = source_derived.clone();
+        projected_derived.source_field_index = projected_field_index;
+        projected_derived.source_rust_name = projected_field.rust_name.clone();
+        projected_derived.source_presence_bit = projected_field.presence_bit;
+        let projected_derived_index = model.derived_utc_fields.len();
+        model.derived_utc_fields.push(projected_derived);
+        derived_map[source_derived_index] = Some(projected_derived_index);
+    }
+    derived_map
+}
+
+fn remap_json_csv_outputs(
+    source: &SchemaModel,
+    field_map: &[Option<usize>],
+    derived_map: &[Option<usize>],
+) -> Vec<JsonCsvOutputField> {
+    source
+        .json_csv_output_fields
+        .iter()
+        .filter_map(|output| match output {
+            JsonCsvOutputField::Physical { field_index } => field_map[*field_index]
+                .map(|field_index| JsonCsvOutputField::Physical { field_index }),
+            JsonCsvOutputField::DerivedUtc { derived_index } => derived_map[*derived_index]
+                .map(|derived_index| JsonCsvOutputField::DerivedUtc { derived_index }),
+        })
+        .collect()
+}
+
+fn remap_protobuf_messages(
+    source: &SchemaModel,
+    field_map: &[Option<usize>],
+    derived_map: &[Option<usize>],
+) -> Vec<ProtobufMessageModel> {
+    let mut messages = Vec::new();
+    if !source.protobuf_messages.is_empty() {
+        let _ = remap_protobuf_message_into(source, 0, field_map, derived_map, &mut messages);
+    }
+    messages
+}
+
+fn remap_protobuf_message_into(
+    source: &SchemaModel,
+    source_message_index: usize,
+    field_map: &[Option<usize>],
+    derived_map: &[Option<usize>],
+    messages: &mut Vec<ProtobufMessageModel>,
+) -> Option<usize> {
+    let source_message = &source.protobuf_messages[source_message_index];
+    let projected_message_index = messages.len();
+    let mut projected_message = source_message.clone();
+    projected_message.fields.clear();
+    messages.push(projected_message);
+
+    let mut fields = Vec::new();
+    for output in &source_message.fields {
+        match output {
+            ProtobufOutputField::Physical { field_index } => {
+                if let Some(projected_field_index) = field_map[*field_index] {
+                    fields.push(ProtobufOutputField::Physical {
+                        field_index: projected_field_index,
+                    });
+                }
+            }
+            ProtobufOutputField::DerivedUtc { derived_index } => {
+                if let Some(projected_derived_index) = derived_map[*derived_index] {
+                    fields.push(ProtobufOutputField::DerivedUtc {
+                        derived_index: projected_derived_index,
+                    });
+                }
+            }
+            ProtobufOutputField::Message { message_index } => {
+                if let Some(projected_child_index) = remap_protobuf_message_into(
+                    source,
+                    *message_index,
+                    field_map,
+                    derived_map,
+                    messages,
+                ) {
+                    fields.push(ProtobufOutputField::Message {
+                        message_index: projected_child_index,
+                    });
+                }
+            }
+        }
+    }
+
+    if fields.is_empty() {
+        messages.pop();
+        return None;
+    }
+    messages[projected_message_index].fields = fields;
+    Some(projected_message_index)
 }
 
 fn validate_model(model: &SchemaModel) -> Result<()> {

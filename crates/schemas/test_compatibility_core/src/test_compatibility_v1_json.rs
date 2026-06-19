@@ -271,3 +271,484 @@ fn write_json_field_prefix(
     }
     writer.raw_static(field)
 }
+
+const NO_OPTIONAL_JSON_SCHEMA_VERSION_FIELD: &[u8] = b"\"schema_version\":";
+const NO_OPTIONAL_JSON_ROWS_FIELD: &[u8] = b"\"rows\":";
+const NO_OPTIONAL_JSON_FIELD_SCHEMA_VERSION: &[u8] = b"\"schema_version\":";
+const NO_OPTIONAL_JSON_FIELD_TENANT_ORDINAL: &[u8] = b"\"tenant\":";
+const NO_OPTIONAL_JSON_FIELD_ENTITY_ORDINAL: &[u8] = b"\"entity\":";
+const NO_OPTIONAL_JSON_FIELD_CLOSE_MS: &[u8] = b"\"close_ms\":";
+const NO_OPTIONAL_JSON_FIELD_STATUS_ORDINAL: &[u8] = b"\"status\":";
+const NO_OPTIONAL_JSON_FIELD_VENUES_MASK: &[u8] = b"\"venues\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_I64: &[u8] = b"\"required_i64\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_I32: &[u8] = b"\"required_i32\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_U32: &[u8] = b"\"required_u32\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_F64: &[u8] = b"\"required_f64\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_F32: &[u8] = b"\"required_f32\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_BOOL: &[u8] = b"\"required_bool\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_TEXT: &[u8] = b"\"required_text\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_BYTES: &[u8] = b"\"required_bytes\":";
+const NO_OPTIONAL_JSON_FIELD_UUID_TEXT: &[u8] = b"\"uuid_text\":";
+const NO_OPTIONAL_JSON_FIELD_JSONB_TEXT: &[u8] = b"\"jsonb_text\":";
+const NO_OPTIONAL_JSON_FIELD_TIMESTAMPTZ_TEXT: &[u8] = b"\"timestamptz_text\":";
+const NO_OPTIONAL_JSON_FIELD_NUMERIC_TEXT: &[u8] = b"\"numeric_text\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_I64_ARRAY: &[u8] = b"\"required_i64_array\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_I32_ARRAY: &[u8] = b"\"required_i32_array\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_U32_ARRAY: &[u8] = b"\"required_u32_array\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_F64_ARRAY: &[u8] = b"\"required_f64_array\":";
+const NO_OPTIONAL_JSON_FIELD_REQUIRED_F32_ARRAY: &[u8] = b"\"required_f32_array\":";
+
+impl TestCompatibilityV1NoOptional {
+    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        no_optional_write_json_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into JSON.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        no_optional_write_json_response(archived, max_response_bytes)
+    }
+}
+
+impl JsonMetamorphoseSchema for TestCompatibilityV1NoOptional {
+    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_json(bytes, max_response_bytes)
+    }
+    fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_json_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn no_optional_write_json_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNoOptional,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.begin_object()?;
+    writer.raw_static(NO_OPTIONAL_JSON_SCHEMA_VERSION_FIELD)?;
+    writer.u32_value(u32::from(SCHEMA_VERSION_VALUE))?;
+    writer.comma()?;
+    writer.raw_static(NO_OPTIONAL_JSON_ROWS_FIELD)?;
+    writer.begin_array()?;
+    let mut first_row = true;
+    for row in archived.rows.iter() {
+        if first_row {
+            first_row = false;
+        } else {
+            writer.comma()?;
+        }
+        no_optional_write_json_row(row, &mut writer)?;
+    }
+    writer.end_array()?;
+    writer.end_object()?;
+    Ok(writer.finish())
+}
+
+fn no_optional_write_json_row(
+    row: &<TestCompatibilityRowV1NoOptional as Archive>::Archived,
+    writer: &mut JsonWriter,
+) -> Result<()> {
+    writer.begin_object()?;
+    let mut first = true;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_SCHEMA_VERSION)?;
+    writer.u32_value(u32::from(1_u16))?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_TENANT_ORDINAL)?;
+    writer.string_value(tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_ENTITY_ORDINAL)?;
+    writer.string_value(entity_symbol(row.entity_ordinal.to_native())?)?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_CLOSE_MS)?;
+    writer.i64_value(row.close_ms.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_STATUS_ORDINAL)?;
+    writer.string_value(status_symbol(row.status_ordinal.to_native())?)?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_VENUES_MASK)?;
+    no_optional_write_json_venue_bitmask(row.venues_mask.to_native(), writer)?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_I64)?;
+    writer.i64_value(row.required_i64.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_I32)?;
+    writer.i32_value(row.required_i32.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_U32)?;
+    writer.u32_value(row.required_u32.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_F64)?;
+    writer.f64_value("required_f64", row.required_f64.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_F32)?;
+    writer.f32_value("required_f32", row.required_f32.to_native())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_BOOL)?;
+    writer.bool_value(row.required_bool)?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_TEXT)?;
+    writer.string_value(row.required_text.as_str())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_REQUIRED_BYTES)?;
+    writer.bytes_value(row.required_bytes.as_slice())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_UUID_TEXT)?;
+    writer.string_value(row.uuid_text.as_str())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_JSONB_TEXT)?;
+    writer.string_value(row.jsonb_text.as_str())?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_TIMESTAMPTZ_TEXT,
+    )?;
+    writer.string_value(row.timestamptz_text.as_str())?;
+    no_optional_write_json_field_prefix(writer, &mut first, NO_OPTIONAL_JSON_FIELD_NUMERIC_TEXT)?;
+    writer.string_value(row.numeric_text.as_str())?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_REQUIRED_I64_ARRAY,
+    )?;
+    writer.i64_array_value(row.required_i64_array.iter().map(|value| value.to_native()))?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_REQUIRED_I32_ARRAY,
+    )?;
+    writer.i32_array_value(row.required_i32_array.iter().map(|value| value.to_native()))?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_REQUIRED_U32_ARRAY,
+    )?;
+    writer.u32_array_value(row.required_u32_array.iter().map(|value| value.to_native()))?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_REQUIRED_F64_ARRAY,
+    )?;
+    writer.f64_array_value(
+        "required_f64_array",
+        row.required_f64_array.iter().map(|value| value.to_native()),
+    )?;
+    no_optional_write_json_field_prefix(
+        writer,
+        &mut first,
+        NO_OPTIONAL_JSON_FIELD_REQUIRED_F32_ARRAY,
+    )?;
+    writer.f32_array_value(
+        "required_f32_array",
+        row.required_f32_array.iter().map(|value| value.to_native()),
+    )?;
+    writer.end_object()
+}
+
+fn no_optional_write_json_venue_bitmask(mask: u64, writer: &mut JsonWriter) -> Result<()> {
+    writer.begin_array()?;
+    let mut first = true;
+    if mask & (1_u64 << 0) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.comma()?;
+        }
+        writer.string_value("binance")?;
+    }
+    if mask & (1_u64 << 1) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.comma()?;
+        }
+        writer.string_value("bybit")?;
+    }
+    if mask & (1_u64 << 2) != 0 {
+        if first {
+            first = false;
+        } else {
+            writer.comma()?;
+        }
+        writer.string_value("okx")?;
+    }
+    let _ = first;
+    writer.end_array()
+}
+
+fn no_optional_write_json_field_prefix(
+    writer: &mut JsonWriter,
+    first: &mut bool,
+    field: &'static [u8],
+) -> Result<()> {
+    if *first {
+        *first = false;
+    } else {
+        writer.comma()?;
+    }
+    writer.raw_static(field)
+}
+
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I64: u64 = 1 << 0;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_I32: u64 = 1 << 1;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_U32: u64 = 1 << 2;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F64: u64 = 1 << 3;
+const NUMERIC_ONLY_PRESENCE_OPTIONAL_F32: u64 = 1 << 4;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY: u64 = 1 << 5;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY: u64 = 1 << 6;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY: u64 = 1 << 7;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY: u64 = 1 << 8;
+const NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY: u64 = 1 << 9;
+
+const NUMERIC_ONLY_JSON_SCHEMA_VERSION_FIELD: &[u8] = b"\"schema_version\":";
+const NUMERIC_ONLY_JSON_ROWS_FIELD: &[u8] = b"\"rows\":";
+const NUMERIC_ONLY_JSON_FIELD_SCHEMA_VERSION: &[u8] = b"\"schema_version\":";
+const NUMERIC_ONLY_JSON_FIELD_TENANT_ORDINAL: &[u8] = b"\"tenant\":";
+const NUMERIC_ONLY_JSON_FIELD_ENTITY_ORDINAL: &[u8] = b"\"entity\":";
+const NUMERIC_ONLY_JSON_FIELD_CLOSE_MS: &[u8] = b"\"close_ms\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_I64: &[u8] = b"\"required_i64\":";
+const NUMERIC_ONLY_JSON_FIELD_OPTIONAL_I64: &[u8] = b"\"optional_i64\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_I32: &[u8] = b"\"required_i32\":";
+const NUMERIC_ONLY_JSON_FIELD_OPTIONAL_I32: &[u8] = b"\"optional_i32\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_U32: &[u8] = b"\"required_u32\":";
+const NUMERIC_ONLY_JSON_FIELD_OPTIONAL_U32: &[u8] = b"\"optional_u32\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_F64: &[u8] = b"\"required_f64\":";
+const NUMERIC_ONLY_JSON_FIELD_OPTIONAL_F64: &[u8] = b"\"optional_f64\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_F32: &[u8] = b"\"required_f32\":";
+const NUMERIC_ONLY_JSON_FIELD_OPTIONAL_F32: &[u8] = b"\"optional_f32\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_I64_ARRAY: &[u8] = b"\"required_i64_array\":";
+const NUMERIC_ONLY_JSON_FIELD_NULLABLE_I64_ARRAY: &[u8] = b"\"nullable_i64_array\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_I32_ARRAY: &[u8] = b"\"required_i32_array\":";
+const NUMERIC_ONLY_JSON_FIELD_NULLABLE_I32_ARRAY: &[u8] = b"\"nullable_i32_array\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_U32_ARRAY: &[u8] = b"\"required_u32_array\":";
+const NUMERIC_ONLY_JSON_FIELD_NULLABLE_U32_ARRAY: &[u8] = b"\"nullable_u32_array\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_F64_ARRAY: &[u8] = b"\"required_f64_array\":";
+const NUMERIC_ONLY_JSON_FIELD_NULLABLE_F64_ARRAY: &[u8] = b"\"nullable_f64_array\":";
+const NUMERIC_ONLY_JSON_FIELD_REQUIRED_F32_ARRAY: &[u8] = b"\"required_f32_array\":";
+const NUMERIC_ONLY_JSON_FIELD_NULLABLE_F32_ARRAY: &[u8] = b"\"nullable_f32_array\":";
+
+impl TestCompatibilityV1NumericOnly {
+    pub fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        let archived = Self::access_archived(bytes)?;
+        numeric_only_write_json_response(archived, max_response_bytes)
+    }
+
+    /// Metamorphoses immutable bytes already validated for this schema into JSON.
+    ///
+    /// # Safety
+    /// The caller guarantees checked schema validation happened before immutable storage or transport.
+    pub unsafe fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>> {
+        let archived = unsafe { Self::access_archived_trusted_unchecked(bytes)? };
+        numeric_only_write_json_response(archived, max_response_bytes)
+    }
+}
+
+impl JsonMetamorphoseSchema for TestCompatibilityV1NumericOnly {
+    fn metamorphose_json(bytes: &[u8], max_response_bytes: usize) -> Result<Vec<u8>> {
+        Self::metamorphose_json(bytes, max_response_bytes)
+    }
+    fn metamorphose_json_trusted_unchecked(
+        bytes: &[u8],
+        max_response_bytes: usize,
+        _trusted: TrustedUnchecked,
+    ) -> Result<Vec<u8>> {
+        unsafe { Self::metamorphose_json_trusted_unchecked(bytes, max_response_bytes) }
+    }
+}
+
+fn numeric_only_write_json_response(
+    archived: &ArchivedTestCompatibilityResponseV1PayloadNumericOnly,
+    max_response_bytes: usize,
+) -> Result<Vec<u8>> {
+    let mut writer = JsonWriter::with_capacity(max_response_bytes, max_response_bytes.min(4096));
+    writer.begin_object()?;
+    writer.raw_static(NUMERIC_ONLY_JSON_SCHEMA_VERSION_FIELD)?;
+    writer.u32_value(u32::from(SCHEMA_VERSION_VALUE))?;
+    writer.comma()?;
+    writer.raw_static(NUMERIC_ONLY_JSON_ROWS_FIELD)?;
+    writer.begin_array()?;
+    let mut first_row = true;
+    for row in archived.rows.iter() {
+        if first_row {
+            first_row = false;
+        } else {
+            writer.comma()?;
+        }
+        numeric_only_write_json_row(row, &mut writer)?;
+    }
+    writer.end_array()?;
+    writer.end_object()?;
+    Ok(writer.finish())
+}
+
+fn numeric_only_write_json_row(
+    row: &<TestCompatibilityRowV1NumericOnly as Archive>::Archived,
+    writer: &mut JsonWriter,
+) -> Result<()> {
+    writer.begin_object()?;
+    let mut first = true;
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_SCHEMA_VERSION,
+    )?;
+    writer.u32_value(u32::from(1_u16))?;
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_TENANT_ORDINAL,
+    )?;
+    writer.string_value(tenant_symbol(row.tenant_ordinal.to_native())?)?;
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_ENTITY_ORDINAL,
+    )?;
+    writer.string_value(entity_symbol(row.entity_ordinal.to_native())?)?;
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_CLOSE_MS)?;
+    writer.i64_value(row.close_ms.to_native())?;
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_REQUIRED_I64)?;
+    writer.i64_value(row.required_i64.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_OPTIONAL_I64,
+        )?;
+        writer.i64_value(row.optional_i64.to_native())?;
+    }
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_REQUIRED_I32)?;
+    writer.i32_value(row.required_i32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_OPTIONAL_I32,
+        )?;
+        writer.i32_value(row.optional_i32.to_native())?;
+    }
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_REQUIRED_U32)?;
+    writer.u32_value(row.required_u32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_OPTIONAL_U32,
+        )?;
+        writer.u32_value(row.optional_u32.to_native())?;
+    }
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_REQUIRED_F64)?;
+    writer.f64_value("required_f64", row.required_f64.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_OPTIONAL_F64,
+        )?;
+        writer.f64_value("optional_f64", row.optional_f64.to_native())?;
+    }
+    numeric_only_write_json_field_prefix(writer, &mut first, NUMERIC_ONLY_JSON_FIELD_REQUIRED_F32)?;
+    writer.f32_value("required_f32", row.required_f32.to_native())?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_OPTIONAL_F32,
+        )?;
+        writer.f32_value("optional_f32", row.optional_f32.to_native())?;
+    }
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_REQUIRED_I64_ARRAY,
+    )?;
+    writer.i64_array_value(row.required_i64_array.iter().map(|value| value.to_native()))?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_NULLABLE_I64_ARRAY,
+        )?;
+        writer.i64_array_value(row.nullable_i64_array.iter().map(|value| value.to_native()))?;
+    }
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_REQUIRED_I32_ARRAY,
+    )?;
+    writer.i32_array_value(row.required_i32_array.iter().map(|value| value.to_native()))?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_NULLABLE_I32_ARRAY,
+        )?;
+        writer.i32_array_value(row.nullable_i32_array.iter().map(|value| value.to_native()))?;
+    }
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_REQUIRED_U32_ARRAY,
+    )?;
+    writer.u32_array_value(row.required_u32_array.iter().map(|value| value.to_native()))?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_NULLABLE_U32_ARRAY,
+        )?;
+        writer.u32_array_value(row.nullable_u32_array.iter().map(|value| value.to_native()))?;
+    }
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_REQUIRED_F64_ARRAY,
+    )?;
+    writer.f64_array_value(
+        "required_f64_array",
+        row.required_f64_array.iter().map(|value| value.to_native()),
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_NULLABLE_F64_ARRAY,
+        )?;
+        writer.f64_array_value(
+            "nullable_f64_array",
+            row.nullable_f64_array.iter().map(|value| value.to_native()),
+        )?;
+    }
+    numeric_only_write_json_field_prefix(
+        writer,
+        &mut first,
+        NUMERIC_ONLY_JSON_FIELD_REQUIRED_F32_ARRAY,
+    )?;
+    writer.f32_array_value(
+        "required_f32_array",
+        row.required_f32_array.iter().map(|value| value.to_native()),
+    )?;
+    if row.presence_bits.to_native() & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY != 0 {
+        numeric_only_write_json_field_prefix(
+            writer,
+            &mut first,
+            NUMERIC_ONLY_JSON_FIELD_NULLABLE_F32_ARRAY,
+        )?;
+        writer.f32_array_value(
+            "nullable_f32_array",
+            row.nullable_f32_array.iter().map(|value| value.to_native()),
+        )?;
+    }
+    writer.end_object()
+}
+
+fn numeric_only_write_json_field_prefix(
+    writer: &mut JsonWriter,
+    first: &mut bool,
+    field: &'static [u8],
+) -> Result<()> {
+    if *first {
+        *first = false;
+    } else {
+        writer.comma()?;
+    }
+    writer.raw_static(field)
+}

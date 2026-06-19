@@ -107,3 +107,160 @@ fn arrow_family_adapters_keep_dependency_boundaries() -> Result<()> {
     assert!(!parquet.contains("mbt_adapter_arrow::"));
     Ok(())
 }
+
+#[test]
+fn json_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Json,
+    )?;
+    assert!(source.contains("impl JsonMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl JsonMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("fn write_json_response("));
+    assert!(source.contains("fn small_write_json_response("));
+    assert!(source.contains("const SMALL_JSON_FIELD_ENTITY"));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn protobuf_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Protobuf,
+    )?;
+    assert!(source.contains("impl ProtobufMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl ProtobufMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("fn write_protobuf_response("));
+    assert!(source.contains("fn small_write_protobuf_response("));
+    assert!(source.contains("fn small_encoded_len_"));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn csv_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Csv,
+    )?;
+    assert!(source.contains("impl CsvMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl CsvMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("const CSV_HEADER"));
+    assert!(source.contains("const SMALL_CSV_HEADER"));
+    assert!(source.contains("fn small_write_csv_response("));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn transponding_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Transponding,
+    )?;
+    assert!(source.contains("pub(crate) struct FixtureV1ColumnBatch"));
+    assert!(source.contains("pub(crate) struct SmallProjectionColumnBatch"));
+    assert!(source.contains("impl SmallProjection"));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn arrow_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Arrow,
+    )?;
+    assert!(source.contains("impl ArrowMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl ArrowMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("fn arrow_record_batch("));
+    assert!(source.contains("fn small_arrow_record_batch("));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn arrow_ipc_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::ArrowIpc,
+    )?;
+    assert!(source.contains("impl ArrowIpcMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl ArrowIpcMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("fn small_arrow_record_batch("));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn parquet_adapter_emits_source_and_projection_marker_sections() -> Result<()> {
+    let source = run_metamorphose_codegen_to_string(
+        valid_alias_and_projection_ignored_proto(),
+        Adapter::Parquet,
+    )?;
+    assert!(source.contains("impl ParquetMetamorphoseSchema for FixtureV1"));
+    assert!(source.contains("impl ParquetMetamorphoseSchema for SmallProjection"));
+    assert!(source.contains("fn small_arrow_record_batch("));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+#[test]
+fn projection_adapter_presence_checks_use_projected_presence_constants() -> Result<()> {
+    let source =
+        run_metamorphose_codegen_to_string(valid_optional_projection_proto(), Adapter::Json)?;
+    assert!(source.contains("SMALL_PRESENCE_OPTIONAL_VALUE"));
+    assert!(source.contains("row.presence_bits.to_native() & SMALL_PRESENCE_OPTIONAL_VALUE != 0"));
+    assert_projection_adapter_forbidden_absent(&source);
+    Ok(())
+}
+
+fn assert_projection_adapter_forbidden_absent(source: &str) {
+    for forbidden in [
+        "serde_json".to_string(),
+        "prost::Message".to_string(),
+        ["crates/", "serving"].concat(),
+        ["Bars", "V1"].concat(),
+        ["Bars", "V1", "No", "Metadata"].concat(),
+        ["No", "Metadata"].concat(),
+        ["Ohlcv", "Only"].concat(),
+    ] {
+        assert!(
+            !source.contains(&forbidden),
+            "forbidden projection adapter source {forbidden}"
+        );
+    }
+}
+
+fn valid_optional_projection_proto() -> &'static str {
+    r#"
+syntax = "proto3";
+package test.fixture.v1;
+import "mathilde/options.proto";
+
+message TestPayloadV1 {
+  option (mathilde.schema_id) = 19;
+  option (mathilde.schema_version) = 1;
+  option (mathilde.transport_name) = "test.optional_projection.v1";
+  option (mathilde.payload_root) = true;
+  option (mathilde.projection) = {
+    name: "small"
+    rust_marker: "SmallProjection"
+    include_group: "core"
+  };
+
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+}
+
+message TestRowV1 {
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  optional int64 optional_value = 3 [
+    (mathilde.presence_bit) = 0,
+    (mathilde.projection_group) = "core"
+  ];
+}
+"#
+}
