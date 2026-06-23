@@ -37,6 +37,7 @@ pub struct CodegenConfig {
     pub action: Action,
     pub proto_roots: Vec<PathBuf>,
     pub schema: PathBuf,
+    pub dictionary_sources: Vec<PathBuf>,
     pub root: String,
     pub module: String,
     pub surface: Surface,
@@ -49,6 +50,7 @@ pub struct SchemaRequest {
     // Descriptor loading identity: proto roots, schema path, root message, and module name.
     pub proto_roots: Vec<PathBuf>,
     pub schema: PathBuf,
+    pub dictionary_sources: Vec<PathBuf>,
     pub root: String,
     pub module: String,
 }
@@ -58,6 +60,7 @@ impl CodegenConfig {
         SchemaRequest {
             proto_roots: self.proto_roots.clone(),
             schema: self.schema.clone(),
+            dictionary_sources: self.dictionary_sources.clone(),
             root: self.root.clone(),
             module: self.module.clone(),
         }
@@ -73,6 +76,7 @@ where
     let mut action = None;
     let mut proto_roots = Vec::new();
     let mut schema = None;
+    let mut dictionary_sources = Vec::new();
     let mut root = None;
     let mut module = None;
     let mut surface = None;
@@ -106,6 +110,16 @@ where
             }
             "--schema" => {
                 schema = Some(PathBuf::from(next_arg(&args, idx, "--schema")?));
+                idx += 2;
+            }
+            "--dictionary-source" => {
+                let value = next_arg(&args, idx, "--dictionary-source")?;
+                if value.is_empty() {
+                    return Err(CodegenError::UnsupportedArgument(
+                        "--dictionary-source cannot be empty".to_string(),
+                    ));
+                }
+                dictionary_sources.push(PathBuf::from(value));
                 idx += 2;
             }
             "--root" => {
@@ -208,6 +222,7 @@ where
         action,
         proto_roots,
         schema,
+        dictionary_sources,
         root,
         module,
         surface,

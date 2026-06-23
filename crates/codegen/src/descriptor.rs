@@ -29,11 +29,8 @@ pub fn load_schema_model(request: &SchemaRequest) -> Result<SchemaModel> {
     let root = pool
         .get_message_by_name(&request.root)
         .ok_or_else(|| CodegenError::InvalidSchema(format!("missing root {}", request.root)))?;
-    let source_file = source_file_name(request)?;
-    let file = pool
-        .get_file_by_name(&source_file)
-        .ok_or_else(|| CodegenError::InvalidSchema(format!("missing descriptor {source_file}")))?;
-    let dictionaries = dictionaries_from_file(&file.options(), &extensions)?;
+    let source_file = source_file_name(&request.schema)?;
+    let dictionaries = dictionaries_from_request(&pool, &extensions, request, &source_file)?;
     validate_dictionaries(&dictionaries)?;
 
     let root_options = root.options();
@@ -709,6 +706,30 @@ fn dictionaries_from_file(
     }
 }
 
+fn dictionaries_from_request(
+    pool: &DescriptorPool,
+    extensions: &MbtExtensions,
+    request: &SchemaRequest,
+    source_file: &str,
+) -> Result<Vec<Dictionary>> {
+    let file = pool
+        .get_file_by_name(source_file)
+        .ok_or_else(|| CodegenError::InvalidSchema(format!("missing descriptor {source_file}")))?;
+    let mut dictionaries = dictionaries_from_file(&file.options(), extensions)?;
+    for dictionary_source in &request.dictionary_sources {
+        let dictionary_source_file = source_file_name(dictionary_source)?;
+        let file = pool
+            .get_file_by_name(&dictionary_source_file)
+            .ok_or_else(|| {
+                CodegenError::InvalidSchema(format!(
+                    "missing dictionary source descriptor {dictionary_source_file}"
+                ))
+            })?;
+        dictionaries.extend(dictionaries_from_file(&file.options(), extensions)?);
+    }
+    Ok(dictionaries)
+}
+
 fn validate_dictionaries(dictionaries: &[Dictionary]) -> Result<()> {
     let mut names = Vec::new();
     for dictionary in dictionaries {
@@ -1307,7 +1328,7 @@ fn raw_descriptor_set(request: &SchemaRequest) -> Result<Vec<u8>> {
 }
 
 fn run_protoc(request: &SchemaRequest, descriptor_path: &Path) -> Result<()> {
-    let schema_path = schema_input_path(request)?;
+    let schema_paths = schema_input_paths(request)?;
     let mut command = Command::new("protoc");
     command
         .arg("--include_imports")
@@ -1316,13 +1337,14 @@ fn run_protoc(request: &SchemaRequest, descriptor_path: &Path) -> Result<()> {
     for root in &request.proto_roots {
         command.arg(format!("--proto_path={}", root.display()));
     }
-    let output = command
-        .arg(format!(
-            "--descriptor_set_out={}",
-            descriptor_path.display()
-        ))
-        .arg(schema_path)
-        .output()?;
+    command.arg(format!(
+        "--descriptor_set_out={}",
+        descriptor_path.display()
+    ));
+    for schema_path in schema_paths {
+        command.arg(schema_path);
+    }
+    let output = command.output()?;
     if output.status.success() {
         return Ok(());
     }
@@ -1331,23 +1353,30 @@ fn run_protoc(request: &SchemaRequest, descriptor_path: &Path) -> Result<()> {
     ))
 }
 
-fn schema_input_path(request: &SchemaRequest) -> Result<PathBuf> {
-    if request.schema.is_absolute() {
-        return Ok(request.schema.clone());
+fn schema_input_paths(request: &SchemaRequest) -> Result<Vec<PathBuf>> {
+    let mut paths = Vec::with_capacity(request.dictionary_sources.len() + 1);
+    paths.push(schema_input_path(&request.proto_roots, &request.schema));
+    for dictionary_source in &request.dictionary_sources {
+        paths.push(schema_input_path(&request.proto_roots, dictionary_source));
     }
-    for root in &request.proto_roots {
-        let candidate = root.join(&request.schema);
+    paths.into_iter().collect()
+}
+
+fn schema_input_path(proto_roots: &[PathBuf], path: &Path) -> Result<PathBuf> {
+    if path.is_absolute() {
+        return Ok(path.to_path_buf());
+    }
+    for root in proto_roots {
+        let candidate = root.join(path);
         if candidate.exists() {
             return Ok(candidate);
         }
     }
-    Ok(request.schema.clone())
+    Ok(path.to_path_buf())
 }
 
-fn source_file_name(request: &SchemaRequest) -> Result<String> {
-    request
-        .schema
-        .to_str()
+fn source_file_name(path: &Path) -> Result<String> {
+    path.to_str()
         .map(ToString::to_string)
         .ok_or_else(|| CodegenError::InvalidSchema("non-utf8 schema path".to_string()))
 }

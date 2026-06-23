@@ -58,8 +58,20 @@ fn config_with_surface(root: &Path, schema: &str, module: &str, surface: Surface
         module: module.to_string(),
         surface,
         adapter: None,
+        dictionary_sources: Vec::new(),
         out: None,
     }
+}
+
+fn config_with_dictionary_sources(
+    root: &Path,
+    schema: &str,
+    module: &str,
+    dictionary_sources: Vec<&str>,
+) -> CodegenConfig {
+    let mut cfg = config(root, schema, module);
+    cfg.dictionary_sources = dictionary_sources.into_iter().map(PathBuf::from).collect();
+    cfg
 }
 
 fn model_for(proto: &str) -> Result<crate::model::SchemaModel> {
@@ -67,6 +79,28 @@ fn model_for(proto: &str) -> Result<crate::model::SchemaModel> {
     write_options_proto(&root)?;
     write_proto(&root, "test/fixture/v1/test.proto", proto)?;
     load_schema_model(&config(&root, "test/fixture/v1/test.proto", "fixture_v1").schema_request())
+}
+
+fn imported_dictionary_model(values: &[&str]) -> Result<crate::model::SchemaModel> {
+    let root = temp_root("imported-dictionary")?;
+    write_options_proto(&root)?;
+    write_proto(
+        &root,
+        "test/fixture/v1/test.proto",
+        imported_dictionary_root_proto(),
+    )?;
+    write_proto(
+        &root,
+        "shared/instruments.proto",
+        &shared_instrument_dictionary_proto(values),
+    )?;
+    let cfg = config_with_dictionary_sources(
+        &root,
+        "test/fixture/v1/test.proto",
+        "fixture_v1",
+        vec!["shared/instruments.proto"],
+    );
+    load_schema_model(&cfg.schema_request())
 }
 
 fn run_codegen_to_string(proto: &str) -> Result<String> {
@@ -335,6 +369,57 @@ message TestMetadataV1 {
   ];
 }
 "#
+}
+
+fn imported_dictionary_root_proto() -> &'static str {
+    r#"
+syntax = "proto3";
+package test.fixture.v1;
+import "mathilde/options.proto";
+import "shared/instruments.proto";
+
+message TestPayloadV1 {
+  option (mathilde.schema_id) = 21;
+  option (mathilde.schema_version) = 1;
+  option (mathilde.transport_name) = "test.imported.dictionary.v1";
+  option (mathilde.payload_root) = true;
+
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+}
+
+message TestRowV1 {
+  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  string instrument = 2 [
+    (mathilde.dictionary) = "instrument",
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 1
+  ];
+  int64 close_ms = 3 [
+    (mathilde.key_part) = true,
+    (mathilde.key_order) = 2
+  ];
+}
+"#
+}
+
+fn shared_instrument_dictionary_proto(values: &[&str]) -> String {
+    let mut proto = String::from(
+        r#"
+syntax = "proto3";
+package test.shared.v1;
+import "mathilde/options.proto";
+
+option (mathilde.dictionary_values) = {
+  name: "instrument"
+"#,
+    );
+    for value in values {
+        proto.push_str(&format!(r#"  value: "{value}""#));
+        proto.push('\n');
+    }
+    proto.push_str("};\n");
+    proto
 }
 
 fn invalid_derived_utc_without_ignored_proto() -> &'static str {

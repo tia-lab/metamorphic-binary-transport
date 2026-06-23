@@ -21,7 +21,59 @@ fn cli_shape_is_explicit() -> Result<()> {
     assert_eq!(parsed.action, Action::Inspect);
     assert_eq!(parsed.surface, Surface::Core);
     assert_eq!(parsed.adapter, None);
+    assert!(parsed.dictionary_sources.is_empty());
     Ok(())
+}
+
+#[test]
+fn cli_accepts_repeated_dictionary_source_flags() -> Result<()> {
+    let parsed = parse_args(vec![
+        "--inspect".to_string(),
+        "--proto-root".to_string(),
+        "proto".to_string(),
+        "--schema".to_string(),
+        "test.proto".to_string(),
+        "--root".to_string(),
+        "test.Root".to_string(),
+        "--module".to_string(),
+        "test_v1".to_string(),
+        "--surface".to_string(),
+        "core".to_string(),
+        "--dictionary-source".to_string(),
+        "shared/instruments.proto".to_string(),
+        "--dictionary-source".to_string(),
+        "shared/venues.proto".to_string(),
+    ])?;
+    assert_eq!(
+        parsed.dictionary_sources,
+        vec![
+            PathBuf::from("shared/instruments.proto"),
+            PathBuf::from("shared/venues.proto")
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn cli_rejects_empty_dictionary_source() {
+    assert!(
+        parse_args(vec![
+            "--inspect".to_string(),
+            "--proto-root".to_string(),
+            "proto".to_string(),
+            "--schema".to_string(),
+            "test.proto".to_string(),
+            "--root".to_string(),
+            "test.Root".to_string(),
+            "--module".to_string(),
+            "test_v1".to_string(),
+            "--surface".to_string(),
+            "core".to_string(),
+            "--dictionary-source".to_string(),
+            "".to_string(),
+        ])
+        .is_err()
+    );
 }
 
 #[test]

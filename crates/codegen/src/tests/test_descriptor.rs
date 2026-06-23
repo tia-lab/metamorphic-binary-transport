@@ -1,5 +1,5 @@
 use super::*;
-use crate::model::{JsonCsvOutputField, ProtobufOutputField};
+use crate::model::{FieldKind, JsonCsvOutputField, ProtobufOutputField};
 
 #[test]
 fn valid_fixture_schemas_load() -> Result<()> {
@@ -42,6 +42,117 @@ fn invalid_fixture_schemas_fail_before_emission() -> Result<()> {
     ] {
         assert!(model_for(proto).is_err());
     }
+    Ok(())
+}
+
+#[test]
+fn imported_dictionary_source_satisfies_dictionary_field() -> Result<()> {
+    let model = imported_dictionary_model(&["BTCUSDT", "ETHUSDT"])?;
+    assert_eq!(model.dictionaries.len(), 1);
+    assert_eq!(model.dictionaries[0].name, "instrument");
+    assert_eq!(
+        model.dictionaries[0].values,
+        vec!["BTCUSDT".to_string(), "ETHUSDT".to_string()]
+    );
+    assert!(model.fields.iter().any(|field| {
+        matches!(
+            &field.kind,
+            FieldKind::U16Dictionary {
+                dictionary,
+                optional: false
+            } if dictionary == "instrument"
+        )
+    }));
+    Ok(())
+}
+
+#[test]
+fn missing_explicit_dictionary_source_fails() -> Result<()> {
+    let root = temp_root("missing-dictionary-source")?;
+    write_options_proto(&root)?;
+    write_proto(
+        &root,
+        "shared/instruments.proto",
+        &shared_instrument_dictionary_proto(&["BTCUSDT"]),
+    )?;
+    write_proto(
+        &root,
+        "test/fixture/v1/test.proto",
+        imported_dictionary_root_proto(),
+    )?;
+
+    let result = load_schema_model(
+        &config(&root, "test/fixture/v1/test.proto", "fixture_v1").schema_request(),
+    );
+    assert!(matches!(
+        result,
+        Err(CodegenError::InvalidOption {
+            name: "dictionary",
+            ..
+        })
+    ));
+    Ok(())
+}
+
+#[test]
+fn duplicate_dictionary_names_across_sources_fail() -> Result<()> {
+    let root = temp_root("duplicate-dictionary-source")?;
+    write_options_proto(&root)?;
+    write_proto(
+        &root,
+        "test/fixture/v1/test.proto",
+        imported_dictionary_root_proto(),
+    )?;
+    write_proto(
+        &root,
+        "shared/instruments.proto",
+        &shared_instrument_dictionary_proto(&["BTCUSDT"]),
+    )?;
+    write_proto(
+        &root,
+        "shared/instruments_copy.proto",
+        &shared_instrument_dictionary_proto(&["ETHUSDT"]),
+    )?;
+
+    let cfg = config_with_dictionary_sources(
+        &root,
+        "test/fixture/v1/test.proto",
+        "fixture_v1",
+        vec!["shared/instruments.proto", "shared/instruments_copy.proto"],
+    );
+    let result = load_schema_model(&cfg.schema_request());
+    assert!(matches!(
+        result,
+        Err(CodegenError::InvalidOption {
+            name: "dictionary_values.name",
+            ..
+        })
+    ));
+    Ok(())
+}
+
+#[test]
+fn schema_hash_changes_when_explicit_dictionary_values_change() -> Result<()> {
+    let first = imported_dictionary_model(&["BTCUSDT", "ETHUSDT"])?;
+    let second = imported_dictionary_model(&["BTCUSDT", "ETHUSDT", "ADAUSDT"])?;
+    assert_ne!(first.normalized_schema_hash, second.normalized_schema_hash);
+    Ok(())
+}
+
+#[test]
+fn source_file_local_dictionary_behavior_still_works() -> Result<()> {
+    let model = model_for(valid_scalar_proto())?;
+    assert_eq!(model.dictionaries.len(), 1);
+    assert_eq!(model.dictionaries[0].name, "entity");
+    assert!(model.fields.iter().any(|field| {
+        matches!(
+            &field.kind,
+            FieldKind::U16Dictionary {
+                dictionary,
+                optional: false
+            } if dictionary == "entity"
+        )
+    }));
     Ok(())
 }
 
