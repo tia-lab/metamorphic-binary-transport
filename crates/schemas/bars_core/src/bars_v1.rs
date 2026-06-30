@@ -2,12 +2,9 @@
 // Do not edit by hand.
 // schema_id=1 schema_version=1 schema_hash=6061383958499356843
 
-use core::mem::MaybeUninit;
-
 use rkyv::rancor::{Error as RkyvError, Fallible, Source};
-use rkyv::ser::{Allocator, Writer, allocator::SubAllocator, writer::Buffer};
+use rkyv::ser::{Allocator, Writer};
 use rkyv::vec::{ArchivedVec, VecResolver};
-use rkyv::with::AsVec;
 use rkyv::{Archive, Place, Serialize as RkyvSerialize};
 
 use mbt_core::envelope::{
@@ -139,114 +136,6 @@ pub struct MathildeBarRowV1 {
     pub presence_bits: u64,
 }
 
-#[derive(Archive, RkyvSerialize)]
-struct MathildeTransportResponseV1PayloadEncodePayload<'a> {
-    pub schema_version: u16,
-    #[rkyv(with = AsVec)]
-    pub rows: &'a [MathildeBarRowV1EncodeRow],
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
-pub struct MathildeBarRowV1EncodeRow {
-    pub schema_version: u16,
-    pub pair_ordinal: u16,
-    pub tf_ordinal: u16,
-    pub open_ms: i64,
-    pub close_ms: i64,
-    pub o: f64,
-    pub h: f64,
-    pub l: f64,
-    pub c: f64,
-    pub v: f64,
-    pub quote_v: f64,
-    pub taker_known_v: f64,
-    pub taker_signed_v: f64,
-    pub taker_known_quote_v: f64,
-    pub taker_signed_quote_v: f64,
-    pub taker_known_n: i64,
-    pub taker_signed_n: i64,
-    pub vw: f64,
-    pub n: i64,
-    pub source_ordinal: u16,
-    pub process_ordinal: u16,
-    pub venues_expected_mask: u64,
-    pub venues_with_trades_mask: u64,
-    pub ingested_at_ms: i64,
-    pub target_ingested_at_ms: i64,
-    pub built_at_ms: i64,
-    pub committed_at_ms: i64,
-    pub harmonized_at_ms: i64,
-    pub recomputed_at_ms: i64,
-    pub recomputed_reason_ordinal: u16,
-    pub covered_1m_count: i64,
-    pub expected_1m_count: i64,
-    pub coverage_ratio: f64,
-    pub inputs_source_counts_frontier: i64,
-    pub inputs_source_counts_api: i64,
-    pub inputs_source_counts_synthetic: i64,
-    pub inputs_source_counts_fix_data: i64,
-    pub frontier_5s_inputs_coverage_ratio: f64,
-    pub frontier_5s_expected: i64,
-    pub frontier_5s_synth_n: i64,
-    pub frontier_5s_synth_ratio: f64,
-    pub frontier_5s_trade_n: i64,
-    pub frontier_5s_trade_ratio: f64,
-    pub age_ms: i64,
-    pub presence_bits: u64,
-}
-
-impl MathildeBarRowV1EncodeRow {
-    pub const fn empty() -> Self {
-        Self {
-            schema_version: 1,
-            pair_ordinal: 0,
-            tf_ordinal: 0,
-            open_ms: 0,
-            close_ms: 0,
-            o: 0.0,
-            h: 0.0,
-            l: 0.0,
-            c: 0.0,
-            v: 0.0,
-            quote_v: 0.0,
-            taker_known_v: 0.0,
-            taker_signed_v: 0.0,
-            taker_known_quote_v: 0.0,
-            taker_signed_quote_v: 0.0,
-            taker_known_n: 0,
-            taker_signed_n: 0,
-            vw: 0.0,
-            n: 0,
-            source_ordinal: 0,
-            process_ordinal: 0,
-            venues_expected_mask: 0,
-            venues_with_trades_mask: 0,
-            ingested_at_ms: 0,
-            target_ingested_at_ms: 0,
-            built_at_ms: 0,
-            committed_at_ms: 0,
-            harmonized_at_ms: 0,
-            recomputed_at_ms: 0,
-            recomputed_reason_ordinal: 0,
-            covered_1m_count: 0,
-            expected_1m_count: 0,
-            coverage_ratio: 0.0,
-            inputs_source_counts_frontier: 0,
-            inputs_source_counts_api: 0,
-            inputs_source_counts_synthetic: 0,
-            inputs_source_counts_fix_data: 0,
-            frontier_5s_inputs_coverage_ratio: 0.0,
-            frontier_5s_expected: 0,
-            frontier_5s_synth_n: 0,
-            frontier_5s_synth_ratio: 0.0,
-            frontier_5s_trade_n: 0,
-            frontier_5s_trade_ratio: 0.0,
-            age_ms: 0,
-            presence_bits: 0_u64,
-        }
-    }
-}
-
 pub fn validate_rows(rows: &[MathildeBarRowV1]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -257,172 +146,6 @@ pub fn validate_rows(rows: &[MathildeBarRowV1]) -> Result<()> {
 }
 
 pub fn validate_row(row: &MathildeBarRowV1, previous: Option<&MathildeBarRowV1>) -> Result<()> {
-    if row.schema_version != 1 {
-        return Err(TransportError::SchemaVersionMismatch {
-            observed: row.schema_version,
-            expected: 1,
-        });
-    }
-    pair_symbol(row.pair_ordinal)?;
-    tf_symbol(row.tf_ordinal)?;
-    validate_finite_f64("o", row.o)?;
-    validate_finite_f64("h", row.h)?;
-    validate_finite_f64("l", row.l)?;
-    validate_finite_f64("c", row.c)?;
-    validate_finite_f64("v", row.v)?;
-    validate_finite_f64("quote_v", row.quote_v)?;
-    validate_finite_f64("taker_known_v", row.taker_known_v)?;
-    validate_finite_f64("taker_signed_v", row.taker_signed_v)?;
-    validate_finite_f64("taker_known_quote_v", row.taker_known_quote_v)?;
-    validate_finite_f64("taker_signed_quote_v", row.taker_signed_quote_v)?;
-    validate_finite_f64("vw", row.vw)?;
-    source_symbol(row.source_ordinal)?;
-    if row.process_ordinal != 0 {
-        process_symbol(row.process_ordinal)?;
-    }
-    if row.venues_expected_mask & !VALID_VENUE_MASK != 0 {
-        return Err(TransportError::InvalidBitmask {
-            field: "metadata.venues_expected",
-            value: row.venues_expected_mask,
-        });
-    }
-    if row.venues_with_trades_mask & !VALID_VENUE_MASK != 0 {
-        return Err(TransportError::InvalidBitmask {
-            field: "metadata.venues_with_trades",
-            value: row.venues_with_trades_mask,
-        });
-    }
-    if row.recomputed_reason_ordinal != 0 {
-        recomputed_reason_symbol(row.recomputed_reason_ordinal)?;
-    }
-    validate_finite_f64("metadata.coverage_ratio", row.coverage_ratio)?;
-    validate_finite_f64(
-        "metadata.frontier_5s_inputs_coverage_ratio",
-        row.frontier_5s_inputs_coverage_ratio,
-    )?;
-    validate_finite_f64(
-        "metadata.frontier_5s_synth_ratio",
-        row.frontier_5s_synth_ratio,
-    )?;
-    validate_finite_f64(
-        "metadata.frontier_5s_trade_ratio",
-        row.frontier_5s_trade_ratio,
-    )?;
-    if row.presence_bits & !PRESENCE_ALLOWED_MASK != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_VW == 0 && row.vw != 0.0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_N == 0 && row.n != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_PROCESS_ORDINAL == 0 && row.process_ordinal != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_INGESTED_AT_MS == 0 && row.ingested_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_TARGET_INGESTED_AT_MS == 0 && row.target_ingested_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_BUILT_AT_MS == 0 && row.built_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_COMMITTED_AT_MS == 0 && row.committed_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_HARMONIZED_AT_MS == 0 && row.harmonized_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_RECOMPUTED_AT_MS == 0 && row.recomputed_at_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_RECOMPUTED_REASON_ORDINAL == 0
-        && row.recomputed_reason_ordinal != 0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_COVERED_1M_COUNT == 0 && row.covered_1m_count != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_EXPECTED_1M_COUNT == 0 && row.expected_1m_count != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_COVERAGE_RATIO == 0 && row.coverage_ratio != 0.0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_INPUTS_SOURCE_COUNTS_FRONTIER == 0
-        && row.inputs_source_counts_frontier != 0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_INPUTS_SOURCE_COUNTS_API == 0
-        && row.inputs_source_counts_api != 0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_INPUTS_SOURCE_COUNTS_SYNTHETIC == 0
-        && row.inputs_source_counts_synthetic != 0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_INPUTS_SOURCE_COUNTS_FIX_DATA == 0
-        && row.inputs_source_counts_fix_data != 0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_INPUTS_COVERAGE_RATIO == 0
-        && row.frontier_5s_inputs_coverage_ratio != 0.0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_EXPECTED == 0 && row.frontier_5s_expected != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_SYNTH_N == 0 && row.frontier_5s_synth_n != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_SYNTH_RATIO == 0
-        && row.frontier_5s_synth_ratio != 0.0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_TRADE_N == 0 && row.frontier_5s_trade_n != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_FRONTIER_5S_TRADE_RATIO == 0
-        && row.frontier_5s_trade_ratio != 0.0
-    {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & PRESENCE_AGE_MS == 0 && row.age_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if previous.is_some_and(|prev| {
-        (row.pair_ordinal, row.tf_ordinal, row.close_ms)
-            < (prev.pair_ordinal, prev.tf_ordinal, prev.close_ms)
-    }) {
-        return Err(TransportError::InvalidTimeGrid(
-            "key order regression".to_string(),
-        ));
-    }
-    Ok(())
-}
-
-pub fn validate_encode_rows(rows: &[MathildeBarRowV1EncodeRow]) -> Result<()> {
-    let mut previous = None;
-    for row in rows {
-        validate_encode_row(row, previous)?;
-        previous = Some(row);
-    }
-    Ok(())
-}
-
-pub fn validate_encode_row(
-    row: &MathildeBarRowV1EncodeRow,
-    previous: Option<&MathildeBarRowV1EncodeRow>,
-) -> Result<()> {
     if row.schema_version != 1 {
         return Err(TransportError::SchemaVersionMismatch {
             observed: row.schema_version,
@@ -905,62 +628,6 @@ impl BarsV1 {
         SCHEMA_HEADER
     }
 
-    pub fn encode_views_into(
-        rows: &[MathildeBarRowV1EncodeRow],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        validate_encode_rows(rows)?;
-        let cap = core::cmp::min(out.len(), max_response_bytes);
-        if cap < HEADER_LEN {
-            return Err(TransportError::ResponseTooLarge {
-                observed: HEADER_LEN,
-                cap,
-            });
-        }
-        let row_count = rows.len();
-        let payload = MathildeTransportResponseV1PayloadEncodePayload {
-            schema_version: SCHEMA_VERSION_VALUE,
-            rows,
-        };
-        let payload_len = {
-            let payload_out = &mut out[HEADER_LEN..cap];
-            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
-            let writer = Buffer::from(payload_out);
-            let alloc = SubAllocator::new(&mut scratch);
-            let payload_bytes =
-                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
-                    .map_err(|_err| TransportError::ResponseTooLarge {
-                        observed: cap.saturating_add(1),
-                        cap,
-                    })?;
-            payload_bytes.len()
-        };
-        let total_len =
-            HEADER_LEN
-                .checked_add(payload_len)
-                .ok_or(TransportError::ResponseTooLarge {
-                    observed: usize::MAX,
-                    cap,
-                })?;
-        if total_len > cap {
-            return Err(TransportError::ResponseTooLarge {
-                observed: total_len,
-                cap,
-            });
-        }
-        let header = TransportHeader::new_with_schema(
-            Self::header_spec(),
-            row_count as u64,
-            payload_len as u64,
-            fnv1a64(&out[HEADER_LEN..total_len]),
-        );
-        let mut header_bytes = [0_u8; HEADER_LEN];
-        encode_header(&header, &mut header_bytes);
-        out[..HEADER_LEN].copy_from_slice(&header_bytes);
-        Ok(total_len)
-    }
-
     pub fn encode(rows: &[MathildeBarRowV1], max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows.to_vec(), max_response_bytes)
     }
@@ -1042,7 +709,6 @@ impl BarsV1 {
 
 impl MbtSchema for BarsV1 {
     type Row = MathildeBarRowV1;
-    type EncodeRow<'a> = MathildeBarRowV1EncodeRow;
     type View<'a> = BarsV1View<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -1050,13 +716,6 @@ impl MbtSchema for BarsV1 {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
-    }
-    fn encode_view_rows(
-        rows: &[Self::EncodeRow<'_>],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)
@@ -1479,66 +1138,6 @@ pub struct MathildeBarRowV1NoMetadata {
     pub presence_bits: u64,
 }
 
-#[derive(Archive, RkyvSerialize)]
-struct MathildeTransportResponseV1PayloadNoMetadataEncodePayload<'a> {
-    pub schema_version: u16,
-    #[rkyv(with = AsVec)]
-    pub rows: &'a [MathildeBarRowV1NoMetadataEncodeRow],
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
-pub struct MathildeBarRowV1NoMetadataEncodeRow {
-    pub schema_version: u16,
-    pub pair_ordinal: u16,
-    pub tf_ordinal: u16,
-    pub open_ms: i64,
-    pub close_ms: i64,
-    pub o: f64,
-    pub h: f64,
-    pub l: f64,
-    pub c: f64,
-    pub v: f64,
-    pub quote_v: f64,
-    pub taker_known_v: f64,
-    pub taker_signed_v: f64,
-    pub taker_known_quote_v: f64,
-    pub taker_signed_quote_v: f64,
-    pub taker_known_n: i64,
-    pub taker_signed_n: i64,
-    pub vw: f64,
-    pub n: i64,
-    pub age_ms: i64,
-    pub presence_bits: u64,
-}
-
-impl MathildeBarRowV1NoMetadataEncodeRow {
-    pub const fn empty() -> Self {
-        Self {
-            schema_version: 1,
-            pair_ordinal: 0,
-            tf_ordinal: 0,
-            open_ms: 0,
-            close_ms: 0,
-            o: 0.0,
-            h: 0.0,
-            l: 0.0,
-            c: 0.0,
-            v: 0.0,
-            quote_v: 0.0,
-            taker_known_v: 0.0,
-            taker_signed_v: 0.0,
-            taker_known_quote_v: 0.0,
-            taker_signed_quote_v: 0.0,
-            taker_known_n: 0,
-            taker_signed_n: 0,
-            vw: 0.0,
-            n: 0,
-            age_ms: 0,
-            presence_bits: 0_u64,
-        }
-    }
-}
-
 fn no_metadata_validate_rows(rows: &[MathildeBarRowV1NoMetadata]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -1551,61 +1150,6 @@ fn no_metadata_validate_rows(rows: &[MathildeBarRowV1NoMetadata]) -> Result<()> 
 fn no_metadata_validate_row(
     row: &MathildeBarRowV1NoMetadata,
     previous: Option<&MathildeBarRowV1NoMetadata>,
-) -> Result<()> {
-    if row.schema_version != 1 {
-        return Err(TransportError::SchemaVersionMismatch {
-            observed: row.schema_version,
-            expected: 1,
-        });
-    }
-    pair_symbol(row.pair_ordinal)?;
-    tf_symbol(row.tf_ordinal)?;
-    validate_finite_f64("o", row.o)?;
-    validate_finite_f64("h", row.h)?;
-    validate_finite_f64("l", row.l)?;
-    validate_finite_f64("c", row.c)?;
-    validate_finite_f64("v", row.v)?;
-    validate_finite_f64("quote_v", row.quote_v)?;
-    validate_finite_f64("taker_known_v", row.taker_known_v)?;
-    validate_finite_f64("taker_signed_v", row.taker_signed_v)?;
-    validate_finite_f64("taker_known_quote_v", row.taker_known_quote_v)?;
-    validate_finite_f64("taker_signed_quote_v", row.taker_signed_quote_v)?;
-    validate_finite_f64("vw", row.vw)?;
-    if row.presence_bits & !NO_METADATA_PRESENCE_ALLOWED_MASK != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & NO_METADATA_PRESENCE_VW == 0 && row.vw != 0.0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & NO_METADATA_PRESENCE_N == 0 && row.n != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if row.presence_bits & NO_METADATA_PRESENCE_AGE_MS == 0 && row.age_ms != 0 {
-        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
-    }
-    if previous.is_some_and(|prev| {
-        (row.pair_ordinal, row.tf_ordinal, row.close_ms)
-            < (prev.pair_ordinal, prev.tf_ordinal, prev.close_ms)
-    }) {
-        return Err(TransportError::InvalidTimeGrid(
-            "key order regression".to_string(),
-        ));
-    }
-    Ok(())
-}
-
-fn no_metadata_validate_encode_rows(rows: &[MathildeBarRowV1NoMetadataEncodeRow]) -> Result<()> {
-    let mut previous = None;
-    for row in rows {
-        no_metadata_validate_encode_row(row, previous)?;
-        previous = Some(row);
-    }
-    Ok(())
-}
-
-fn no_metadata_validate_encode_row(
-    row: &MathildeBarRowV1NoMetadataEncodeRow,
-    previous: Option<&MathildeBarRowV1NoMetadataEncodeRow>,
 ) -> Result<()> {
     if row.schema_version != 1 {
         return Err(TransportError::SchemaVersionMismatch {
@@ -1719,62 +1263,6 @@ impl BarsV1NoMetadata {
         NO_METADATA_SCHEMA_HEADER
     }
 
-    pub fn encode_views_into(
-        rows: &[MathildeBarRowV1NoMetadataEncodeRow],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        no_metadata_validate_encode_rows(rows)?;
-        let cap = core::cmp::min(out.len(), max_response_bytes);
-        if cap < HEADER_LEN {
-            return Err(TransportError::ResponseTooLarge {
-                observed: HEADER_LEN,
-                cap,
-            });
-        }
-        let row_count = rows.len();
-        let payload = MathildeTransportResponseV1PayloadNoMetadataEncodePayload {
-            schema_version: NO_METADATA_SCHEMA_VERSION_VALUE,
-            rows,
-        };
-        let payload_len = {
-            let payload_out = &mut out[HEADER_LEN..cap];
-            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
-            let writer = Buffer::from(payload_out);
-            let alloc = SubAllocator::new(&mut scratch);
-            let payload_bytes =
-                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
-                    .map_err(|_err| TransportError::ResponseTooLarge {
-                        observed: cap.saturating_add(1),
-                        cap,
-                    })?;
-            payload_bytes.len()
-        };
-        let total_len =
-            HEADER_LEN
-                .checked_add(payload_len)
-                .ok_or(TransportError::ResponseTooLarge {
-                    observed: usize::MAX,
-                    cap,
-                })?;
-        if total_len > cap {
-            return Err(TransportError::ResponseTooLarge {
-                observed: total_len,
-                cap,
-            });
-        }
-        let header = TransportHeader::new_with_schema(
-            Self::header_spec(),
-            row_count as u64,
-            payload_len as u64,
-            fnv1a64(&out[HEADER_LEN..total_len]),
-        );
-        let mut header_bytes = [0_u8; HEADER_LEN];
-        encode_header(&header, &mut header_bytes);
-        out[..HEADER_LEN].copy_from_slice(&header_bytes);
-        Ok(total_len)
-    }
-
     pub fn encode(
         rows: &[MathildeBarRowV1NoMetadata],
         max_response_bytes: usize,
@@ -1862,7 +1350,6 @@ impl BarsV1NoMetadata {
 
 impl MbtSchema for BarsV1NoMetadata {
     type Row = MathildeBarRowV1NoMetadata;
-    type EncodeRow<'a> = MathildeBarRowV1NoMetadataEncodeRow;
     type View<'a> = BarsV1NoMetadataView<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -1870,13 +1357,6 @@ impl MbtSchema for BarsV1NoMetadata {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
-    }
-    fn encode_view_rows(
-        rows: &[Self::EncodeRow<'_>],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)
@@ -2291,44 +1771,6 @@ pub struct MathildeBarRowV1OhlcvOnly {
     pub v: f64,
 }
 
-#[derive(Archive, RkyvSerialize)]
-struct MathildeTransportResponseV1PayloadOhlcvOnlyEncodePayload<'a> {
-    pub schema_version: u16,
-    #[rkyv(with = AsVec)]
-    pub rows: &'a [MathildeBarRowV1OhlcvOnlyEncodeRow],
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
-pub struct MathildeBarRowV1OhlcvOnlyEncodeRow {
-    pub schema_version: u16,
-    pub pair_ordinal: u16,
-    pub tf_ordinal: u16,
-    pub open_ms: i64,
-    pub close_ms: i64,
-    pub o: f64,
-    pub h: f64,
-    pub l: f64,
-    pub c: f64,
-    pub v: f64,
-}
-
-impl MathildeBarRowV1OhlcvOnlyEncodeRow {
-    pub const fn empty() -> Self {
-        Self {
-            schema_version: 1,
-            pair_ordinal: 0,
-            tf_ordinal: 0,
-            open_ms: 0,
-            close_ms: 0,
-            o: 0.0,
-            h: 0.0,
-            l: 0.0,
-            c: 0.0,
-            v: 0.0,
-        }
-    }
-}
-
 fn ohlcv_only_validate_rows(rows: &[MathildeBarRowV1OhlcvOnly]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -2341,43 +1783,6 @@ fn ohlcv_only_validate_rows(rows: &[MathildeBarRowV1OhlcvOnly]) -> Result<()> {
 fn ohlcv_only_validate_row(
     row: &MathildeBarRowV1OhlcvOnly,
     previous: Option<&MathildeBarRowV1OhlcvOnly>,
-) -> Result<()> {
-    if row.schema_version != 1 {
-        return Err(TransportError::SchemaVersionMismatch {
-            observed: row.schema_version,
-            expected: 1,
-        });
-    }
-    pair_symbol(row.pair_ordinal)?;
-    tf_symbol(row.tf_ordinal)?;
-    validate_finite_f64("o", row.o)?;
-    validate_finite_f64("h", row.h)?;
-    validate_finite_f64("l", row.l)?;
-    validate_finite_f64("c", row.c)?;
-    validate_finite_f64("v", row.v)?;
-    if previous.is_some_and(|prev| {
-        (row.pair_ordinal, row.tf_ordinal, row.close_ms)
-            < (prev.pair_ordinal, prev.tf_ordinal, prev.close_ms)
-    }) {
-        return Err(TransportError::InvalidTimeGrid(
-            "key order regression".to_string(),
-        ));
-    }
-    Ok(())
-}
-
-fn ohlcv_only_validate_encode_rows(rows: &[MathildeBarRowV1OhlcvOnlyEncodeRow]) -> Result<()> {
-    let mut previous = None;
-    for row in rows {
-        ohlcv_only_validate_encode_row(row, previous)?;
-        previous = Some(row);
-    }
-    Ok(())
-}
-
-fn ohlcv_only_validate_encode_row(
-    row: &MathildeBarRowV1OhlcvOnlyEncodeRow,
-    previous: Option<&MathildeBarRowV1OhlcvOnlyEncodeRow>,
 ) -> Result<()> {
     if row.schema_version != 1 {
         return Err(TransportError::SchemaVersionMismatch {
@@ -2449,62 +1854,6 @@ impl BarsV1OhlcvOnly {
 
     pub fn header_spec() -> SchemaHeaderSpec {
         OHLCV_ONLY_SCHEMA_HEADER
-    }
-
-    pub fn encode_views_into(
-        rows: &[MathildeBarRowV1OhlcvOnlyEncodeRow],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        ohlcv_only_validate_encode_rows(rows)?;
-        let cap = core::cmp::min(out.len(), max_response_bytes);
-        if cap < HEADER_LEN {
-            return Err(TransportError::ResponseTooLarge {
-                observed: HEADER_LEN,
-                cap,
-            });
-        }
-        let row_count = rows.len();
-        let payload = MathildeTransportResponseV1PayloadOhlcvOnlyEncodePayload {
-            schema_version: OHLCV_ONLY_SCHEMA_VERSION_VALUE,
-            rows,
-        };
-        let payload_len = {
-            let payload_out = &mut out[HEADER_LEN..cap];
-            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
-            let writer = Buffer::from(payload_out);
-            let alloc = SubAllocator::new(&mut scratch);
-            let payload_bytes =
-                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
-                    .map_err(|_err| TransportError::ResponseTooLarge {
-                        observed: cap.saturating_add(1),
-                        cap,
-                    })?;
-            payload_bytes.len()
-        };
-        let total_len =
-            HEADER_LEN
-                .checked_add(payload_len)
-                .ok_or(TransportError::ResponseTooLarge {
-                    observed: usize::MAX,
-                    cap,
-                })?;
-        if total_len > cap {
-            return Err(TransportError::ResponseTooLarge {
-                observed: total_len,
-                cap,
-            });
-        }
-        let header = TransportHeader::new_with_schema(
-            Self::header_spec(),
-            row_count as u64,
-            payload_len as u64,
-            fnv1a64(&out[HEADER_LEN..total_len]),
-        );
-        let mut header_bytes = [0_u8; HEADER_LEN];
-        encode_header(&header, &mut header_bytes);
-        out[..HEADER_LEN].copy_from_slice(&header_bytes);
-        Ok(total_len)
     }
 
     pub fn encode(
@@ -2592,7 +1941,6 @@ impl BarsV1OhlcvOnly {
 
 impl MbtSchema for BarsV1OhlcvOnly {
     type Row = MathildeBarRowV1OhlcvOnly;
-    type EncodeRow<'a> = MathildeBarRowV1OhlcvOnlyEncodeRow;
     type View<'a> = BarsV1OhlcvOnlyView<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -2600,13 +1948,6 @@ impl MbtSchema for BarsV1OhlcvOnly {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
-    }
-    fn encode_view_rows(
-        rows: &[Self::EncodeRow<'_>],
-        out: &mut [u8],
-        max_response_bytes: usize,
-    ) -> Result<usize> {
-        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)
