@@ -7,6 +7,12 @@ fn generated_core_source_is_deterministic_and_core_only() -> Result<()> {
     assert_eq!(first, second);
     assert!(first.contains("pub struct FixtureV1;"));
     assert!(first.contains("pub struct FixtureV1View<'a>"));
+    assert!(first.contains("pub struct TestRowV1EncodeRow"));
+    assert!(first.contains("pub fn encode_views_into("));
+    assert!(first.contains("type EncodeRow<'a> = TestRowV1EncodeRow;"));
+    assert!(first.contains("to_bytes_in_with_alloc"));
+    assert!(first.contains("Buffer::from(payload_out)"));
+    assert!(first.contains("SubAllocator::new"));
     assert!(first.contains("pub struct FixtureV1Rows<'a>"));
     assert!(first.contains("pub struct ArchivedFixtureV1Row<'a>"));
     assert!(first.contains("pub unsafe fn access_archived_trusted_unchecked"));
@@ -91,4 +97,72 @@ fn generated_fixture_smoke_crate_compiles() -> Result<()> {
             .join("mbt-codegen-check"),
         &source,
     )
+}
+
+#[test]
+fn generated_borrowed_encode_matches_owned_bytes() -> Result<()> {
+    let source = run_codegen_to_string(valid_raw_string_proto())?;
+    assert_forbidden_absent(&source);
+    let root = std::env::current_dir()?
+        .join("target")
+        .join("mbt-codegen-borrowed-encode-check");
+    let smoke = crate::emit::smoke_crate(&root, &source)?;
+    let tests = smoke.join("tests");
+    std::fs::create_dir_all(&tests)?;
+    std::fs::write(
+        tests.join("borrowed_encode.rs"),
+        r#"
+use mbt_codegen_smoke::generated_fixture::{FixtureV1, TestRowV1, TestRowV1EncodeRow};
+
+#[test]
+fn borrowed_encode_matches_owned_bytes() -> mbt_core::error::Result<()> {
+    let owned_rows = vec![TestRowV1 {
+        schema_version: 1,
+        close_ms: 1,
+        text: "alpha".to_string(),
+        raw: vec![1, 2, 3],
+        presence_bits: 3,
+    }];
+    let borrowed_rows = [TestRowV1EncodeRow {
+        schema_version: 1,
+        close_ms: 1,
+        text: "alpha",
+        raw: &[1, 2, 3],
+        presence_bits: 3,
+    }];
+    let owned = FixtureV1::encode_owned(owned_rows, 4096)?;
+    let mut out = [0_u8; 4096];
+    let written = FixtureV1::encode_views_into(&borrowed_rows, &mut out, 4096)?;
+    assert_eq!(&out[..written], owned.as_slice());
+    FixtureV1::access(&out[..written])?;
+    Ok(())
+}
+
+#[test]
+fn borrowed_encode_enforces_output_cap() -> mbt_core::error::Result<()> {
+    let borrowed_rows = [TestRowV1EncodeRow {
+        schema_version: 1,
+        close_ms: 1,
+        text: "alpha",
+        raw: &[1, 2, 3],
+        presence_bits: 3,
+    }];
+    let mut out = [0_u8; 8];
+    assert!(FixtureV1::encode_views_into(&borrowed_rows, &mut out, 8).is_err());
+    Ok(())
+}
+"#,
+    )?;
+    let output = Command::new("cargo")
+        .arg("test")
+        .arg("--manifest-path")
+        .arg(smoke.join("Cargo.toml"))
+        .output()?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(CodegenError::Descriptor(
+            String::from_utf8_lossy(&output.stderr).into_owned(),
+        ))
+    }
 }

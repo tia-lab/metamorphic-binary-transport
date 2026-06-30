@@ -2,9 +2,12 @@
 // Do not edit by hand.
 // schema_id=40001 schema_version=1 schema_hash=3233278346470496550
 
+use core::mem::MaybeUninit;
+
 use rkyv::rancor::{Error as RkyvError, Fallible, Source};
-use rkyv::ser::{Allocator, Writer};
+use rkyv::ser::{Allocator, Writer, allocator::SubAllocator, writer::Buffer};
 use rkyv::vec::{ArchivedVec, VecResolver};
+use rkyv::with::AsVec;
 use rkyv::{Archive, Place, Serialize as RkyvSerialize};
 
 use mbt_core::envelope::{
@@ -109,6 +112,118 @@ pub struct TestCompatibilityRowV1 {
     pub presence_bits: u64,
 }
 
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityResponseV1PayloadEncodePayload<'a> {
+    pub schema_version: u16,
+    #[rkyv(with = AsVec)]
+    pub rows: &'a [TestCompatibilityRowV1EncodeRow<'a>],
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
+pub struct TestCompatibilityRowV1EncodeRow<'a> {
+    pub schema_version: u16,
+    pub tenant_ordinal: u16,
+    pub entity_ordinal: u16,
+    pub close_ms: i64,
+    pub status_ordinal: u16,
+    pub optional_status_ordinal: u16,
+    pub venues_mask: u64,
+    pub required_i64: i64,
+    pub optional_i64: i64,
+    pub required_i32: i32,
+    pub optional_i32: i32,
+    pub required_u32: u32,
+    pub optional_u32: u32,
+    pub required_f64: f64,
+    pub optional_f64: f64,
+    pub required_f32: f32,
+    pub optional_f32: f32,
+    pub required_bool: bool,
+    pub optional_bool: bool,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub required_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub optional_text: &'a str,
+    #[rkyv(with = AsVec)]
+    pub required_bytes: &'a [u8],
+    #[rkyv(with = AsVec)]
+    pub optional_bytes: &'a [u8],
+    #[rkyv(with = rkyv::with::AsString)]
+    pub uuid_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub jsonb_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub timestamptz_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub numeric_text: &'a str,
+    #[rkyv(with = AsVec)]
+    pub required_i64_array: &'a [i64],
+    #[rkyv(with = AsVec)]
+    pub nullable_i64_array: &'a [i64],
+    #[rkyv(with = AsVec)]
+    pub required_i32_array: &'a [i32],
+    #[rkyv(with = AsVec)]
+    pub nullable_i32_array: &'a [i32],
+    #[rkyv(with = AsVec)]
+    pub required_u32_array: &'a [u32],
+    #[rkyv(with = AsVec)]
+    pub nullable_u32_array: &'a [u32],
+    #[rkyv(with = AsVec)]
+    pub required_f64_array: &'a [f64],
+    #[rkyv(with = AsVec)]
+    pub nullable_f64_array: &'a [f64],
+    #[rkyv(with = AsVec)]
+    pub required_f32_array: &'a [f32],
+    #[rkyv(with = AsVec)]
+    pub nullable_f32_array: &'a [f32],
+    pub presence_bits: u64,
+}
+
+impl TestCompatibilityRowV1EncodeRow<'_> {
+    pub const fn empty() -> Self {
+        Self {
+            schema_version: 1,
+            tenant_ordinal: 0,
+            entity_ordinal: 0,
+            close_ms: 0,
+            status_ordinal: 0,
+            optional_status_ordinal: 0,
+            venues_mask: 0,
+            required_i64: 0,
+            optional_i64: 0,
+            required_i32: 0,
+            optional_i32: 0,
+            required_u32: 0,
+            optional_u32: 0,
+            required_f64: 0.0,
+            optional_f64: 0.0,
+            required_f32: 0.0,
+            optional_f32: 0.0,
+            required_bool: false,
+            optional_bool: false,
+            required_text: "",
+            optional_text: "",
+            required_bytes: &[],
+            optional_bytes: &[],
+            uuid_text: "",
+            jsonb_text: "",
+            timestamptz_text: "",
+            numeric_text: "",
+            required_i64_array: &[],
+            nullable_i64_array: &[],
+            required_i32_array: &[],
+            nullable_i32_array: &[],
+            required_u32_array: &[],
+            nullable_u32_array: &[],
+            required_f64_array: &[],
+            nullable_f64_array: &[],
+            required_f32_array: &[],
+            nullable_f32_array: &[],
+            presence_bits: 0_u64,
+        }
+    }
+}
+
 pub fn validate_rows(rows: &[TestCompatibilityRowV1]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -154,6 +269,110 @@ pub fn validate_row(
         validate_finite_f32("required_f32_array", *value)?;
     }
     for value in &row.nullable_f32_array {
+        validate_finite_f32("nullable_f32_array", *value)?;
+    }
+    if row.presence_bits & !PRESENCE_ALLOWED_MASK != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_STATUS_ORDINAL == 0 && row.optional_status_ordinal != 0
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_I64 == 0 && row.optional_i64 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_I32 == 0 && row.optional_i32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_U32 == 0 && row.optional_u32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_F64 == 0 && row.optional_f64 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_F32 == 0 && row.optional_f32 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_BOOL == 0 && row.optional_bool {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_TEXT == 0 && !row.optional_text.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_OPTIONAL_BYTES == 0 && !row.optional_bytes.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_NULLABLE_I64_ARRAY == 0 && !row.nullable_i64_array.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_NULLABLE_I32_ARRAY == 0 && !row.nullable_i32_array.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_NULLABLE_U32_ARRAY == 0 && !row.nullable_u32_array.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_NULLABLE_F64_ARRAY == 0 && !row.nullable_f64_array.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & PRESENCE_NULLABLE_F32_ARRAY == 0 && !row.nullable_f32_array.is_empty() {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if previous.is_some_and(|prev| {
+        (row.tenant_ordinal, row.entity_ordinal, row.close_ms)
+            < (prev.tenant_ordinal, prev.entity_ordinal, prev.close_ms)
+    }) {
+        return Err(TransportError::InvalidTimeGrid(
+            "key order regression".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+pub fn validate_encode_rows(rows: &[TestCompatibilityRowV1EncodeRow<'_>]) -> Result<()> {
+    let mut previous = None;
+    for row in rows {
+        validate_encode_row(row, previous)?;
+        previous = Some(row);
+    }
+    Ok(())
+}
+
+pub fn validate_encode_row(
+    row: &TestCompatibilityRowV1EncodeRow<'_>,
+    previous: Option<&TestCompatibilityRowV1EncodeRow<'_>>,
+) -> Result<()> {
+    if row.schema_version != 1 {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: row.schema_version,
+            expected: 1,
+        });
+    }
+    tenant_symbol(row.tenant_ordinal)?;
+    entity_symbol(row.entity_ordinal)?;
+    status_symbol(row.status_ordinal)?;
+    if row.optional_status_ordinal != 0 {
+        status_symbol(row.optional_status_ordinal)?;
+    }
+    if row.venues_mask & !VALID_VENUE_MASK != 0 {
+        return Err(TransportError::InvalidBitmask {
+            field: "venues",
+            value: row.venues_mask,
+        });
+    }
+    validate_finite_f64("required_f64", row.required_f64)?;
+    validate_finite_f64("optional_f64", row.optional_f64)?;
+    validate_finite_f32("required_f32", row.required_f32)?;
+    validate_finite_f32("optional_f32", row.optional_f32)?;
+    for value in row.required_f64_array {
+        validate_finite_f64("required_f64_array", *value)?;
+    }
+    for value in row.nullable_f64_array {
+        validate_finite_f64("nullable_f64_array", *value)?;
+    }
+    for value in row.required_f32_array {
+        validate_finite_f32("required_f32_array", *value)?;
+    }
+    for value in row.nullable_f32_array {
         validate_finite_f32("nullable_f32_array", *value)?;
     }
     if row.presence_bits & !PRESENCE_ALLOWED_MASK != 0 {
@@ -614,6 +833,62 @@ impl TestCompatibilityV1 {
         SCHEMA_HEADER
     }
 
+    pub fn encode_views_into(
+        rows: &[TestCompatibilityRowV1EncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        validate_encode_rows(rows)?;
+        let cap = core::cmp::min(out.len(), max_response_bytes);
+        if cap < HEADER_LEN {
+            return Err(TransportError::ResponseTooLarge {
+                observed: HEADER_LEN,
+                cap,
+            });
+        }
+        let row_count = rows.len();
+        let payload = TestCompatibilityResponseV1PayloadEncodePayload {
+            schema_version: SCHEMA_VERSION_VALUE,
+            rows,
+        };
+        let payload_len = {
+            let payload_out = &mut out[HEADER_LEN..cap];
+            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
+            let writer = Buffer::from(payload_out);
+            let alloc = SubAllocator::new(&mut scratch);
+            let payload_bytes =
+                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
+                    .map_err(|_err| TransportError::ResponseTooLarge {
+                        observed: cap.saturating_add(1),
+                        cap,
+                    })?;
+            payload_bytes.len()
+        };
+        let total_len =
+            HEADER_LEN
+                .checked_add(payload_len)
+                .ok_or(TransportError::ResponseTooLarge {
+                    observed: usize::MAX,
+                    cap,
+                })?;
+        if total_len > cap {
+            return Err(TransportError::ResponseTooLarge {
+                observed: total_len,
+                cap,
+            });
+        }
+        let header = TransportHeader::new_with_schema(
+            Self::header_spec(),
+            row_count as u64,
+            payload_len as u64,
+            fnv1a64(&out[HEADER_LEN..total_len]),
+        );
+        let mut header_bytes = [0_u8; HEADER_LEN];
+        encode_header(&header, &mut header_bytes);
+        out[..HEADER_LEN].copy_from_slice(&header_bytes);
+        Ok(total_len)
+    }
+
     pub fn encode(rows: &[TestCompatibilityRowV1], max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows.to_vec(), max_response_bytes)
     }
@@ -698,6 +973,7 @@ impl TestCompatibilityV1 {
 
 impl MbtSchema for TestCompatibilityV1 {
     type Row = TestCompatibilityRowV1;
+    type EncodeRow<'a> = TestCompatibilityRowV1EncodeRow<'a>;
     type View<'a> = TestCompatibilityV1View<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -705,6 +981,13 @@ impl MbtSchema for TestCompatibilityV1 {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
+    }
+    fn encode_view_rows(
+        rows: &[Self::EncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)
@@ -1248,6 +1531,81 @@ pub struct TestCompatibilityRowV1NoOptional {
     pub required_f32_array: Vec<f32>,
 }
 
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityResponseV1PayloadNoOptionalEncodePayload<'a> {
+    pub schema_version: u16,
+    #[rkyv(with = AsVec)]
+    pub rows: &'a [TestCompatibilityRowV1NoOptionalEncodeRow<'a>],
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
+pub struct TestCompatibilityRowV1NoOptionalEncodeRow<'a> {
+    pub schema_version: u16,
+    pub tenant_ordinal: u16,
+    pub entity_ordinal: u16,
+    pub close_ms: i64,
+    pub status_ordinal: u16,
+    pub venues_mask: u64,
+    pub required_i64: i64,
+    pub required_i32: i32,
+    pub required_u32: u32,
+    pub required_f64: f64,
+    pub required_f32: f32,
+    pub required_bool: bool,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub required_text: &'a str,
+    #[rkyv(with = AsVec)]
+    pub required_bytes: &'a [u8],
+    #[rkyv(with = rkyv::with::AsString)]
+    pub uuid_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub jsonb_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub timestamptz_text: &'a str,
+    #[rkyv(with = rkyv::with::AsString)]
+    pub numeric_text: &'a str,
+    #[rkyv(with = AsVec)]
+    pub required_i64_array: &'a [i64],
+    #[rkyv(with = AsVec)]
+    pub required_i32_array: &'a [i32],
+    #[rkyv(with = AsVec)]
+    pub required_u32_array: &'a [u32],
+    #[rkyv(with = AsVec)]
+    pub required_f64_array: &'a [f64],
+    #[rkyv(with = AsVec)]
+    pub required_f32_array: &'a [f32],
+}
+
+impl TestCompatibilityRowV1NoOptionalEncodeRow<'_> {
+    pub const fn empty() -> Self {
+        Self {
+            schema_version: 1,
+            tenant_ordinal: 0,
+            entity_ordinal: 0,
+            close_ms: 0,
+            status_ordinal: 0,
+            venues_mask: 0,
+            required_i64: 0,
+            required_i32: 0,
+            required_u32: 0,
+            required_f64: 0.0,
+            required_f32: 0.0,
+            required_bool: false,
+            required_text: "",
+            required_bytes: &[],
+            uuid_text: "",
+            jsonb_text: "",
+            timestamptz_text: "",
+            numeric_text: "",
+            required_i64_array: &[],
+            required_i32_array: &[],
+            required_u32_array: &[],
+            required_f64_array: &[],
+            required_f32_array: &[],
+        }
+    }
+}
+
 fn no_optional_validate_rows(rows: &[TestCompatibilityRowV1NoOptional]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -1282,6 +1640,55 @@ fn no_optional_validate_row(
         validate_finite_f64("required_f64_array", *value)?;
     }
     for value in &row.required_f32_array {
+        validate_finite_f32("required_f32_array", *value)?;
+    }
+    if previous.is_some_and(|prev| {
+        (row.tenant_ordinal, row.entity_ordinal, row.close_ms)
+            < (prev.tenant_ordinal, prev.entity_ordinal, prev.close_ms)
+    }) {
+        return Err(TransportError::InvalidTimeGrid(
+            "key order regression".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn no_optional_validate_encode_rows(
+    rows: &[TestCompatibilityRowV1NoOptionalEncodeRow<'_>],
+) -> Result<()> {
+    let mut previous = None;
+    for row in rows {
+        no_optional_validate_encode_row(row, previous)?;
+        previous = Some(row);
+    }
+    Ok(())
+}
+
+fn no_optional_validate_encode_row(
+    row: &TestCompatibilityRowV1NoOptionalEncodeRow<'_>,
+    previous: Option<&TestCompatibilityRowV1NoOptionalEncodeRow<'_>>,
+) -> Result<()> {
+    if row.schema_version != 1 {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: row.schema_version,
+            expected: 1,
+        });
+    }
+    tenant_symbol(row.tenant_ordinal)?;
+    entity_symbol(row.entity_ordinal)?;
+    status_symbol(row.status_ordinal)?;
+    if row.venues_mask & !VALID_VENUE_MASK != 0 {
+        return Err(TransportError::InvalidBitmask {
+            field: "venues",
+            value: row.venues_mask,
+        });
+    }
+    validate_finite_f64("required_f64", row.required_f64)?;
+    validate_finite_f32("required_f32", row.required_f32)?;
+    for value in row.required_f64_array {
+        validate_finite_f64("required_f64_array", *value)?;
+    }
+    for value in row.required_f32_array {
         validate_finite_f32("required_f32_array", *value)?;
     }
     if previous.is_some_and(|prev| {
@@ -1399,6 +1806,62 @@ impl TestCompatibilityV1NoOptional {
         NO_OPTIONAL_SCHEMA_HEADER
     }
 
+    pub fn encode_views_into(
+        rows: &[TestCompatibilityRowV1NoOptionalEncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        no_optional_validate_encode_rows(rows)?;
+        let cap = core::cmp::min(out.len(), max_response_bytes);
+        if cap < HEADER_LEN {
+            return Err(TransportError::ResponseTooLarge {
+                observed: HEADER_LEN,
+                cap,
+            });
+        }
+        let row_count = rows.len();
+        let payload = TestCompatibilityResponseV1PayloadNoOptionalEncodePayload {
+            schema_version: NO_OPTIONAL_SCHEMA_VERSION_VALUE,
+            rows,
+        };
+        let payload_len = {
+            let payload_out = &mut out[HEADER_LEN..cap];
+            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
+            let writer = Buffer::from(payload_out);
+            let alloc = SubAllocator::new(&mut scratch);
+            let payload_bytes =
+                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
+                    .map_err(|_err| TransportError::ResponseTooLarge {
+                        observed: cap.saturating_add(1),
+                        cap,
+                    })?;
+            payload_bytes.len()
+        };
+        let total_len =
+            HEADER_LEN
+                .checked_add(payload_len)
+                .ok_or(TransportError::ResponseTooLarge {
+                    observed: usize::MAX,
+                    cap,
+                })?;
+        if total_len > cap {
+            return Err(TransportError::ResponseTooLarge {
+                observed: total_len,
+                cap,
+            });
+        }
+        let header = TransportHeader::new_with_schema(
+            Self::header_spec(),
+            row_count as u64,
+            payload_len as u64,
+            fnv1a64(&out[HEADER_LEN..total_len]),
+        );
+        let mut header_bytes = [0_u8; HEADER_LEN];
+        encode_header(&header, &mut header_bytes);
+        out[..HEADER_LEN].copy_from_slice(&header_bytes);
+        Ok(total_len)
+    }
+
     pub fn encode(
         rows: &[TestCompatibilityRowV1NoOptional],
         max_response_bytes: usize,
@@ -1486,6 +1949,7 @@ impl TestCompatibilityV1NoOptional {
 
 impl MbtSchema for TestCompatibilityV1NoOptional {
     type Row = TestCompatibilityRowV1NoOptional;
+    type EncodeRow<'a> = TestCompatibilityRowV1NoOptionalEncodeRow<'a>;
     type View<'a> = TestCompatibilityV1NoOptionalView<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -1493,6 +1957,13 @@ impl MbtSchema for TestCompatibilityV1NoOptional {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
+    }
+    fn encode_view_rows(
+        rows: &[Self::EncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)
@@ -1982,6 +2453,84 @@ pub struct TestCompatibilityRowV1NumericOnly {
     pub presence_bits: u64,
 }
 
+#[derive(Archive, RkyvSerialize)]
+struct TestCompatibilityResponseV1PayloadNumericOnlyEncodePayload<'a> {
+    pub schema_version: u16,
+    #[rkyv(with = AsVec)]
+    pub rows: &'a [TestCompatibilityRowV1NumericOnlyEncodeRow<'a>],
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]
+pub struct TestCompatibilityRowV1NumericOnlyEncodeRow<'a> {
+    pub schema_version: u16,
+    pub tenant_ordinal: u16,
+    pub entity_ordinal: u16,
+    pub close_ms: i64,
+    pub required_i64: i64,
+    pub optional_i64: i64,
+    pub required_i32: i32,
+    pub optional_i32: i32,
+    pub required_u32: u32,
+    pub optional_u32: u32,
+    pub required_f64: f64,
+    pub optional_f64: f64,
+    pub required_f32: f32,
+    pub optional_f32: f32,
+    #[rkyv(with = AsVec)]
+    pub required_i64_array: &'a [i64],
+    #[rkyv(with = AsVec)]
+    pub nullable_i64_array: &'a [i64],
+    #[rkyv(with = AsVec)]
+    pub required_i32_array: &'a [i32],
+    #[rkyv(with = AsVec)]
+    pub nullable_i32_array: &'a [i32],
+    #[rkyv(with = AsVec)]
+    pub required_u32_array: &'a [u32],
+    #[rkyv(with = AsVec)]
+    pub nullable_u32_array: &'a [u32],
+    #[rkyv(with = AsVec)]
+    pub required_f64_array: &'a [f64],
+    #[rkyv(with = AsVec)]
+    pub nullable_f64_array: &'a [f64],
+    #[rkyv(with = AsVec)]
+    pub required_f32_array: &'a [f32],
+    #[rkyv(with = AsVec)]
+    pub nullable_f32_array: &'a [f32],
+    pub presence_bits: u64,
+}
+
+impl TestCompatibilityRowV1NumericOnlyEncodeRow<'_> {
+    pub const fn empty() -> Self {
+        Self {
+            schema_version: 1,
+            tenant_ordinal: 0,
+            entity_ordinal: 0,
+            close_ms: 0,
+            required_i64: 0,
+            optional_i64: 0,
+            required_i32: 0,
+            optional_i32: 0,
+            required_u32: 0,
+            optional_u32: 0,
+            required_f64: 0.0,
+            optional_f64: 0.0,
+            required_f32: 0.0,
+            optional_f32: 0.0,
+            required_i64_array: &[],
+            nullable_i64_array: &[],
+            required_i32_array: &[],
+            nullable_i32_array: &[],
+            required_u32_array: &[],
+            nullable_u32_array: &[],
+            required_f64_array: &[],
+            nullable_f64_array: &[],
+            required_f32_array: &[],
+            nullable_f32_array: &[],
+            presence_bits: 0_u64,
+        }
+    }
+}
+
 fn numeric_only_validate_rows(rows: &[TestCompatibilityRowV1NumericOnly]) -> Result<()> {
     let mut previous = None;
     for row in rows {
@@ -2017,6 +2566,99 @@ fn numeric_only_validate_row(
         validate_finite_f32("required_f32_array", *value)?;
     }
     for value in &row.nullable_f32_array {
+        validate_finite_f32("nullable_f32_array", *value)?;
+    }
+    if row.presence_bits & !NUMERIC_ONLY_PRESENCE_ALLOWED_MASK != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_I64 == 0 && row.optional_i64 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_I32 == 0 && row.optional_i32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_U32 == 0 && row.optional_u32 != 0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_F64 == 0 && row.optional_f64 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_OPTIONAL_F32 == 0 && row.optional_f32 != 0.0 {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_I64_ARRAY == 0
+        && !row.nullable_i64_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_I32_ARRAY == 0
+        && !row.nullable_i32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_U32_ARRAY == 0
+        && !row.nullable_u32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_F64_ARRAY == 0
+        && !row.nullable_f64_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if row.presence_bits & NUMERIC_ONLY_PRESENCE_NULLABLE_F32_ARRAY == 0
+        && !row.nullable_f32_array.is_empty()
+    {
+        return Err(TransportError::InvalidPresenceBits(row.presence_bits));
+    }
+    if previous.is_some_and(|prev| {
+        (row.tenant_ordinal, row.entity_ordinal, row.close_ms)
+            < (prev.tenant_ordinal, prev.entity_ordinal, prev.close_ms)
+    }) {
+        return Err(TransportError::InvalidTimeGrid(
+            "key order regression".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn numeric_only_validate_encode_rows(
+    rows: &[TestCompatibilityRowV1NumericOnlyEncodeRow<'_>],
+) -> Result<()> {
+    let mut previous = None;
+    for row in rows {
+        numeric_only_validate_encode_row(row, previous)?;
+        previous = Some(row);
+    }
+    Ok(())
+}
+
+fn numeric_only_validate_encode_row(
+    row: &TestCompatibilityRowV1NumericOnlyEncodeRow<'_>,
+    previous: Option<&TestCompatibilityRowV1NumericOnlyEncodeRow<'_>>,
+) -> Result<()> {
+    if row.schema_version != 1 {
+        return Err(TransportError::SchemaVersionMismatch {
+            observed: row.schema_version,
+            expected: 1,
+        });
+    }
+    tenant_symbol(row.tenant_ordinal)?;
+    entity_symbol(row.entity_ordinal)?;
+    validate_finite_f64("required_f64", row.required_f64)?;
+    validate_finite_f64("optional_f64", row.optional_f64)?;
+    validate_finite_f32("required_f32", row.required_f32)?;
+    validate_finite_f32("optional_f32", row.optional_f32)?;
+    for value in row.required_f64_array {
+        validate_finite_f64("required_f64_array", *value)?;
+    }
+    for value in row.nullable_f64_array {
+        validate_finite_f64("nullable_f64_array", *value)?;
+    }
+    for value in row.required_f32_array {
+        validate_finite_f32("required_f32_array", *value)?;
+    }
+    for value in row.nullable_f32_array {
         validate_finite_f32("nullable_f32_array", *value)?;
     }
     if row.presence_bits & !NUMERIC_ONLY_PRESENCE_ALLOWED_MASK != 0 {
@@ -2211,6 +2853,62 @@ impl TestCompatibilityV1NumericOnly {
         NUMERIC_ONLY_SCHEMA_HEADER
     }
 
+    pub fn encode_views_into(
+        rows: &[TestCompatibilityRowV1NumericOnlyEncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        numeric_only_validate_encode_rows(rows)?;
+        let cap = core::cmp::min(out.len(), max_response_bytes);
+        if cap < HEADER_LEN {
+            return Err(TransportError::ResponseTooLarge {
+                observed: HEADER_LEN,
+                cap,
+            });
+        }
+        let row_count = rows.len();
+        let payload = TestCompatibilityResponseV1PayloadNumericOnlyEncodePayload {
+            schema_version: NUMERIC_ONLY_SCHEMA_VERSION_VALUE,
+            rows,
+        };
+        let payload_len = {
+            let payload_out = &mut out[HEADER_LEN..cap];
+            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];
+            let writer = Buffer::from(payload_out);
+            let alloc = SubAllocator::new(&mut scratch);
+            let payload_bytes =
+                rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)
+                    .map_err(|_err| TransportError::ResponseTooLarge {
+                        observed: cap.saturating_add(1),
+                        cap,
+                    })?;
+            payload_bytes.len()
+        };
+        let total_len =
+            HEADER_LEN
+                .checked_add(payload_len)
+                .ok_or(TransportError::ResponseTooLarge {
+                    observed: usize::MAX,
+                    cap,
+                })?;
+        if total_len > cap {
+            return Err(TransportError::ResponseTooLarge {
+                observed: total_len,
+                cap,
+            });
+        }
+        let header = TransportHeader::new_with_schema(
+            Self::header_spec(),
+            row_count as u64,
+            payload_len as u64,
+            fnv1a64(&out[HEADER_LEN..total_len]),
+        );
+        let mut header_bytes = [0_u8; HEADER_LEN];
+        encode_header(&header, &mut header_bytes);
+        out[..HEADER_LEN].copy_from_slice(&header_bytes);
+        Ok(total_len)
+    }
+
     pub fn encode(
         rows: &[TestCompatibilityRowV1NumericOnly],
         max_response_bytes: usize,
@@ -2298,6 +2996,7 @@ impl TestCompatibilityV1NumericOnly {
 
 impl MbtSchema for TestCompatibilityV1NumericOnly {
     type Row = TestCompatibilityRowV1NumericOnly;
+    type EncodeRow<'a> = TestCompatibilityRowV1NumericOnlyEncodeRow<'a>;
     type View<'a> = TestCompatibilityV1NumericOnlyView<'a>;
 
     fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> {
@@ -2305,6 +3004,13 @@ impl MbtSchema for TestCompatibilityV1NumericOnly {
     }
     fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> {
         Self::encode_owned(rows, max_response_bytes)
+    }
+    fn encode_view_rows(
+        rows: &[Self::EncodeRow<'_>],
+        out: &mut [u8],
+        max_response_bytes: usize,
+    ) -> Result<usize> {
+        Self::encode_views_into(rows, out, max_response_bytes)
     }
     fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> {
         Self::access(bytes)

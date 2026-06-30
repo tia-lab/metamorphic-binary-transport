@@ -1899,10 +1899,13 @@ fn emit_header(out: &mut String, model: &SchemaModel) {
 fn emit_imports(out: &mut String) {
     // Core imports are shared by every generated schema surface.
     out.push_str(
-        r#"use rkyv::{Archive, Place, Serialize as RkyvSerialize};
+        r#"use core::mem::MaybeUninit;
+
+use rkyv::{Archive, Place, Serialize as RkyvSerialize};
 use rkyv::rancor::{Error as RkyvError, Fallible, Source};
-use rkyv::ser::{Allocator, Writer};
+use rkyv::ser::{allocator::SubAllocator, writer::Buffer, Allocator, Writer};
 use rkyv::vec::{ArchivedVec, VecResolver};
+use rkyv::with::AsVec;
 
 use mbt_core::envelope::{
     decode_header, encode_header, fnv1a64, trusted_payload_for_schema,
@@ -2103,6 +2106,79 @@ fn emit_structs(out: &mut String, model: &SchemaModel) {
         ));
     }
     out.push_str("}\n\n");
+
+    emit_encode_view_structs(out, model);
+}
+
+fn emit_encode_view_structs(out: &mut String, model: &SchemaModel) {
+    let row_type = encode_row_type_named(model, "'a");
+    out.push_str("#[derive(Archive, RkyvSerialize)]\n");
+    out.push_str(&format!(
+        "struct {}EncodePayload<'a> {{\n",
+        model.payload_type
+    ));
+    out.push_str("    pub schema_version: u16,\n");
+    out.push_str("    #[rkyv(with = AsVec)]\n");
+    out.push_str(&format!(
+        "    pub {}: &'a [{}],\n",
+        model.row_field_name, row_type
+    ));
+    out.push_str("}\n\n");
+
+    out.push_str("#[derive(Clone, Copy, Debug, PartialEq, Archive, RkyvSerialize)]\n");
+    out.push_str(&format!(
+        "pub struct {}{} {{\n",
+        encode_row_base_type(model),
+        encode_row_lifetime_param(model)
+    ));
+    for field in &model.fields {
+        match field.kind {
+            FieldKind::RawString => {
+                out.push_str("    #[rkyv(with = rkyv::with::AsString)]\n");
+            }
+            FieldKind::Bytes
+            | FieldKind::I64Array
+            | FieldKind::I32Array
+            | FieldKind::U32Array
+            | FieldKind::F64Array
+            | FieldKind::F32Array => {
+                out.push_str("    #[rkyv(with = AsVec)]\n");
+            }
+            _ => {}
+        }
+        out.push_str(&format!(
+            "    pub {}: {},\n",
+            field.rust_name,
+            borrowed_encode_field_type(field)
+        ));
+    }
+    if has_presence(model) {
+        out.push_str(&format!(
+            "    pub presence_bits: {},\n",
+            presence_storage_type(model)
+        ));
+    }
+    out.push_str("}\n\n");
+
+    out.push_str(&format!("impl {} {{\n", encode_row_type_elided(model)));
+    out.push_str("    pub const fn empty() -> Self {\n");
+    out.push_str("        Self {\n");
+    for field in &model.fields {
+        out.push_str(&format!(
+            "            {}: {},\n",
+            field.rust_name,
+            borrowed_encode_empty_value(field)
+        ));
+    }
+    if has_presence(model) {
+        out.push_str(&format!(
+            "            presence_bits: {},\n",
+            empty_presence_expr(model)
+        ));
+    }
+    out.push_str("        }\n");
+    out.push_str("    }\n");
+    out.push_str("}\n\n");
 }
 
 fn emit_validation(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
@@ -2141,10 +2217,190 @@ fn emit_validation(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
     emit_order_validation(out, model);
     out.push_str("    Ok(())\n");
     out.push_str("}\n\n");
+
+    emit_encode_view_validation(out, scope)?;
+
     if scope.public_free_items {
         emit_validation_helpers(out, model);
     }
     Ok(())
+}
+
+fn emit_encode_view_validation(out: &mut String, scope: &EmitScope<'_>) -> Result<()> {
+    let model = scope.model;
+    let encode_row_type = encode_row_type_elided(model);
+    out.push_str(&format!(
+        "{}fn {}(rows: &[{}]) -> Result<()> {{\n",
+        scope.item_vis(),
+        scope.fn_name("validate_encode_rows"),
+        encode_row_type
+    ));
+    out.push_str("    let mut previous = None;\n");
+    out.push_str("    for row in rows {\n");
+    out.push_str(&format!(
+        "        {}(row, previous)?;\n",
+        scope.fn_name("validate_encode_row")
+    ));
+    out.push_str("        previous = Some(row);\n");
+    out.push_str("    }\n");
+    out.push_str("    Ok(())\n");
+    out.push_str("}\n\n");
+
+    out.push_str(&format!(
+        "{}fn {}(row: &{}, previous: Option<&{}>) -> Result<()> {{\n",
+        scope.item_vis(),
+        scope.fn_name("validate_encode_row"),
+        encode_row_type,
+        encode_row_type
+    ));
+    for field in &model.fields {
+        emit_encode_field_validation(out, model, field)?;
+    }
+    if has_presence(model) {
+        emit_encode_presence_validation(out, scope);
+    }
+    emit_encode_order_validation(out, model);
+    out.push_str("    Ok(())\n");
+    out.push_str("}\n\n");
+    Ok(())
+}
+
+fn emit_encode_field_validation(
+    out: &mut String,
+    model: &SchemaModel,
+    field: &PhysicalField,
+) -> Result<()> {
+    match &field.kind {
+        FieldKind::ConstU16 { value } => out.push_str(&format!(
+            "    if row.{} != {value} {{ return Err(TransportError::SchemaVersionMismatch {{ observed: row.{}, expected: {value} }}); }}\n",
+            field.rust_name, field.rust_name
+        )),
+        FieldKind::U16Dictionary {
+            dictionary,
+            optional,
+        } => {
+            let helper = format!("{}_symbol", dictionary_helper_stem(model, dictionary));
+            if *optional {
+                out.push_str(&format!(
+                    "    if row.{} != 0 {{ {helper}(row.{})?; }}\n",
+                    field.rust_name, field.rust_name
+                ));
+            } else {
+                out.push_str(&format!("    {helper}(row.{})?;\n", field.rust_name));
+            }
+        }
+        FieldKind::U64BitmaskDictionary { dictionary } => {
+            let prefix = dict_prefix(dictionary);
+            out.push_str(&format!(
+                "    if row.{} & !VALID_{prefix}_MASK != 0 {{ return Err(TransportError::InvalidBitmask {{ field: {:?}, value: row.{} }}); }}\n",
+                field.rust_name, field.logical_path, field.rust_name
+            ));
+        }
+        FieldKind::F32 => out.push_str(&format!(
+            "    validate_finite_f32({:?}, row.{})?;\n",
+            field.logical_path, field.rust_name
+        )),
+        FieldKind::F64 => out.push_str(&format!(
+            "    validate_finite_f64({:?}, row.{})?;\n",
+            field.logical_path, field.rust_name
+        )),
+        FieldKind::F32Array => out.push_str(&format!(
+            "    for value in row.{} {{ validate_finite_f32({:?}, *value)?; }}\n",
+            field.rust_name, field.logical_path
+        )),
+        FieldKind::F64Array => out.push_str(&format!(
+            "    for value in row.{} {{ validate_finite_f64({:?}, *value)?; }}\n",
+            field.rust_name, field.logical_path
+        )),
+        FieldKind::I32
+        | FieldKind::U32
+        | FieldKind::I64
+        | FieldKind::Bool
+        | FieldKind::Bytes
+        | FieldKind::RawString
+        | FieldKind::I64Array
+        | FieldKind::I32Array
+        | FieldKind::U32Array => {}
+    }
+    Ok(())
+}
+
+fn emit_encode_presence_validation(out: &mut String, scope: &EmitScope<'_>) {
+    let model = scope.model;
+    if presence_is_wide(model) {
+        out.push_str(&format!(
+            "    for (word, allowed_mask) in {}.iter().enumerate() {{\n",
+            scope.const_name("PRESENCE_ALLOWED_MASKS")
+        ));
+        out.push_str("        let value = row.presence_bits[word];\n");
+        out.push_str("        if value & !allowed_mask != 0 { return Err(TransportError::InvalidPresenceWord { word, value }); }\n");
+        out.push_str("    }\n");
+    } else {
+        out.push_str(&format!(
+            "    if row.presence_bits & !{} != 0 {{ return Err(TransportError::InvalidPresenceBits(row.presence_bits)); }}\n",
+            scope.const_name("PRESENCE_ALLOWED_MASK")
+        ));
+    }
+    for field in model
+        .fields
+        .iter()
+        .filter(|field| field.presence_bit.is_some())
+    {
+        let predicate = owned_presence_absent_expr(scope, "row.presence_bits", field);
+        let error = presence_error_expr(scope, "row.presence_bits", field);
+        match field.kind {
+            FieldKind::F32 | FieldKind::F64 => out.push_str(&format!(
+                "    if {predicate} && row.{} != 0.0 {{ return Err({error}); }}\n",
+                field.rust_name
+            )),
+            FieldKind::I32 | FieldKind::U32 | FieldKind::I64 | FieldKind::U16Dictionary { .. } => {
+                out.push_str(&format!(
+                    "    if {predicate} && row.{} != 0 {{ return Err({error}); }}\n",
+                    field.rust_name
+                ));
+            }
+            FieldKind::Bool => out.push_str(&format!(
+                "    if {predicate} && row.{} {{ return Err({error}); }}\n",
+                field.rust_name
+            )),
+            FieldKind::Bytes
+            | FieldKind::RawString
+            | FieldKind::I64Array
+            | FieldKind::I32Array
+            | FieldKind::U32Array
+            | FieldKind::F64Array
+            | FieldKind::F32Array => out.push_str(&format!(
+                "    if {predicate} && !row.{}.is_empty() {{ return Err({error}); }}\n",
+                field.rust_name
+            )),
+            FieldKind::ConstU16 { .. } | FieldKind::U64BitmaskDictionary { .. } => {}
+        }
+    }
+}
+
+fn emit_encode_order_validation(out: &mut String, model: &SchemaModel) {
+    if model.key_parts.is_empty() {
+        return;
+    }
+    let current = model
+        .key_parts
+        .iter()
+        .map(|part| format!("row.{}", part.rust_name))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let previous = model
+        .key_parts
+        .iter()
+        .map(|part| format!("prev.{}", part.rust_name))
+        .collect::<Vec<_>>()
+        .join(", ");
+    out.push_str(&format!(
+        "    if previous.is_some_and(|prev| ({current}) < ({previous})) {{\n"
+    ));
+    out.push_str(
+        "        return Err(TransportError::InvalidTimeGrid(\"key order regression\".to_string()));\n",
+    );
+    out.push_str("    }\n");
 }
 
 fn emit_owned_field_validation(
@@ -2955,6 +3211,48 @@ fn emit_runtime_api(out: &mut String, scope: &EmitScope<'_>) {
         scope.const_name("SCHEMA_HEADER")
     ));
     out.push_str(&format!(
+        "    pub fn encode_views_into(rows: &[{}], out: &mut [u8], max_response_bytes: usize) -> Result<usize> {{\n",
+        encode_row_type_elided(model)
+    ));
+    out.push_str(&format!(
+        "        {}(rows)?;\n",
+        scope.fn_name("validate_encode_rows")
+    ));
+    out.push_str("        let cap = core::cmp::min(out.len(), max_response_bytes);\n");
+    out.push_str("        if cap < HEADER_LEN { return Err(TransportError::ResponseTooLarge { observed: HEADER_LEN, cap }); }\n");
+    out.push_str("        let row_count = rows.len();\n");
+    if model.row_field_name == "rows" {
+        out.push_str(&format!(
+            "        let payload = {}EncodePayload {{ schema_version: {}, rows }};\n",
+            model.payload_type,
+            scope.const_name("SCHEMA_VERSION_VALUE")
+        ));
+    } else {
+        out.push_str(&format!(
+            "        let payload = {}EncodePayload {{ schema_version: {}, {}: rows }};\n",
+            model.payload_type,
+            scope.const_name("SCHEMA_VERSION_VALUE"),
+            model.row_field_name
+        ));
+    }
+    out.push_str("        let payload_len = {\n");
+    out.push_str("            let payload_out = &mut out[HEADER_LEN..cap];\n");
+    out.push_str("            let mut scratch = [MaybeUninit::<u8>::uninit(); 262_144];\n");
+    out.push_str("            let writer = Buffer::from(payload_out);\n");
+    out.push_str("            let alloc = SubAllocator::new(&mut scratch);\n");
+    out.push_str("            let payload_bytes = rkyv::api::low::to_bytes_in_with_alloc::<_, _, RkyvError>(&payload, writer, alloc)\n");
+    out.push_str("                .map_err(|_err| TransportError::ResponseTooLarge { observed: cap.saturating_add(1), cap })?;\n");
+    out.push_str("            payload_bytes.len()\n");
+    out.push_str("        };\n");
+    out.push_str("        let total_len = HEADER_LEN.checked_add(payload_len).ok_or(TransportError::ResponseTooLarge { observed: usize::MAX, cap })?;\n");
+    out.push_str("        if total_len > cap { return Err(TransportError::ResponseTooLarge { observed: total_len, cap }); }\n");
+    out.push_str("        let header = TransportHeader::new_with_schema(Self::header_spec(), row_count as u64, payload_len as u64, fnv1a64(&out[HEADER_LEN..total_len]));\n");
+    out.push_str("        let mut header_bytes = [0_u8; HEADER_LEN];\n");
+    out.push_str("        encode_header(&header, &mut header_bytes);\n");
+    out.push_str("        out[..HEADER_LEN].copy_from_slice(&header_bytes);\n");
+    out.push_str("        Ok(total_len)\n");
+    out.push_str("    }\n\n");
+    out.push_str(&format!(
         "    pub fn encode(rows: &[{}], max_response_bytes: usize) -> Result<Vec<u8>> {{\n",
         model.row_type
     ));
@@ -3050,9 +3348,14 @@ fn emit_runtime_api(out: &mut String, scope: &EmitScope<'_>) {
 fn emit_runtime_trait(out: &mut String, model: &SchemaModel) {
     out.push_str(&format!("impl MbtSchema for {} {{\n", model.marker_type));
     out.push_str(&format!("    type Row = {};\n", model.row_type));
+    out.push_str(&format!(
+        "    type EncodeRow<'a> = {};\n",
+        encode_row_type_named(model, "'a")
+    ));
     out.push_str(&format!("    type View<'a> = {}<'a>;\n\n", model.view_type));
     out.push_str("    fn encode_rows(rows: &[Self::Row], max_response_bytes: usize) -> Result<Vec<u8>> { Self::encode(rows, max_response_bytes) }\n");
     out.push_str("    fn encode_owned_rows(rows: Vec<Self::Row>, max_response_bytes: usize) -> Result<Vec<u8>> { Self::encode_owned(rows, max_response_bytes) }\n");
+    out.push_str("    fn encode_view_rows(rows: &[Self::EncodeRow<'_>], out: &mut [u8], max_response_bytes: usize) -> Result<usize> { Self::encode_views_into(rows, out, max_response_bytes) }\n");
     out.push_str(
         "    fn access_view(bytes: &[u8]) -> Result<Self::View<'_>> { Self::access(bytes) }\n",
     );
@@ -3813,6 +4116,86 @@ fn rust_field_type(field: &PhysicalField) -> &'static str {
         FieldKind::U32Array => "Vec<u32>",
         FieldKind::F64Array => "Vec<f64>",
         FieldKind::F32Array => "Vec<f32>",
+    }
+}
+
+fn encode_row_borrows(model: &SchemaModel) -> bool {
+    model.fields.iter().any(|field| {
+        matches!(
+            field.kind,
+            FieldKind::Bytes
+                | FieldKind::RawString
+                | FieldKind::I64Array
+                | FieldKind::I32Array
+                | FieldKind::U32Array
+                | FieldKind::F64Array
+                | FieldKind::F32Array
+        )
+    })
+}
+
+fn encode_row_base_type(model: &SchemaModel) -> String {
+    format!("{}EncodeRow", model.row_type)
+}
+
+fn encode_row_lifetime_param(model: &SchemaModel) -> &'static str {
+    if encode_row_borrows(model) {
+        "<'a>"
+    } else {
+        ""
+    }
+}
+
+fn encode_row_type_named(model: &SchemaModel, lifetime: &str) -> String {
+    let base = encode_row_base_type(model);
+    if encode_row_borrows(model) {
+        format!("{base}<{lifetime}>")
+    } else {
+        base
+    }
+}
+
+fn encode_row_type_elided(model: &SchemaModel) -> String {
+    encode_row_type_named(model, "'_")
+}
+
+fn borrowed_encode_field_type(field: &PhysicalField) -> &'static str {
+    match field.kind {
+        FieldKind::ConstU16 { .. } | FieldKind::U16Dictionary { .. } => "u16",
+        FieldKind::U64BitmaskDictionary { .. } => "u64",
+        FieldKind::I32 => "i32",
+        FieldKind::U32 => "u32",
+        FieldKind::I64 => "i64",
+        FieldKind::F32 => "f32",
+        FieldKind::F64 => "f64",
+        FieldKind::Bool => "bool",
+        FieldKind::Bytes => "&'a [u8]",
+        FieldKind::RawString => "&'a str",
+        FieldKind::I64Array => "&'a [i64]",
+        FieldKind::I32Array => "&'a [i32]",
+        FieldKind::U32Array => "&'a [u32]",
+        FieldKind::F64Array => "&'a [f64]",
+        FieldKind::F32Array => "&'a [f32]",
+    }
+}
+
+fn borrowed_encode_empty_value(field: &PhysicalField) -> String {
+    match field.kind {
+        FieldKind::ConstU16 { value } => value.to_string(),
+        FieldKind::U16Dictionary { .. }
+        | FieldKind::U64BitmaskDictionary { .. }
+        | FieldKind::I32
+        | FieldKind::U32
+        | FieldKind::I64 => "0".to_string(),
+        FieldKind::F32 | FieldKind::F64 => "0.0".to_string(),
+        FieldKind::Bool => "false".to_string(),
+        FieldKind::Bytes
+        | FieldKind::I64Array
+        | FieldKind::I32Array
+        | FieldKind::U32Array
+        | FieldKind::F64Array
+        | FieldKind::F32Array => "&[]".to_string(),
+        FieldKind::RawString => "\"\"".to_string(),
     }
 }
 
