@@ -1,0 +1,7 @@
+   Compiling prost-types v0.14.4
+   Compiling mbt_schema_telemetry v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
+   Compiling mbt_schema_test_compatibility v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/test_compatibility_core)
+   Compiling prost-reflect v0.16.4
+   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+   Compiling mbt_codegen v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/codegen)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.40s

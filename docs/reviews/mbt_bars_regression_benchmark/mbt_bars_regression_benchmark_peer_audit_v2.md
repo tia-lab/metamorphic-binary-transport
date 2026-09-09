@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V2: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -23,16 +6,16 @@ Status: `PEER_AUDIT_PASSED`
 
 ## Required Reads
 
-| Evidence type | Source | Observation |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Peer audit is a no-code phase. Code remains blocked until an approved implementation plan exists. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | A passed peer audit permits implementation planning, not code. |
-| Protocol evidence | `docs/protocols/spec_protocol.md` | The spec must close command, artifact, dependency, code binding, generated artifact, and benchmark contracts. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | The audit must try to falsify the amended spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Protocol evidence | `docs/protocols/testing_benchmark_protocol.md` | Benchmark artifacts must record environment, command, row counts, payload size, profile, and raw output path. |
-| Invariant evidence | `docs/invariants/core_invariants.md` | Adapter dependencies must remain outside core; benchmark surfaces must be isolated. |
-| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit.md` | V1 blocked on Bars schema feature activation, exact label mapping, and conditional CSV comparison. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | The amended spec binds dependency feature activation, benchmark labels, old labels, mandatory CSV comparison, and compile-surface checks. |
+| Evidence type        | Source                                                                                   | Observation                                                                                                                               |
+| -------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence    | `AGENTS.md`                                                                              | Peer audit is a no-code phase. Code remains blocked until an approved implementation plan exists.                                         |
+| Protocol evidence    | `docs/protocols/lifecycle_protocol.md`                                                   | A passed peer audit permits implementation planning, not code.                                                                            |
+| Protocol evidence    | `docs/protocols/spec_protocol.md`                                                        | The spec must close command, artifact, dependency, code binding, generated artifact, and benchmark contracts.                             |
+| Protocol evidence    | `docs/protocols/peer_audit_protocol.md`                                                  | The audit must try to falsify the amended spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                     |
+| Protocol evidence    | `docs/protocols/testing_benchmark_protocol.md`                                           | Benchmark artifacts must record environment, command, row counts, payload size, profile, and raw output path.                             |
+| Invariant evidence   | `docs/invariants/core_invariants.md`                                                     | Adapter dependencies must remain outside core; benchmark surfaces must be isolated.                                                       |
+| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit.md` | V1 blocked on Bars schema feature activation, exact label mapping, and conditional CSV comparison.                                        |
+| Spec evidence        | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                       | The amended spec binds dependency feature activation, benchmark labels, old labels, mandatory CSV comparison, and compile-surface checks. |
 
 ## Audit Result
 

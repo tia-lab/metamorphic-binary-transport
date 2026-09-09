@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit: MBT Bars Regression Benchmark Corrective Plan
 
 Slug: `mbt_bars_regression_benchmark`
@@ -40,24 +23,24 @@ implementation plan is explicitly approved.
 
 ## Required Reads
 
-| Evidence type | Source | Observed contract |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Code requires an approved spec, passed peer audit, approved implementation plan, and bounded file edits. |
-| Protocol evidence | `docs/invariants/core_invariants.md` | Baselines must use identical logical payloads; generated files are not edited by hand; performance claims require run evidence. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | Implementation plans are separate artifacts and must bind files, commands, artifacts, and validation. |
-| Protocol evidence | `docs/protocols/implementation_protocol.md` | Implementation may start only after spec, peer audit, and plan approval; no unbound dependencies or generated manual edits. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | Audit must try to falsify the artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Protocol evidence | `docs/protocols/testing_benchmark_protocol.md` | Benchmark artifacts must record command, profile, environment, dataset identity, row count, and raw output path. |
-| Protocol evidence | `docs/protocols/codegen_protocol.md` | Generated artifacts must not be edited and generated output must not require manual edits. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | Corrective V2 requires old-MBT parity-port benchmark and forbids generated archived entrypoint work. |
-| Audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md` | Corrective V2 spec passed and requires implementation-plan amendment before code. |
-| Plan evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md` | Plan binds old parity-port files, new benchmark cleanup files, commands, outputs, validation, rollback, and risks. |
-| Code-read evidence | `crates/benches/src/bars_regression.rs` | Current new benchmark still contains historical `OLD_BENCH_RESULTS` parsing and comparison fields. |
-| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs` | Current binary parses old markdown baselines before running benchmark lanes. |
-| Code-read evidence | `crates/benches/src/projection.rs` | Current fixture `bars_rows` is deterministic BTCUSDT-only with timestamps from `1_700_000_000_000` and all allowed presence bits set. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old generated code exposes `encode`, `inspect`, checked metamorphose functions, trusted JSON/protobuf functions, trusted archived access, and crate-internal archived CSV/Arrow IPC/Parquet helpers. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs` | Old binary dispatches benchmark subcommands from `main.rs`. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs` | Old benchmark modules are exported through `src/benches/mod.rs`. |
+| Evidence type      | Source                                                                                                       | Observed contract                                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence  | `AGENTS.md`                                                                                                  | Code requires an approved spec, passed peer audit, approved implementation plan, and bounded file edits.                                                                                             |
+| Protocol evidence  | `docs/invariants/core_invariants.md`                                                                         | Baselines must use identical logical payloads; generated files are not edited by hand; performance claims require run evidence.                                                                      |
+| Protocol evidence  | `docs/protocols/lifecycle_protocol.md`                                                                       | Implementation plans are separate artifacts and must bind files, commands, artifacts, and validation.                                                                                                |
+| Protocol evidence  | `docs/protocols/implementation_protocol.md`                                                                  | Implementation may start only after spec, peer audit, and plan approval; no unbound dependencies or generated manual edits.                                                                          |
+| Protocol evidence  | `docs/protocols/peer_audit_protocol.md`                                                                      | Audit must try to falsify the artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                                                                                        |
+| Protocol evidence  | `docs/protocols/testing_benchmark_protocol.md`                                                               | Benchmark artifacts must record command, profile, environment, dataset identity, row count, and raw output path.                                                                                     |
+| Protocol evidence  | `docs/protocols/codegen_protocol.md`                                                                         | Generated artifacts must not be edited and generated output must not require manual edits.                                                                                                           |
+| Spec evidence      | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                           | Corrective V2 requires old-MBT parity-port benchmark and forbids generated archived entrypoint work.                                                                                                 |
+| Audit evidence     | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md`       | Corrective V2 spec passed and requires implementation-plan amendment before code.                                                                                                                    |
+| Plan evidence      | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md` | Plan binds old parity-port files, new benchmark cleanup files, commands, outputs, validation, rollback, and risks.                                                                                   |
+| Code-read evidence | `crates/benches/src/bars_regression.rs`                                                                      | Current new benchmark still contains historical `OLD_BENCH_RESULTS` parsing and comparison fields.                                                                                                   |
+| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs`                                                        | Current binary parses old markdown baselines before running benchmark lanes.                                                                                                                         |
+| Code-read evidence | `crates/benches/src/projection.rs`                                                                           | Current fixture `bars_rows` is deterministic BTCUSDT-only with timestamps from `1_700_000_000_000` and all allowed presence bits set.                                                                |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs`              | Old generated code exposes `encode`, `inspect`, checked metamorphose functions, trusted JSON/protobuf functions, trusted archived access, and crate-internal archived CSV/Arrow IPC/Parquet helpers. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs`                           | Old binary dispatches benchmark subcommands from `main.rs`.                                                                                                                                          |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs`                    | Old benchmark modules are exported through `src/benches/mod.rs`.                                                                                                                                     |
 
 ## Findings
 

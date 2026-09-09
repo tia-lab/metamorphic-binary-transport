@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Repository Structure
 
 Status: initial architecture lock
@@ -83,7 +66,7 @@ Allowed ownership shapes:
 
 ```text
 external schema repo
-  proto/mathilde/options.proto
+  proto/mbt/options.proto
   proto/aggregator/*.proto
   proto/primitives/*.proto
 
@@ -101,7 +84,7 @@ domain schemas.
 MBT option ownership path:
 
 ```text
-proto/mathilde/options.proto
+proto/mbt/options.proto
 ```
 
 The options file path is repository-owned. Full extension definitions are added
@@ -120,7 +103,7 @@ Examples:
   JSON, Arrow, Parquet, or benchmark crates.
 - MBT-only serving should not compile boundary adapters.
 - JSON serving should not compile Arrow or Parquet.
-- A Bars-only binary should not compile Primitives.
+- A telemetry-only binary should not compile unrelated application schemas.
 - Codegen should not compile the full runtime/generated schema graph just to
   inspect or generate schemas.
 

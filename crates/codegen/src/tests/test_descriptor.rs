@@ -221,7 +221,7 @@ fn alias_and_projection_do_not_affect_core_hash_or_fields() -> Result<()> {
             .replace("  alias: { value: \"btc\" alias: \"xbt\" }\n", ""),
     )?;
     let without_projection = model_for(&valid_alias_and_projection_ignored_proto().replace(
-        r#"  option (mathilde.projection) = {
+        r#"  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
@@ -283,18 +283,18 @@ fn invalid_projection_definitions_fail_before_emission() {
         valid_alias_and_projection_ignored_proto()
             .replace("include_group: \"core\"", "include_field: \"unknown\""),
         valid_alias_and_projection_ignored_proto().replace(
-            r#"  option (mathilde.projection) = {
+            r#"  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
 "#,
-            r#"  option (mathilde.projection) = {
+            r#"  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
-  option (mathilde.projection) = {
+  option (mbt.projection) = {
     name: "small"
     rust_marker: "OtherProjection"
     include_group: "core"
@@ -302,18 +302,18 @@ fn invalid_projection_definitions_fail_before_emission() {
 "#,
         ),
         valid_alias_and_projection_ignored_proto().replace(
-            r#"  option (mathilde.projection) = {
+            r#"  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
 "#,
-            r#"  option (mathilde.projection) = {
+            r#"  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
-  option (mathilde.projection) = {
+  option (mbt.projection) = {
     name: "other"
     rust_marker: "SmallProjection"
     include_group: "core"
@@ -328,13 +328,11 @@ fn invalid_projection_definitions_fail_before_emission() {
 #[test]
 fn projection_hash_changes_with_projection_shape() -> Result<()> {
     let base = model_for(valid_alias_and_projection_ignored_proto())?;
-    let with_extra_selected = model_for(
-        &valid_alias_and_projection_ignored_proto().replace(
-            r#"  string ignored_utc = 4 [(mathilde.ignored) = true, (mathilde.derived_utc_from) = "close_ms"];"#,
-            r#"  double extra = 4 [(mathilde.projection_group) = "core"];
-  string ignored_utc = 5 [(mathilde.ignored) = true, (mathilde.derived_utc_from) = "close_ms"];"#,
-        ),
-    )?;
+    let with_extra_selected = model_for(&valid_alias_and_projection_ignored_proto().replace(
+        r#"  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];"#,
+        r#"  double extra = 4 [(mbt.projection_group) = "core"];
+  string ignored_utc = 5 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];"#,
+    ))?;
     let renamed = model_for(
         &valid_alias_and_projection_ignored_proto().replace("name: \"small\"", "name: \"smaller\""),
     )?;

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Peer Audit V3
 
 Slug: `mbt_compression`
@@ -54,33 +37,33 @@ Completed reads:
 
 ## Prior Blocker Closure
 
-| Prior blocker | Result |
-| --- | --- |
-| Dependency no-match checks were not executable success checks | Closed. The spec now uses explicit negated dependency checks. |
-| Benchmark fixture identity was under-specified | Closed. The spec now binds Bars fixture source, no-RNG seed policy, source byte construction, max response bytes, and schema hashes. |
-| Optional compatibility-schema lane deferred scope | Closed. The spec now excludes that lane from phase one. |
-| `Cargo.lock` ownership was missing | Closed. The spec now binds `Cargo.lock` as a Cargo-generated dependency artifact for `zstd = "=0.13.3"` only. |
+| Prior blocker                                                 | Result                                                                                                                               |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Dependency no-match checks were not executable success checks | Closed. The spec now uses explicit negated dependency checks.                                                                        |
+| Benchmark fixture identity was under-specified                | Closed. The spec now binds Bars fixture source, no-RNG seed policy, source byte construction, max response bytes, and schema hashes. |
+| Optional compatibility-schema lane deferred scope             | Closed. The spec now excludes that lane from phase one.                                                                              |
+| `Cargo.lock` ownership was missing                            | Closed. The spec now binds `Cargo.lock` as a Cargo-generated dependency artifact for `zstd = "=0.13.3"` only.                        |
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| pre-audit closure gate completeness | passed |
-| measured object clarity | passed |
-| schema source ownership | passed; compression is schema-agnostic |
-| wire/archive validation | passed; compressed bytes are not an MBT envelope |
-| trusted-access safety | passed; decompression does not imply trusted access |
-| codegen determinism | passed; no codegen changes authorized |
-| generated-code compile surface | passed; no generated schema artifacts owned |
-| crate boundary isolation | passed |
-| dependency containment | passed with lockfile policy |
-| correctness oracle | passed |
-| benchmark isolation | passed |
-| performance budget | passed; no speed claim without evidence |
-| failure behavior | passed |
-| code binding completeness | passed |
-| generated artifact binding completeness | passed, including `Cargo.lock` policy |
-| client/operator interpretation safety | passed |
+| Lens                                    | Result                                              |
+| --------------------------------------- | --------------------------------------------------- |
+| pre-audit closure gate completeness     | passed                                              |
+| measured object clarity                 | passed                                              |
+| schema source ownership                 | passed; compression is schema-agnostic              |
+| wire/archive validation                 | passed; compressed bytes are not an MBT envelope    |
+| trusted-access safety                   | passed; decompression does not imply trusted access |
+| codegen determinism                     | passed; no codegen changes authorized               |
+| generated-code compile surface          | passed; no generated schema artifacts owned         |
+| crate boundary isolation                | passed                                              |
+| dependency containment                  | passed with lockfile policy                         |
+| correctness oracle                      | passed                                              |
+| benchmark isolation                     | passed                                              |
+| performance budget                      | passed; no speed claim without evidence             |
+| failure behavior                        | passed                                              |
+| code binding completeness               | passed                                              |
+| generated artifact binding completeness | passed, including `Cargo.lock` policy               |
+| client/operator interpretation safety   | passed                                              |
 
 ## Residual Risks
 

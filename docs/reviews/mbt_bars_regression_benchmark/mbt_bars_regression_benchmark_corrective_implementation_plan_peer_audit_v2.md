@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit V2: MBT Bars Regression Benchmark Corrective Plan
 
 Slug: `mbt_bars_regression_benchmark`
@@ -39,18 +22,18 @@ This audit does not approve code changes.
 
 ## Required Reads
 
-| Evidence type | Source | Observed contract |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Code changes require an approved spec and approved implementation plan; a plan cannot introduce behavior not bound by the spec. |
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/experiment_lifecycle_protocol.md` | Implementation plan must bind exact code files and must follow the approved spec. |
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/implementation_protocol.md` | Implementation must stop if code requires behavior not in the spec or files outside approved bindings. |
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/peer_audit_protocol.md` | Audit must try to falsify the artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | The current spec binds old parity edits only under old `src/benches`, old `src/tests`, and old `src/main.rs`; it also states no old `Cargo.toml` or lockfile edit is allowed. |
-| Plan evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md` | The amended plan now authorizes old `Cargo.toml`, old `src/lib.rs`, and feature-gated old module graph changes. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs` | Old crate currently exposes `pub mod generated;` unconditionally and would need `src/lib.rs` changes to compile only Bars generated modules under the proposed feature. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs` | Old binary currently imports `bars_regression_parity`, `bench`, `compatibility`, and `compression`; a parity-only feature must gate this import surface to avoid non-parity modules. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs` | Old benchmark module graph currently exports non-parity benchmark modules. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs` | Old test module graph currently exports many non-parity tests, including feature-gated codegen tests and wide/primitives tests. |
+| Evidence type      | Source                                                                                                       | Observed contract                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Protocol evidence  | `AGENTS.md`                                                                                                  | Code changes require an approved spec and approved implementation plan; a plan cannot introduce behavior not bound by the spec.                                                      |
+| Protocol evidence  | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/experiment_lifecycle_protocol.md`                        | Implementation plan must bind exact code files and must follow the approved spec.                                                                                                    |
+| Protocol evidence  | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/implementation_protocol.md`                              | Implementation must stop if code requires behavior not in the spec or files outside approved bindings.                                                                               |
+| Protocol evidence  | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/peer_audit_protocol.md`                                  | Audit must try to falsify the artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                                                                        |
+| Spec evidence      | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                           | The current spec binds old parity edits only under old `src/benches`, old `src/tests`, and old `src/main.rs`; it also states no old `Cargo.toml` or lockfile edit is allowed.        |
+| Plan evidence      | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan.md` | The amended plan now authorizes old `Cargo.toml`, old `src/lib.rs`, and feature-gated old module graph changes.                                                                      |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs`                            | Old crate currently exposes `pub mod generated;` unconditionally and would need `src/lib.rs` changes to compile only Bars generated modules under the proposed feature.              |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs`                           | Old binary currently imports `bars_regression_parity`, `bench`, `compatibility`, and `compression`; a parity-only feature must gate this import surface to avoid non-parity modules. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs`                    | Old benchmark module graph currently exports non-parity benchmark modules.                                                                                                           |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs`                      | Old test module graph currently exports many non-parity tests, including feature-gated codegen tests and wide/primitives tests.                                                      |
 
 ## Findings
 

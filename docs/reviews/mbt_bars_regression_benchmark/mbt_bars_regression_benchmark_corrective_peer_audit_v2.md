@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Bars Regression Benchmark Corrective Amendment V2
 
 Slug: `mbt_bars_regression_benchmark`
@@ -45,19 +28,19 @@ must still be amended, audited, and approved before implementation.
 
 ## Required Reads
 
-| Evidence type | Source | Observed contract |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Specs require separate peer audit and approved implementation plan before code changes. |
-| Protocol evidence | `docs/invariants/core_invariants.md` | Baselines must use identical logical payloads; benchmark setup work must be outside measured loops unless specified. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | Spec, peer audit, implementation plan, implementation, validation, and result review are separate phases. |
-| Protocol evidence | `docs/protocols/spec_protocol.md` | Spec must bind code paths, generated artifacts, benchmark method, correctness oracle, and pre-audit closure. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | Audit must try to falsify the spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | Corrective V2 binds old-MBT parity-port benchmark and removes generated-entrypoint work. |
-| Code-read evidence | `crates/benches/src/bars_regression.rs` | Current new benchmark fixture delegates to `projection::bars_rows(row_count)`. |
-| Code-read evidence | `crates/benches/src/projection.rs` | Current Bars fixture uses one BTCUSDT entity, deterministic timestamps starting at `1_700_000_000_000`, all allowed presence bits, and deterministic arithmetic values. |
-| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs` | Current new benchmark labels include checked and trusted metamorphose lanes and currently measures one execution per row count and label. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old generated Bars code exposes checked metamorphose functions, JSON/protobuf trusted functions, trusted archived access, and crate-internal archived helpers for CSV, Arrow IPC, and Parquet. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/compatibility.rs` | Old crate benchmark modules can use trusted archived access plus crate-internal archived helpers in measured lanes. |
+| Evidence type      | Source                                                                                              | Observed contract                                                                                                                                                                              |
+| ------------------ | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence  | `AGENTS.md`                                                                                         | Specs require separate peer audit and approved implementation plan before code changes.                                                                                                        |
+| Protocol evidence  | `docs/invariants/core_invariants.md`                                                                | Baselines must use identical logical payloads; benchmark setup work must be outside measured loops unless specified.                                                                           |
+| Protocol evidence  | `docs/protocols/lifecycle_protocol.md`                                                              | Spec, peer audit, implementation plan, implementation, validation, and result review are separate phases.                                                                                      |
+| Protocol evidence  | `docs/protocols/spec_protocol.md`                                                                   | Spec must bind code paths, generated artifacts, benchmark method, correctness oracle, and pre-audit closure.                                                                                   |
+| Protocol evidence  | `docs/protocols/peer_audit_protocol.md`                                                             | Audit must try to falsify the spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                                                                                      |
+| Spec evidence      | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                  | Corrective V2 binds old-MBT parity-port benchmark and removes generated-entrypoint work.                                                                                                       |
+| Code-read evidence | `crates/benches/src/bars_regression.rs`                                                             | Current new benchmark fixture delegates to `projection::bars_rows(row_count)`.                                                                                                                 |
+| Code-read evidence | `crates/benches/src/projection.rs`                                                                  | Current Bars fixture uses one BTCUSDT entity, deterministic timestamps starting at `1_700_000_000_000`, all allowed presence bits, and deterministic arithmetic values.                        |
+| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs`                                               | Current new benchmark labels include checked and trusted metamorphose lanes and currently measures one execution per row count and label.                                                      |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs`     | Old generated Bars code exposes checked metamorphose functions, JSON/protobuf trusted functions, trusted archived access, and crate-internal archived helpers for CSV, Arrow IPC, and Parquet. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/compatibility.rs` | Old crate benchmark modules can use trusted archived access plus crate-internal archived helpers in measured lanes.                                                                            |
 
 ## Findings
 

@@ -1,0 +1,94 @@
+   Compiling syn v2.0.119
+   Compiling thiserror-impl v2.0.17
+   Compiling munge_macro v0.4.7
+   Compiling rkyv_derive v0.8.16
+   Compiling munge v0.4.7
+   Compiling thiserror v2.0.17
+   Compiling rkyv v0.8.16
+   Compiling mbt_core v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/core)
+   Compiling mbt_schema_telemetry v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
+warning: unused import: `common::*`
+ --> crates/schemas/telemetry_core/tests/test_telemetry_metamorphose.rs:2:5
+  |
+2 | use common::*;
+  |     ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `mbt_schema_telemetry::telemetry_v1::*`
+ --> crates/schemas/telemetry_core/tests/test_telemetry_metamorphose.rs:3:5
+  |
+3 | use mbt_schema_telemetry::telemetry_v1::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `common::*`
+ --> crates/schemas/telemetry_core/tests/test_projection_metamorphose.rs:2:5
+  |
+2 | use common::*;
+  |     ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `mbt_schema_telemetry::telemetry_v1::*`
+ --> crates/schemas/telemetry_core/tests/test_projection_metamorphose.rs:3:5
+  |
+3 | use mbt_schema_telemetry::telemetry_v1::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `mbt_schema_telemetry` (test "test_telemetry_metamorphose") generated 2 warnings (run `cargo fix --test "test_telemetry_metamorphose"` to apply 2 suggestions)
+warning: `mbt_schema_telemetry` (test "test_projection_metamorphose") generated 2 warnings (run `cargo fix --test "test_projection_metamorphose"` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.73s
+     Running unittests src/lib.rs (target/debug/deps/mbt_schema_telemetry-222dfcca72554478)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_projection_metamorphose.rs (target/debug/deps/test_projection_metamorphose-d0a43a136b1eb64d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_failures.rs (target/debug/deps/test_telemetry_failures-0bad2fa03f89069d)
+
+running 2 tests
+test invalid_values_fail_before_encoding ... ok
+test corrupt_partial_and_old_identity_fail ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_metamorphose.rs (target/debug/deps/test_telemetry_metamorphose-813317e968ad43b6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_projection.rs (target/debug/deps/test_telemetry_projection-69863203016bc4fc)
+
+running 2 tests
+test direct_projection_helpers_do_not_copy_owned_rows ... ok
+test projection_preserves_values_and_checked_trusted_parity ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_roundtrip.rs (target/debug/deps/test_telemetry_roundtrip-51e3fc200bfaabbb)
+
+running 1 test
+test every_field_roundtrips_and_replays ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_shape.rs (target/debug/deps/test_telemetry_shape-32b2b23efe1b64fb)
+
+running 1 test
+test generated_dictionary_and_key_shape_matches_fresh_inspection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+   Doc-tests mbt_schema_telemetry
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

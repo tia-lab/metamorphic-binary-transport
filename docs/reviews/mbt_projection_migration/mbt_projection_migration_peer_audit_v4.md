@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V4: MBT Projection Migration
 
 Status: `BLOCKED`
@@ -188,45 +171,44 @@ temporary-output or unit-test regression check
 
 with one exact required core-regression proof. If it uses a temporary output
 file, bind the exact path. If it uses a unit test, bind the exact test file and
-test behavior.
-5. Update the pre-audit closure checklist so it no longer claims exact
-   command-surface closure while deferring command surfaces to the
-   implementation plan.
+test behavior. 5. Update the pre-audit closure checklist so it no longer claims exact
+command-surface closure while deferring command surfaces to the
+implementation plan.
 
 ## Resolved Previous Audit Blockers
 
-| Previous blocker | V4 result |
-| --- | --- |
-| Mandatory spec section order | Resolved |
-| Original exact codegen-check command missing | Resolved for `--check` |
-| Projected schema-hash inputs under-specified | Resolved |
-| Compile-surface budget not measurable | Resolved |
-| Correctness oracle and test plan combined | Resolved |
-| `--surface core` conceptual conflict | Resolved by `--surface projection` |
-| Existing projection-ignored assertion migration missing | Resolved directionally |
-| Generated artifact ownership conflict | Resolved |
-| `crates/codegen/src/emit.rs` missing from bindings | Resolved |
+| Previous blocker                                        | V4 result                          |
+| ------------------------------------------------------- | ---------------------------------- |
+| Mandatory spec section order                            | Resolved                           |
+| Original exact codegen-check command missing            | Resolved for `--check`             |
+| Projected schema-hash inputs under-specified            | Resolved                           |
+| Compile-surface budget not measurable                   | Resolved                           |
+| Correctness oracle and test plan combined               | Resolved                           |
+| `--surface core` conceptual conflict                    | Resolved by `--surface projection` |
+| Existing projection-ignored assertion migration missing | Resolved directionally             |
+| Generated artifact ownership conflict                   | Resolved                           |
+| `crates/codegen/src/emit.rs` missing from bindings      | Resolved                           |
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Pre-audit closure gate completeness | Blocked by command-surface deferral |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Passed |
-| Trusted-access safety | Passed |
-| Codegen determinism | Passed directionally |
-| Generated-code compile surface | Passed |
-| Crate boundary isolation | Passed |
-| Dependency containment | Passed |
-| Correctness oracle | Passed |
-| Benchmark isolation | Passed |
-| Performance budget | Passed |
-| Failure behavior | Passed |
-| Code binding completeness | Passed for files |
-| Generated artifact binding completeness | Passed |
-| Client/operator interpretation safety | Blocked until exact command surfaces are closed |
+| Lens                                    | Result                                          |
+| --------------------------------------- | ----------------------------------------------- |
+| Pre-audit closure gate completeness     | Blocked by command-surface deferral             |
+| Measured object clarity                 | Passed                                          |
+| Schema source ownership                 | Passed                                          |
+| Wire/archive validation                 | Passed                                          |
+| Trusted-access safety                   | Passed                                          |
+| Codegen determinism                     | Passed directionally                            |
+| Generated-code compile surface          | Passed                                          |
+| Crate boundary isolation                | Passed                                          |
+| Dependency containment                  | Passed                                          |
+| Correctness oracle                      | Passed                                          |
+| Benchmark isolation                     | Passed                                          |
+| Performance budget                      | Passed                                          |
+| Failure behavior                        | Passed                                          |
+| Code binding completeness               | Passed for files                                |
+| Generated artifact binding completeness | Passed                                          |
+| Client/operator interpretation safety   | Blocked until exact command surfaces are closed |
 
 ## Required Amendment Summary
 

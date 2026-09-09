@@ -29,7 +29,7 @@ schema crate opts into the matching adapter surface.
 ## What This Is
 
 MBT is a transport format generated from `.proto` schemas plus
-`proto/mathilde/options.proto`.
+`proto/mbt/options.proto`.
 
 It provides:
 
@@ -80,7 +80,7 @@ You add or change a schema, projection, or adapter surface.
 **What it is:**
 Generated schema-specific Rust code. Current in-repo examples are:
 
-- `mbt_schema_bars`
+- `mbt_schema_telemetry`
 - `mbt_schema_test_compatibility`
 
 **Use it when:**
@@ -147,21 +147,21 @@ Core-only dependency:
 mbt_core = { path = "../metamorphic-binary-transport/crates/core" }
 ```
 
-Generated Bars schema without adapters:
+Generated Telemetry schema without adapters:
 
 ```toml
 [dependencies]
-mbt_schema_bars = {
-  path = "../metamorphic-binary-transport/crates/schemas/bars_core"
+mbt_schema_telemetry = {
+  path = "../metamorphic-binary-transport/crates/schemas/telemetry_core"
 }
 ```
 
-Generated Bars schema with selected boundary adapters:
+Generated Telemetry schema with selected boundary adapters:
 
 ```toml
 [dependencies]
-mbt_schema_bars = {
-  path = "../metamorphic-binary-transport/crates/schemas/bars_core",
+mbt_schema_telemetry = {
+  path = "../metamorphic-binary-transport/crates/schemas/telemetry_core",
   features = ["json", "protobuf", "csv"]
 }
 mbt_metamorphose = {
@@ -183,16 +183,16 @@ mbt_compression = {
 Encode and read MBT bytes with a generated schema:
 
 ```rust
-use mbt_schema_bars::bars_v1::{
-    BarsV1, MathildeBarRowV1,
+use mbt_schema_telemetry::telemetry_v1::{
+    TelemetryV1, TelemetryRowV1,
 };
 
-fn encode_and_read(rows: Vec<MathildeBarRowV1>) -> mbt_core::Result<()> {
+fn encode_and_read(rows: Vec<TelemetryRowV1>) -> mbt_core::Result<()> {
     let max_response_bytes = 64 * 1024 * 1024;
 
-    let bytes = BarsV1::encode_owned(rows, max_response_bytes)?;
-    let view = BarsV1::access(&bytes)?;
-    let inspection = BarsV1::inspect(&bytes)?;
+    let bytes = TelemetryV1::encode_owned(rows, max_response_bytes)?;
+    let view = TelemetryV1::access(&bytes)?;
+    let inspection = TelemetryV1::inspect(&bytes)?;
 
     assert_eq!(view.len(), inspection.row_count);
     Ok(())
@@ -203,14 +203,14 @@ Use generic core helpers when the schema marker is already known:
 
 ```rust
 use mbt_core::{access, encode_owned, inspect};
-use mbt_schema_bars::bars_v1::{BarsV1, MathildeBarRowV1};
+use mbt_schema_telemetry::telemetry_v1::{TelemetryV1, TelemetryRowV1};
 
-fn via_core_helpers(rows: Vec<MathildeBarRowV1>) -> mbt_core::Result<()> {
+fn via_core_helpers(rows: Vec<TelemetryRowV1>) -> mbt_core::Result<()> {
     let max_response_bytes = 64 * 1024 * 1024;
 
-    let bytes = encode_owned::<BarsV1>(rows, max_response_bytes)?;
-    let _view = access::<BarsV1>(&bytes)?;
-    let _inspection = inspect::<BarsV1>(&bytes)?;
+    let bytes = encode_owned::<TelemetryV1>(rows, max_response_bytes)?;
+    let _view = access::<TelemetryV1>(&bytes)?;
+    let _inspection = inspect::<TelemetryV1>(&bytes)?;
 
     Ok(())
 }
@@ -240,10 +240,10 @@ Use benches only for measurement. Bench code is not part of the runtime surface.
 ### Inspect MBT Bytes
 
 ```rust
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
 fn inspect_bytes(bytes: &[u8]) -> mbt_core::Result<u64> {
-    let inspection = BarsV1::inspect(bytes)?;
+    let inspection = TelemetryV1::inspect(bytes)?;
     Ok(inspection.row_count)
 }
 ```
@@ -251,11 +251,11 @@ fn inspect_bytes(bytes: &[u8]) -> mbt_core::Result<u64> {
 ### Project MBT To MBT
 
 ```rust
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
-fn project_ohlcv(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
+fn project_temperature(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
-    BarsV1::project_ohlcv_only(bytes, max_response_bytes)
+    TelemetryV1::project_temperature_only(bytes, max_response_bytes)
 }
 ```
 
@@ -265,11 +265,11 @@ Requires the schema crate `json` feature.
 
 ```rust
 use mbt_metamorphose as metamorphose;
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
 fn as_json(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
-    metamorphose::json::<BarsV1>(bytes, max_response_bytes)
+    metamorphose::json::<TelemetryV1>(bytes, max_response_bytes)
 }
 ```
 
@@ -279,11 +279,11 @@ Requires the schema crate `protobuf` feature.
 
 ```rust
 use mbt_metamorphose as metamorphose;
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
 fn as_protobuf(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
-    metamorphose::protobuf::<BarsV1>(bytes, max_response_bytes)
+    metamorphose::protobuf::<TelemetryV1>(bytes, max_response_bytes)
 }
 ```
 
@@ -293,11 +293,11 @@ Requires the schema crate `arrow_ipc` feature.
 
 ```rust
 use mbt_metamorphose as metamorphose;
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
 fn as_arrow_ipc(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
-    metamorphose::arrow_ipc::<BarsV1>(bytes, max_response_bytes)
+    metamorphose::arrow_ipc::<TelemetryV1>(bytes, max_response_bytes)
 }
 ```
 
@@ -308,13 +308,13 @@ access for the same schema and then stored or transported without mutation.
 
 ```rust
 use mbt_metamorphose as metamorphose;
-use mbt_schema_bars::bars_v1::BarsV1;
+use mbt_schema_telemetry::telemetry_v1::TelemetryV1;
 
 fn trusted_json(bytes: &[u8]) -> mbt_core::Result<Vec<u8>> {
     let max_response_bytes = 64 * 1024 * 1024;
 
     // Safety: the caller must prove the checked-validation boundary.
-    unsafe { metamorphose::json_trusted_unchecked::<BarsV1>(bytes, max_response_bytes) }
+    unsafe { metamorphose::json_trusted_unchecked::<TelemetryV1>(bytes, max_response_bytes) }
 }
 ```
 
@@ -341,70 +341,52 @@ fn decompress_from_pipeline(
 }
 ```
 
-The default codec is zstd level 3. Latest recorded Bars evidence compressed
-`mbt_full` large payloads to ratio `0.167134`, about `6x` smaller, with
-compression at `290.39 MB/s` and decompression at `1031.67 MB/s`.
+The default codec is zstd level 3. Historical application-schema measurements
+do not establish performance for the telemetry dataset.
 
 ## Codegen
 
 Codegen takes explicit inputs. It does not infer schemas from Rust modules.
 
-Core generation example:
+The workspace modules include their projections. One generator command matrix
+owns all committed schema outputs:
 
 ```bash
-cargo run -p mbt_codegen --bin mbt_codegen -- \
-  --write \
-  --proto-root crates/schemas/bars_core/proto \
-  --proto-root proto \
-  --schema mathilde/binary_transport/v1/bars.proto \
-  --root mathilde.binary_transport.v1.MathildeTransportResponseV1 \
-  --module bars_v1 \
-  --surface core \
-  --out crates/schemas/bars_core/src/bars_v1.rs
+python3 scripts/schema_codegen.py --write
+python3 scripts/schema_codegen.py --check
 ```
 
-Projection generation uses the same schema output module:
-
-```bash
-cargo run -p mbt_codegen --bin mbt_codegen -- \
-  --write \
-  --proto-root crates/schemas/bars_core/proto \
-  --proto-root proto \
-  --schema mathilde/binary_transport/v1/bars.proto \
-  --root mathilde.binary_transport.v1.MathildeTransportResponseV1 \
-  --module bars_v1 \
-  --surface projection \
-  --out crates/schemas/bars_core/src/bars_v1.rs
-```
+The main module uses `--surface projection`. Do not overwrite it with a
+core-only output, which omits the declared projection APIs.
 
 Adapter generation writes one adapter module per selected adapter:
 
 ```bash
 cargo run -p mbt_codegen --bin mbt_codegen -- \
   --write \
-  --proto-root crates/schemas/bars_core/proto \
+  --proto-root crates/schemas/telemetry_core/proto \
   --proto-root proto \
-  --schema mathilde/binary_transport/v1/bars.proto \
-  --root mathilde.binary_transport.v1.MathildeTransportResponseV1 \
-  --module bars_v1 \
+  --schema mbt/example/telemetry/v1/telemetry.proto \
+  --root mbt.example.telemetry.v1.TelemetryResponseV1 \
+  --module telemetry_v1 \
   --surface metamorphose \
   --adapter json \
-  --out crates/schemas/bars_core/src/bars_v1_json.rs
+  --out crates/schemas/telemetry_core/src/telemetry_v1_json.rs
 ```
 
 Use `--check` with the same arguments to verify committed generated files.
 
 The generated file location is whatever `--out` specifies. A schema crate may
-use `src/bars_v1.rs`, `src/generated/bars_v1.rs`, or another approved module
+use `src/telemetry_v1.rs`, `src/generated/telemetry_v1.rs`, or another approved module
 path. The codegen contract is the `--out` path, not a fixed folder name.
 
 ## Adapter Features
 
-The in-repo Bars schema crate uses opt-in adapter features:
+The in-repo telemetry schema crate uses opt-in adapter features:
 
 ```toml
-mbt_schema_bars = {
-  path = "../metamorphic-binary-transport/crates/schemas/bars_core",
+mbt_schema_telemetry = {
+  path = "../metamorphic-binary-transport/crates/schemas/telemetry_core",
   features = ["json", "protobuf", "csv", "arrow_ipc"]
 }
 ```
@@ -439,7 +421,7 @@ where bytes were validated before commit and never mutated in place afterward.
   from the existence of adapter code.
 - Schema-specific generated code is expected. MBT avoids hand-written DTOs, not
   schema-specific codegen.
-- External schemas must import `proto/mathilde/options.proto` and run codegen
+- External schemas must import `proto/mbt/options.proto` and run codegen
   explicitly.
 
 ## What Not To Infer
@@ -457,6 +439,27 @@ Do not infer performance from architecture. Use the recorded benchmark evidence.
 ## Further Reading
 
 - [Architecture](architecture.md)
-- [Bars regression benchmark result](docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md)
+- [Historical application-schema regression result](docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md)
 - [Projection direct writer result](docs/reviews/mbt_projection_direct_writer/mbt_projection_direct_writer_result_review.md)
 - [Compression benchmark summary](docs/evidence/mbt_compression/compression_summary.md)
+
+## Synthetic telemetry example
+
+The example schema is `mbt.example.telemetry.v1`, schema ID 50001, version 1.
+Rows contain a fictional device, recorded timestamp, temperature, optional battery
+percentage, status and tag set. The key is device then timestamp. The
+`temperature_only` projection retains version, keys and temperature. Row-format
+adapters derive UTC text from the timestamp; columnar output retains milliseconds.
+This example has a new identity and does not accept the previous application schema.
+
+The all-fields fixture remains separate to cover arrays and other scalar types.
+
+```bash
+cargo run --release -p mbt_benches --bin mbt_telemetry_regression_bench -- --report-dir docs/evidence/mbt_telemetry_migration/regression
+cargo run --release -p mbt_benches --bin mbt_projection_bench -- --report-dir docs/evidence/mbt_telemetry_migration/projection
+cargo run --release -p mbt_benches --bin mbt_compression_bench -- --smoke --report-dir docs/evidence/mbt_telemetry_migration/compression
+```
+
+These runs use local synthetic fixtures and require no internal baseline files.
+Historical reviews and evidence describe earlier schemas and remain pending a
+separate documentation cleanup; they are not telemetry performance evidence.

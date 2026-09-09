@@ -4,22 +4,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const LEGAL_HEADER: &str = r#"```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
+const LEGAL_HEADER: &str = r#"
 "#;
 
 #[allow(dead_code)]
@@ -276,8 +261,8 @@ fn collect_artifacts(
                 }
             }
             if benches_dir.is_dir() {
-                for entry in
-                    fs::read_dir(&benches_dir).map_err(|e| format!("read_dir benches failed: {e}"))?
+                for entry in fs::read_dir(&benches_dir)
+                    .map_err(|e| format!("read_dir benches failed: {e}"))?
                 {
                     let entry = entry.map_err(|e| format!("read_dir benches entry failed: {e}"))?;
                     let p = entry.path();
@@ -332,7 +317,10 @@ fn parse_inventory_source_file_purposes(inventory_text: &str) -> HashMap<String,
         if !path.ends_with(".rs") {
             continue;
         }
-        if !(path.starts_with("crates/") || path.starts_with("services/") || path.starts_with("src/")) {
+        if !(path.starts_with("crates/")
+            || path.starts_with("services/")
+            || path.starts_with("src/"))
+        {
             continue;
         }
         let after = rest[end_tick + 1..].trim_start();
@@ -521,7 +509,9 @@ fn main() -> Result<(), String> {
     ));
     lines.push("".to_string());
     lines.push(format!("Generated: {now}"));
-    lines.push("Protocol: code-only inventory; docs are excluded from source inventory.".to_string());
+    lines.push(
+        "Protocol: code-only inventory; docs are excluded from source inventory.".to_string(),
+    );
     lines.push("".to_string());
     lines.push(
         "This file is generated from per-component inventories under `crates/*/docs/inventory.md` and `services/*/docs/inventory.md`."

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit: MBT Runtime Archive Parity Corrective
 
 Slug: `mbt_runtime_archive_parity_corrective`
@@ -29,13 +12,13 @@ Classification: `PEER_AUDIT_PASSED`
 
 ## Audit Evidence
 
-| Evidence | Finding |
-| --- | --- |
-| `docs/specs/mbt_runtime_archive_parity_corrective_SPEC.md` | Spec binds the same dependency, codegen, generated-file, validation, and benchmark surfaces as the plan. |
-| `docs/reviews/mbt_runtime_archive_parity_corrective/mbt_runtime_archive_parity_corrective_implementation_plan.md` | Plan lists exact files to edit and exact generated files. |
-| `crates/codegen/src/config.rs` | Existing codegen CLI requires `--surface`; adapter flags are not needed for core regeneration. |
-| `crates/schemas/bars_core/proto/mathilde/binary_transport/v1/bars.proto` | Bars root message is `mathilde.binary_transport.v1.MathildeTransportResponseV1`. |
-| `crates/schemas/test_compatibility_core/proto/mathilde/binary_transport/test_compatibility/v1/all_fields.proto` | Test compatibility root message is `mathilde.binary_transport.test_compatibility.v1.TestCompatibilityResponseV1`. |
+| Evidence                                                                                                          | Finding                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `docs/specs/mbt_runtime_archive_parity_corrective_SPEC.md`                                                        | Spec binds the same dependency, codegen, generated-file, validation, and benchmark surfaces as the plan.          |
+| `docs/reviews/mbt_runtime_archive_parity_corrective/mbt_runtime_archive_parity_corrective_implementation_plan.md` | Plan lists exact files to edit and exact generated files.                                                         |
+| `crates/codegen/src/config.rs`                                                                                    | Existing codegen CLI requires `--surface`; adapter flags are not needed for core regeneration.                    |
+| `crates/schemas/bars_core/proto/mathilde/binary_transport/v1/bars.proto`                                          | Bars root message is `mathilde.binary_transport.v1.MathildeTransportResponseV1`.                                  |
+| `crates/schemas/test_compatibility_core/proto/mathilde/binary_transport/test_compatibility/v1/all_fields.proto`   | Test compatibility root message is `mathilde.binary_transport.test_compatibility.v1.TestCompatibilityResponseV1`. |
 
 ## Falsification Checks
 
@@ -80,4 +63,3 @@ Next command:
 ```text
 Approved: implement docs/reviews/mbt_runtime_archive_parity_corrective/mbt_runtime_archive_parity_corrective_implementation_plan.md
 ```
-

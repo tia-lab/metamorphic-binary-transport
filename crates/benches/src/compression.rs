@@ -7,10 +7,10 @@ use std::time::Instant;
 
 use mbt_compression::{CompressionConfig, DEFAULT_ZSTD_LEVEL, compress_into, decompress_into};
 use mbt_core::codec::response_checksum;
-use mbt_schema_bars::bars_v1::{BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly};
+use mbt_schema_telemetry::telemetry_v1::{TelemetryV1, TelemetryV1TemperatureOnly};
 use serde::Serialize;
 
-use crate::projection::{MAX_RESPONSE_BYTES, bars_rows};
+use crate::projection::{MAX_RESPONSE_BYTES, telemetry_rows};
 
 pub const ZSTD_VERSION: &str = "0.13.3";
 
@@ -84,6 +84,9 @@ pub struct CompressionReport {
     pub rustc: String,
     pub os: String,
     pub cpu: String,
+    pub operator: String,
+    pub ram: String,
+    pub cache_mode: &'static str,
     pub git_dirty: String,
     pub dataset_identity: &'static str,
     pub fixture_source: &'static str,
@@ -100,8 +103,7 @@ pub struct CompressionReport {
 #[derive(Clone, Debug, Serialize)]
 pub struct SchemaHashes {
     pub mbt_full: u64,
-    pub mbt_no_metadata: u64,
-    pub mbt_ohlcv_only: u64,
+    pub mbt_temperature_only: u64,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -180,9 +182,12 @@ pub fn measure_report(smoke: bool, command: String) -> BenchResult<CompressionRe
         rustc: command_output("rustc", &["--version"])?,
         os: command_output("uname", &["-sr"])?,
         cpu: cpu_name(),
+        operator: crate::telemetry_regression::operator_name(),
+        ram: crate::telemetry_regression::ram_total(),
+        cache_mode: "in_memory",
         git_dirty: git_dirty()?,
-        dataset_identity: "deterministic synthetic Bars rows",
-        fixture_source: "crates/benches/src/projection.rs::bars_rows",
+        dataset_identity: "synthetic_telemetry_v1_formula_1",
+        fixture_source: "crates/benches/src/projection.rs::telemetry_rows",
         fixture_seed: "not_applicable_no_rng",
         schema_hashes: schema_hashes(),
         zstd_version: ZSTD_VERSION,
@@ -279,7 +284,7 @@ pub fn smoke_run_row_counts() -> &'static [RowCountConfig] {
 }
 
 pub fn required_lanes() -> &'static [&'static str] {
-    &["mbt_full", "mbt_no_metadata", "mbt_ohlcv_only"]
+    &["mbt_full", "mbt_temperature_only"]
 }
 
 pub fn sample_report() -> CompressionReport {
@@ -305,7 +310,7 @@ pub fn sample_report() -> CompressionReport {
         source_checksum: 1,
         compressed_checksum: 2,
         decompressed_checksum: 1,
-        source_schema_hash: BarsV1::SCHEMA_HASH,
+        source_schema_hash: TelemetryV1::SCHEMA_HASH,
         byte_equal: true,
     };
     CompressionReport {
@@ -317,9 +322,12 @@ pub fn sample_report() -> CompressionReport {
         rustc: "sample".to_string(),
         os: "sample".to_string(),
         cpu: "sample".to_string(),
+        operator: "sample".to_string(),
+        ram: "sample".to_string(),
+        cache_mode: "in_memory",
         git_dirty: "sample".to_string(),
-        dataset_identity: "deterministic synthetic Bars rows",
-        fixture_source: "crates/benches/src/projection.rs::bars_rows",
+        dataset_identity: "synthetic_telemetry_v1_formula_1",
+        fixture_source: "crates/benches/src/projection.rs::telemetry_rows",
         fixture_seed: "not_applicable_no_rng",
         schema_hashes: schema_hashes(),
         zstd_version: ZSTD_VERSION,
@@ -357,25 +365,19 @@ fn selected_row_counts(smoke: bool) -> &'static [RowCountConfig] {
 }
 
 fn source_bytes(row_count: usize) -> BenchResult<Vec<SourceBytes>> {
-    let rows = bars_rows(row_count);
-    let full = BarsV1::encode(&rows, MAX_RESPONSE_BYTES)?;
-    let no_metadata = BarsV1::project_no_metadata(&full, MAX_RESPONSE_BYTES)?;
-    let ohlcv_only = BarsV1::project_ohlcv_only(&full, MAX_RESPONSE_BYTES)?;
+    let rows = telemetry_rows(row_count)?;
+    let full = TelemetryV1::encode(&rows, MAX_RESPONSE_BYTES)?;
+    let temperature_only = TelemetryV1::project_temperature_only(&full, MAX_RESPONSE_BYTES)?;
     Ok(vec![
         SourceBytes {
             lane: "mbt_full",
-            schema_hash: BarsV1::SCHEMA_HASH,
+            schema_hash: TelemetryV1::SCHEMA_HASH,
             bytes: full,
         },
         SourceBytes {
-            lane: "mbt_no_metadata",
-            schema_hash: BarsV1NoMetadata::SCHEMA_HASH,
-            bytes: no_metadata,
-        },
-        SourceBytes {
-            lane: "mbt_ohlcv_only",
-            schema_hash: BarsV1OhlcvOnly::SCHEMA_HASH,
-            bytes: ohlcv_only,
+            lane: "mbt_temperature_only",
+            schema_hash: TelemetryV1TemperatureOnly::SCHEMA_HASH,
+            bytes: temperature_only,
         },
     ])
 }
@@ -444,6 +446,13 @@ fn measure_metric(config: &RowCountConfig, source: &SourceBytes) -> BenchResult<
         .into());
     }
 
+    if compress_samples
+        .iter()
+        .chain(&decompress_samples)
+        .any(|value| !value.is_finite() || *value <= 0.0)
+    {
+        return Err(io::Error::other("invalid compression sample duration").into());
+    }
     let compress_us = sum(&compress_samples);
     let decompress_us = sum(&decompress_samples);
     let uncompressed_bytes = source.bytes.len();
@@ -484,9 +493,8 @@ fn measure_metric(config: &RowCountConfig, source: &SourceBytes) -> BenchResult<
 
 fn schema_hashes() -> SchemaHashes {
     SchemaHashes {
-        mbt_full: BarsV1::SCHEMA_HASH,
-        mbt_no_metadata: BarsV1NoMetadata::SCHEMA_HASH,
-        mbt_ohlcv_only: BarsV1OhlcvOnly::SCHEMA_HASH,
+        mbt_full: TelemetryV1::SCHEMA_HASH,
+        mbt_temperature_only: TelemetryV1TemperatureOnly::SCHEMA_HASH,
     }
 }
 
@@ -582,8 +590,9 @@ fn ratio(numerator: f64, denominator: f64) -> f64 {
 }
 
 fn utc_millis() -> BenchResult<u128> {
-    let text = command_output("date", &["-u", "+%s%3N"])?;
-    Ok(text.parse::<u128>()?)
+    Ok(std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_millis())
 }
 
 fn command_output(command: &str, args: &[&str]) -> BenchResult<String> {

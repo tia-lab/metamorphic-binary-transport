@@ -56,7 +56,7 @@ fn row(
         close_ms,
         status_ordinal,
         optional_status_ordinal: 0,
-        venues_mask: 1 << VENUE_BINANCE_BIT,
+        venues_mask: 1 << VENUE_SITE_A_BIT,
         required_i64: close_ms,
         optional_i64: 0,
         required_i32: 1,

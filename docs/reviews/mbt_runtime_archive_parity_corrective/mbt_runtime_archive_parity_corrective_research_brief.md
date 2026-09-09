@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Runtime Archive Parity Corrective
 
 Slug: `mbt_runtime_archive_parity_corrective`
@@ -54,14 +37,14 @@ access path used by:
 
 ## Code-Read Evidence
 
-| Evidence | Observation |
-| --- | --- |
-| `/home/tia/_DEV/MATHILDE/experiments/Cargo.toml:24` | Old experiments workspace uses `rkyv = { version = "0.8.16", features = ["unaligned"] }`. |
-| `crates/schemas/bars_core/Cargo.toml:18` | New Bars schema crate uses `rkyv = "=0.8.16"` without `unaligned`. |
-| `crates/schemas/test_compatibility_core/Cargo.toml:18` | New compatibility schema crate uses `rkyv = "=0.8.16"` without `unaligned`. |
+| Evidence                                                                                                  | Observation                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/home/tia/_DEV/MATHILDE/experiments/Cargo.toml:24`                                                       | Old experiments workspace uses `rkyv = { version = "0.8.16", features = ["unaligned"] }`.                                                |
+| `crates/schemas/bars_core/Cargo.toml:18`                                                                  | New Bars schema crate uses `rkyv = "=0.8.16"` without `unaligned`.                                                                       |
+| `crates/schemas/test_compatibility_core/Cargo.toml:18`                                                    | New compatibility schema crate uses `rkyv = "=0.8.16"` without `unaligned`.                                                              |
 | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/codegen/rust_emit.rs:1409-1416` | Old generated trusted access takes `trusted_payload_for_schema` then calls `rkyv::access_unchecked` without archived payload validation. |
-| `crates/codegen/src/rust_emit.rs:2527-2542` | New generated trusted access decodes the header and calls `validate_archived_payload` before returning the unchecked archive view. |
-| `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md` | Current benchmark run completed, but old-vs-new parity was not proved. |
+| `crates/codegen/src/rust_emit.rs:2527-2542`                                                               | New generated trusted access decodes the header and calls `validate_archived_payload` before returning the unchecked archive view.       |
+| `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_result_review.md`    | Current benchmark run completed, but old-vs-new parity was not proved.                                                                   |
 
 ## Run Evidence
 
@@ -74,10 +57,10 @@ The existing result review recorded:
 
 Observed 100k full MBT checked lane:
 
-| Implementation | Output bytes | Elapsed |
-| --- | ---: | ---: |
+| Implementation     | Output bytes |         Elapsed |
+| ------------------ | -----------: | --------------: |
 | old MBT parity run | `32,400,138` | `155.915458 ms` |
-| new split MBT run | `33,600,140` | `254.36049 ms` |
+| new split MBT run  | `33,600,140` |  `254.36049 ms` |
 
 The new output is about `1,200,002` bytes larger at `100,000` rows, matching
 about `12` extra bytes per row plus envelope difference. This is consistent

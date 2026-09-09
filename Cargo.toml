@@ -13,7 +13,7 @@ members = [
     "crates/adapters/arrow_ipc",
     "crates/adapters/parquet",
     "crates/benches",
-    "crates/schemas/bars_core",
+    "crates/schemas/telemetry_core",
     "crates/schemas/test_compatibility_core",
 ]
 

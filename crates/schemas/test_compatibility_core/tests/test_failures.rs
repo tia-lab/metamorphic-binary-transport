@@ -115,16 +115,20 @@ fn wrong_schema_id_fails() -> TestResult {
 
 #[test]
 fn wrong_schema_hash_fails() -> TestResult {
-    let mut bytes = valid_bytes()?;
-    let observed = GENERATED_SCHEMA_HASH + 1;
-    write_u64_le(&mut bytes, SCHEMA_HASH_OFFSET, observed)?;
-    expect_access_error(
-        bytes.as_slice(),
-        TransportError::SchemaHashMismatch {
-            observed,
-            expected: GENERATED_SCHEMA_HASH,
-        },
-    )
+    // The prior fixture identity must not be accepted after the namespace migration.
+    for observed in [GENERATED_SCHEMA_HASH + 1, 3233278346470496550] {
+        assert_ne!(observed, GENERATED_SCHEMA_HASH);
+        let mut bytes = valid_bytes()?;
+        write_u64_le(&mut bytes, SCHEMA_HASH_OFFSET, observed)?;
+        expect_access_error(
+            bytes.as_slice(),
+            TransportError::SchemaHashMismatch {
+                observed,
+                expected: GENERATED_SCHEMA_HASH,
+            },
+        )?;
+    }
+    Ok(())
 }
 
 fn valid_row() -> TestCompatibilityRowV1 {
@@ -135,7 +139,7 @@ fn valid_row() -> TestCompatibilityRowV1 {
         close_ms: 1_000,
         status_ordinal: STATUS_ACTIVE,
         optional_status_ordinal: 0,
-        venues_mask: 1 << VENUE_BINANCE_BIT,
+        venues_mask: 1 << VENUE_SITE_A_BIT,
         required_i64: 1,
         optional_i64: 0,
         required_i32: 2,

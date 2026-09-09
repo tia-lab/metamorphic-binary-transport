@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package mbt.example.telemetry.v1;
+
+import "mbt/options.proto";
+
+option (mbt.dictionary_values) = {
+  name: "device"
+  value: "sensor_a"
+  value: "sensor_b"
+  value: "sensor_c"
+};
+
+option (mbt.dictionary_values) = {
+  name: "status"
+  value: "active"
+  value: "idle"
+  value: "offline"
+};
+
+option (mbt.dictionary_values) = {
+  name: "tag"
+  value: "indoor"
+  value: "outdoor"
+  value: "test"
+};
+
+message TelemetryResponseV1 {
+  option (mbt.schema_id) = 50001;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "mbt.example.telemetry.v1";
+  option (mbt.payload_root) = true;
+  option (mbt.projection) = {
+    name: "temperature_only"
+    rust_marker: "TelemetryV1TemperatureOnly"
+    include_field: "temperature_c"
+  };
+
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TelemetryRowV1 rows = 2 [(mbt.repeated_payload) = true];
+}
+
+message TelemetryRowV1 {
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  string device = 2 [
+    (mbt.dictionary) = "device",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1
+  ];
+  int64 recorded_at_ms = 3 [
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2
+  ];
+  string recorded_at_utc = 4 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "recorded_at_ms"
+  ];
+  double temperature_c = 5;
+  optional double battery_percent = 6 [(mbt.presence_bit) = 0];
+  string status = 7 [(mbt.dictionary) = "status"];
+  repeated string tags = 8 [(mbt.bitmask_dictionary) = "tag"];
+}

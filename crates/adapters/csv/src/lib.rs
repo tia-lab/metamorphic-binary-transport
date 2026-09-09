@@ -47,6 +47,29 @@ impl CsvWriter {
         self.bytes.push(b'"')
     }
 
+    /// Writes a JSON string between `begin_array_cell` and `end_array_cell`,
+    /// escaping JSON first and doubling its quote bytes for the enclosing CSV cell.
+    pub fn array_string_cell(&mut self, value: &str) -> Result<()> {
+        const HEX: &[u8; 16] = b"0123456789abcdef";
+        self.bytes.extend_from_slice(b"\"\"")?;
+        for byte in value.bytes() {
+            match byte {
+                b'"' => self.bytes.extend_from_slice(b"\\\"\"")?,
+                b'\\' => self.bytes.extend_from_slice(b"\\\\")?,
+                0..=31 => self.bytes.extend_from_slice(&[
+                    b'\\',
+                    b'u',
+                    b'0',
+                    b'0',
+                    HEX[(byte >> 4) as usize],
+                    HEX[(byte & 15) as usize],
+                ])?,
+                _ => self.bytes.push(byte)?,
+            }
+        }
+        self.bytes.extend_from_slice(b"\"\"")
+    }
+
     pub fn u32_cell(&mut self, value: u32) -> Result<()> {
         let mut buffer = itoa::Buffer::new();
         self.bytes.push_str(buffer.format(value))

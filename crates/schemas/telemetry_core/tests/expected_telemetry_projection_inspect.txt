@@ -1,0 +1,24 @@
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=680
+projection=temperature_only marker=TelemetryV1TemperatureOnly
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms

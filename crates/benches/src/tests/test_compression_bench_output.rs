@@ -33,10 +33,7 @@ fn compression_row_counts_are_bound() {
 
 #[test]
 fn compression_lanes_are_bound() {
-    assert_eq!(
-        required_lanes(),
-        ["mbt_full", "mbt_no_metadata", "mbt_ohlcv_only"]
-    );
+    assert_eq!(required_lanes(), ["mbt_full", "mbt_temperature_only"]);
 }
 
 #[test]

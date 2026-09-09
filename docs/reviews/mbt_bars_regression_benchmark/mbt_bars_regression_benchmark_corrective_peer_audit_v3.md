@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V3: MBT Bars Regression Benchmark Corrective Feature Amendment
 
 Slug: `mbt_bars_regression_benchmark`
@@ -47,17 +30,17 @@ implementation approval.
 
 ## Required Reads
 
-| Evidence type | Source | Observed contract |
-|---|---|---|
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/AGENTS.md` | Code changes require approved spec, approved implementation plan, and evidence-bound validation. |
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/experiment_lifecycle_protocol.md` | Spec, peer audit, implementation plan, implementation, validation, and result review are separate phases. |
-| Protocol evidence | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/peer_audit_protocol.md` | Audit must try to falsify the target artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | The spec now binds the old parity-only feature, old `Cargo.toml`, old `src/lib.rs`, feature-gated old commands, and generated-file prohibitions. |
-| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v2.md` | The prior blocker required this spec amendment before implementation could proceed. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs` | Old crate currently exposes `pub mod generated;` unconditionally, so the old parity-only feature requires a bound `src/lib.rs` edit. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs` | Old binary currently imports non-parity benchmark modules, so the old parity-only feature requires a bound `src/main.rs` command/import gate. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs` | Old benchmark module graph currently exports non-parity benchmark modules. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs` | Old test module graph currently exports non-parity tests, including wide/primitives surfaces. |
+| Evidence type        | Source                                                                                                                     | Observed contract                                                                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Protocol evidence    | `/home/tia/_DEV/MATHILDE/experiments/AGENTS.md`                                                                            | Code changes require approved spec, approved implementation plan, and evidence-bound validation.                                                 |
+| Protocol evidence    | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/experiment_lifecycle_protocol.md`                                      | Spec, peer audit, implementation plan, implementation, validation, and result review are separate phases.                                        |
+| Protocol evidence    | `/home/tia/_DEV/MATHILDE/experiments/docs/protocols/peer_audit_protocol.md`                                                | Audit must try to falsify the target artifact and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                             |
+| Spec evidence        | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                                         | The spec now binds the old parity-only feature, old `Cargo.toml`, old `src/lib.rs`, feature-gated old commands, and generated-file prohibitions. |
+| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v2.md` | The prior blocker required this spec amendment before implementation could proceed.                                                              |
+| Code-read evidence   | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/lib.rs`                                          | Old crate currently exposes `pub mod generated;` unconditionally, so the old parity-only feature requires a bound `src/lib.rs` edit.             |
+| Code-read evidence   | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs`                                         | Old binary currently imports non-parity benchmark modules, so the old parity-only feature requires a bound `src/main.rs` command/import gate.    |
+| Code-read evidence   | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs`                                  | Old benchmark module graph currently exports non-parity benchmark modules.                                                                       |
+| Code-read evidence   | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/tests/mod.rs`                                    | Old test module graph currently exports non-parity tests, including wide/primitives surfaces.                                                    |
 
 ## Findings
 

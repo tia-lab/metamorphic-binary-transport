@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit V2: MBT Projection Migration
 
 Status: `PEER_AUDIT_PASSED`
@@ -100,23 +83,23 @@ docs/reviews/mbt_projection_migration/mbt_projection_migration_implementation_pl
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
+| Lens                                    | Result |
+| --------------------------------------- | ------ |
 | Required implementation-plan audit gate | Passed |
-| Explicit user approval gate | Passed |
-| Approved spec binding | Passed |
-| Passed spec-audit binding | Passed |
-| Files to edit | Passed |
-| Files to create | Passed |
-| Generated file ownership | Passed |
-| Files out of scope | Passed |
-| Dependency containment | Passed |
-| Codegen inspect/write/check commands | Passed |
-| Validation commands | Passed |
-| Compile-surface evidence commands | Passed |
-| Pre-test audit requirement | Passed |
-| Rollback boundary | Passed |
-| Known risks | Passed |
+| Explicit user approval gate             | Passed |
+| Approved spec binding                   | Passed |
+| Passed spec-audit binding               | Passed |
+| Files to edit                           | Passed |
+| Files to create                         | Passed |
+| Generated file ownership                | Passed |
+| Files out of scope                      | Passed |
+| Dependency containment                  | Passed |
+| Codegen inspect/write/check commands    | Passed |
+| Validation commands                     | Passed |
+| Compile-surface evidence commands       | Passed |
+| Pre-test audit requirement              | Passed |
+| Rollback boundary                       | Passed |
+| Known risks                             | Passed |
 
 ## Implementation-Plan Boundary Confirmed
 

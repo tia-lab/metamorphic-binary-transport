@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V5: MBT Projection Migration
 
 Status: `BLOCKED`
@@ -151,42 +134,42 @@ The spec should contain none of those ambiguous phrases for this proof.
 
 ## Resolved Previous Audit Blockers
 
-| Previous blocker | V5 result |
-| --- | --- |
-| Mandatory spec section order | Resolved |
-| Original exact codegen-check command missing | Resolved |
-| Projected schema-hash inputs under-specified | Resolved |
-| Compile-surface budget not measurable | Resolved |
-| Correctness oracle and test plan combined | Resolved |
-| `--surface core` conceptual conflict | Resolved by `--surface projection` |
-| Existing projection-ignored assertion migration missing | Resolved directionally |
-| Generated artifact ownership conflict | Resolved |
-| `crates/codegen/src/emit.rs` missing from bindings | Resolved |
-| Exact projection `--inspect` command missing | Resolved |
-| Exact projection `--write` command missing | Resolved |
-| Projection inspect/write/check ownership missing | Resolved |
-| Core-regression proof choice in Section 9/22/23 | Resolved |
+| Previous blocker                                        | V5 result                          |
+| ------------------------------------------------------- | ---------------------------------- |
+| Mandatory spec section order                            | Resolved                           |
+| Original exact codegen-check command missing            | Resolved                           |
+| Projected schema-hash inputs under-specified            | Resolved                           |
+| Compile-surface budget not measurable                   | Resolved                           |
+| Correctness oracle and test plan combined               | Resolved                           |
+| `--surface core` conceptual conflict                    | Resolved by `--surface projection` |
+| Existing projection-ignored assertion migration missing | Resolved directionally             |
+| Generated artifact ownership conflict                   | Resolved                           |
+| `crates/codegen/src/emit.rs` missing from bindings      | Resolved                           |
+| Exact projection `--inspect` command missing            | Resolved                           |
+| Exact projection `--write` command missing              | Resolved                           |
+| Projection inspect/write/check ownership missing        | Resolved                           |
+| Core-regression proof choice in Section 9/22/23         | Resolved                           |
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Pre-audit closure gate completeness | Blocked by stale Section 20 ambiguity |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Passed |
-| Trusted-access safety | Passed |
-| Codegen determinism | Passed directionally |
-| Generated-code compile surface | Passed |
-| Crate boundary isolation | Passed |
-| Dependency containment | Passed |
-| Correctness oracle | Passed |
-| Benchmark isolation | Passed |
-| Performance budget | Passed |
-| Failure behavior | Passed |
-| Code binding completeness | Passed |
-| Generated artifact binding completeness | Blocked by stale proof ambiguity |
-| Client/operator interpretation safety | Blocked until Section 20 matches Section 9 |
+| Lens                                    | Result                                     |
+| --------------------------------------- | ------------------------------------------ |
+| Pre-audit closure gate completeness     | Blocked by stale Section 20 ambiguity      |
+| Measured object clarity                 | Passed                                     |
+| Schema source ownership                 | Passed                                     |
+| Wire/archive validation                 | Passed                                     |
+| Trusted-access safety                   | Passed                                     |
+| Codegen determinism                     | Passed directionally                       |
+| Generated-code compile surface          | Passed                                     |
+| Crate boundary isolation                | Passed                                     |
+| Dependency containment                  | Passed                                     |
+| Correctness oracle                      | Passed                                     |
+| Benchmark isolation                     | Passed                                     |
+| Performance budget                      | Passed                                     |
+| Failure behavior                        | Passed                                     |
+| Code binding completeness               | Passed                                     |
+| Generated artifact binding completeness | Blocked by stale proof ambiguity           |
+| Client/operator interpretation safety   | Blocked until Section 20 matches Section 9 |
 
 ## Required Amendment Summary
 

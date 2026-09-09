@@ -1,4 +1,4 @@
-/target
+target/
 node_modules
 .dev
 bun.lock
@@ -8,3 +8,4 @@ Cargo.lock
 .env
 .dataset
 tests/**.sqlite
+.dev/

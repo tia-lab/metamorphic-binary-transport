@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Corrective Implementation Plan: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -39,16 +22,16 @@ edit starts.
 
 ## Source Chain
 
-| Artifact | Path | Status |
-|---|---|---|
-| Research brief | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | complete |
-| Spec | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | corrective parity-port feature amendment present |
-| Corrective peer audit v2 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md` | passed |
-| Corrective peer audit v3 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v3.md` | passed |
-| Existing implementation plan | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | superseded for corrective parity claims |
-| Existing corrective implementation plan | this file before this amendment | superseded; prior status was `BLOCKED_BEFORE_CODE` |
-| Implementation plan peer audit v2 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v2.md` | blocked; spec-plan mismatch resolved by corrective peer audit v3 |
-| Existing result review | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md` | non-authoritative for old-vs-new parity |
+| Artifact                                | Path                                                                                                                       | Status                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Research brief                          | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md`                               | complete                                                         |
+| Spec                                    | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                                         | corrective parity-port feature amendment present                 |
+| Corrective peer audit v2                | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v2.md`                     | passed                                                           |
+| Corrective peer audit v3                | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_peer_audit_v3.md`                     | passed                                                           |
+| Existing implementation plan            | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md`                          | superseded for corrective parity claims                          |
+| Existing corrective implementation plan | this file before this amendment                                                                                            | superseded; prior status was `BLOCKED_BEFORE_CODE`               |
+| Implementation plan peer audit v2       | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_corrective_implementation_plan_peer_audit_v2.md` | blocked; spec-plan mismatch resolved by corrective peer audit v3 |
+| Existing result review                  | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md`                                | non-authoritative for old-vs-new parity                          |
 
 ## Goal
 
@@ -75,16 +58,16 @@ The plan intentionally does not:
 
 ## Evidence From Code Read
 
-| Evidence type | Path | Observed behavior |
-|---|---|---|
-| Code-read evidence | `crates/benches/src/bars_regression.rs` | Current new benchmark still carries historical markdown baseline parsing and fields. |
-| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs` | Current new benchmark parses `OLD_BENCH_RESULTS` before measuring and attaches old markdown comparisons. |
-| Code-read evidence | `crates/benches/src/projection.rs` | Current Bars fixture is deterministic BTCUSDT-only with all generated Bars presence bits set. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars row field names differ for some ordinal fields: `source`, `process`, and `recomputed_reason` instead of new `*_ordinal` names. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars generated code exposes checked JSON/protobuf/CSV/Arrow IPC/Parquet functions and trusted JSON/protobuf functions. |
+| Evidence type      | Path                                                                                            | Observed behavior                                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence | `crates/benches/src/bars_regression.rs`                                                         | Current new benchmark still carries historical markdown baseline parsing and fields.                                                     |
+| Code-read evidence | `crates/benches/src/bin/mbt_bars_regression_bench.rs`                                           | Current new benchmark parses `OLD_BENCH_RESULTS` before measuring and attaches old markdown comparisons.                                 |
+| Code-read evidence | `crates/benches/src/projection.rs`                                                              | Current Bars fixture is deterministic BTCUSDT-only with all generated Bars presence bits set.                                            |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars row field names differ for some ordinal fields: `source`, `process`, and `recomputed_reason` instead of new `*_ordinal` names.  |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars generated code exposes checked JSON/protobuf/CSV/Arrow IPC/Parquet functions and trusted JSON/protobuf functions.               |
 | Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/generated/bars_v1.rs` | Old Bars generated code exposes `access_archived_trusted_unchecked` and crate-internal archived helpers for CSV, Arrow IPC, and Parquet. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs` | Old binary dispatches benchmark subcommands from `main.rs`. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs` | Old benchmark modules are exported from `src/benches/mod.rs`. |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/main.rs`              | Old binary dispatches benchmark subcommands from `main.rs`.                                                                              |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/mod.rs`       | Old benchmark modules are exported from `src/benches/mod.rs`.                                                                            |
 
 ## Files To Edit
 
@@ -268,31 +251,31 @@ The old parity fixture must mirror the current new fixture from:
 
 Required old row field mapping:
 
-| New fixture field | Old row field |
-|---|---|
-| `schema_version` | `schema_version` |
-| `pair_ordinal = PAIR_BTCUSDT` | `pair_ordinal = PAIR_BTCUSDT` |
-| `tf_ordinal = TIMEFRAME_1M` | `tf_ordinal = TF_1M` |
-| `open_ms` | `open_ms` |
-| `close_ms` | `close_ms` |
-| `o` | `o` |
-| `h` | `h` |
-| `l` | `l` |
-| `c` | `c` |
-| `v` | `v` |
-| `quote_v` | `quote_v` |
-| `taker_known_v` | `taker_known_v` |
-| `taker_signed_v` | `taker_signed_v` |
-| `taker_known_quote_v` | `taker_known_quote_v` |
-| `taker_signed_quote_v` | `taker_signed_quote_v` |
-| `taker_known_n` | `taker_known_n` |
-| `taker_signed_n` | `taker_signed_n` |
-| `vw` | `vw` |
-| `n` | `n` |
-| `source_ordinal = SOURCE_FRONTIER` | `source = SOURCE_FRONTIER` |
-| `process_ordinal = PROCESS_DERIVED` | `process = PROCESS_DERIVED` |
+| New fixture field                                                | Old row field                                    |
+| ---------------------------------------------------------------- | ------------------------------------------------ |
+| `schema_version`                                                 | `schema_version`                                 |
+| `pair_ordinal = PAIR_BTCUSDT`                                    | `pair_ordinal = PAIR_BTCUSDT`                    |
+| `tf_ordinal = TIMEFRAME_1M`                                      | `tf_ordinal = TF_1M`                             |
+| `open_ms`                                                        | `open_ms`                                        |
+| `close_ms`                                                       | `close_ms`                                       |
+| `o`                                                              | `o`                                              |
+| `h`                                                              | `h`                                              |
+| `l`                                                              | `l`                                              |
+| `c`                                                              | `c`                                              |
+| `v`                                                              | `v`                                              |
+| `quote_v`                                                        | `quote_v`                                        |
+| `taker_known_v`                                                  | `taker_known_v`                                  |
+| `taker_signed_v`                                                 | `taker_signed_v`                                 |
+| `taker_known_quote_v`                                            | `taker_known_quote_v`                            |
+| `taker_signed_quote_v`                                           | `taker_signed_quote_v`                           |
+| `taker_known_n`                                                  | `taker_known_n`                                  |
+| `taker_signed_n`                                                 | `taker_signed_n`                                 |
+| `vw`                                                             | `vw`                                             |
+| `n`                                                              | `n`                                              |
+| `source_ordinal = SOURCE_FRONTIER`                               | `source = SOURCE_FRONTIER`                       |
+| `process_ordinal = PROCESS_DERIVED`                              | `process = PROCESS_DERIVED`                      |
 | `recomputed_reason_ordinal = RECOMPUTED_REASON_CANONICAL_REPAIR` | `recomputed_reason = RECOMPUTE_CANONICAL_REPAIR` |
-| `presence_bits = PRESENCE_ALLOWED_MASK` | `presence_bits = PRESENCE_ALLOWED_MASK` |
+| `presence_bits = PRESENCE_ALLOWED_MASK`                          | `presence_bits = PRESENCE_ALLOWED_MASK`          |
 
 All numeric value formulas must match the current new fixture exactly:
 
@@ -356,18 +339,18 @@ bars_serde_json_baseline
 
 Required lane boundaries:
 
-| Label | Old implementation boundary |
-|---|---|
-| `bars_mbt_full_encode_inspect_checked` | time `BarsV1::encode(rows, cap)`, `BarsV1::inspect(&bytes)`, and `response_checksum(&bytes)` |
-| `bars_metamorphose_json_checked` | encode outside timing, then time `BarsV1::metamorphose_json(&encoded, cap)` and checksum |
-| `bars_metamorphose_protobuf_checked` | encode outside timing, then time `BarsV1::metamorphose_protobuf(&encoded, cap)` and checksum |
-| `bars_metamorphose_csv_checked` | encode outside timing, then time `BarsV1::metamorphose_csv(&encoded, cap)` and checksum |
-| `bars_metamorphose_json_trusted` | encode outside timing, then time old `unsafe BarsV1::metamorphose_json_trusted_unchecked(&encoded, cap)` and checksum |
-| `bars_metamorphose_protobuf_trusted` | encode outside timing, then time old `unsafe BarsV1::metamorphose_protobuf_trusted_unchecked(&encoded, cap)` and checksum |
-| `bars_metamorphose_csv_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_csv_archived(archived, cap)` and checksum |
-| `bars_metamorphose_arrow_ipc_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_arrow_ipc_archived(archived, cap)` and checksum |
-| `bars_metamorphose_parquet_trusted` | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_parquet_archived(archived, cap)` and checksum |
-| `bars_serde_json_baseline` | build DTO outside timing, then time `serde_json::to_vec(&dto_rows)` and checksum |
+| Label                                  | Old implementation boundary                                                                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `bars_mbt_full_encode_inspect_checked` | time `BarsV1::encode(rows, cap)`, `BarsV1::inspect(&bytes)`, and `response_checksum(&bytes)`                                        |
+| `bars_metamorphose_json_checked`       | encode outside timing, then time `BarsV1::metamorphose_json(&encoded, cap)` and checksum                                            |
+| `bars_metamorphose_protobuf_checked`   | encode outside timing, then time `BarsV1::metamorphose_protobuf(&encoded, cap)` and checksum                                        |
+| `bars_metamorphose_csv_checked`        | encode outside timing, then time `BarsV1::metamorphose_csv(&encoded, cap)` and checksum                                             |
+| `bars_metamorphose_json_trusted`       | encode outside timing, then time old `unsafe BarsV1::metamorphose_json_trusted_unchecked(&encoded, cap)` and checksum               |
+| `bars_metamorphose_protobuf_trusted`   | encode outside timing, then time old `unsafe BarsV1::metamorphose_protobuf_trusted_unchecked(&encoded, cap)` and checksum           |
+| `bars_metamorphose_csv_trusted`        | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_csv_archived(archived, cap)` and checksum       |
+| `bars_metamorphose_arrow_ipc_trusted`  | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_arrow_ipc_archived(archived, cap)` and checksum |
+| `bars_metamorphose_parquet_trusted`    | encode outside timing, then time trusted archived access plus `BarsV1::metamorphose_parquet_archived(archived, cap)` and checksum   |
+| `bars_serde_json_baseline`             | build DTO outside timing, then time `serde_json::to_vec(&dto_rows)` and checksum                                                    |
 
 For old trusted CSV, Arrow IPC, and Parquet, trusted archived access must be
 inside the measured closure because the current new public trusted functions

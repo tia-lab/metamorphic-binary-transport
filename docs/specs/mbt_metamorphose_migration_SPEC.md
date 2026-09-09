@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # SPEC: MBT Metamorphose Migration
 
 ## 1. Identification
@@ -499,17 +482,17 @@ No new dependency may enter:
 
 Allowed dependencies by crate:
 
-| Crate | Allowed dependency class |
-| --- | --- |
-| `crates/core` | no new external dependency for output helpers |
-| `crates/metamorphose` | core only, for error/result types and trait helper dispatch |
-| `crates/transponding` | core only, if required for error/result types |
-| `crates/adapters/json` | core only; no dependency on `metamorphose`; no serde JSON dependency unless implementation plan proves need |
-| `crates/adapters/protobuf` | core plus low-level protobuf wire helpers only; no dependency on `metamorphose`; no prost DTO dependency |
-| `crates/adapters/csv` | core plus integer formatting only; no dependency on `metamorphose`; no CSV crate dependency unless implementation plan proves need |
-| `crates/adapters/arrow` | core plus Arrow RecordBatch dependencies only; no dependency on `metamorphose` |
-| `crates/adapters/arrow_ipc` | core plus Arrow IPC dependencies only; no dependency on `metamorphose` |
-| `crates/adapters/parquet` | core plus Parquet writer dependencies only; no dependency on `metamorphose` |
+| Crate                       | Allowed dependency class                                                                                                           |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `crates/core`               | no new external dependency for output helpers                                                                                      |
+| `crates/metamorphose`       | core only, for error/result types and trait helper dispatch                                                                        |
+| `crates/transponding`       | core only, if required for error/result types                                                                                      |
+| `crates/adapters/json`      | core only; no dependency on `metamorphose`; no serde JSON dependency unless implementation plan proves need                        |
+| `crates/adapters/protobuf`  | core plus low-level protobuf wire helpers only; no dependency on `metamorphose`; no prost DTO dependency                           |
+| `crates/adapters/csv`       | core plus integer formatting only; no dependency on `metamorphose`; no CSV crate dependency unless implementation plan proves need |
+| `crates/adapters/arrow`     | core plus Arrow RecordBatch dependencies only; no dependency on `metamorphose`                                                     |
+| `crates/adapters/arrow_ipc` | core plus Arrow IPC dependencies only; no dependency on `metamorphose`                                                             |
+| `crates/adapters/parquet`   | core plus Parquet writer dependencies only; no dependency on `metamorphose`                                                        |
 
 Dependency versions must be bound in the implementation plan before code. This
 spec does not authorize an unpinned dependency addition by itself. If the

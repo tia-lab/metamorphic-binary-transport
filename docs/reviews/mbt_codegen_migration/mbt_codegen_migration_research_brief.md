@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Codegen Migration
 
 Status: draft for spec authoring
@@ -147,20 +130,20 @@ lookup emission remain deferred to later specs.
 
 ## Evidence Table
 
-| Evidence type | Observation |
-| --- | --- |
-| Code-read evidence | `crates/codegen/src/*.rs` in the new repo are placeholders; `src/main.rs` is empty. |
-| Code-read evidence | `crates/core/src/runtime.rs` exposes `MbtSchema`, `encode`, `encode_owned`, `access`, and `inspect`. |
-| Code-read evidence | `crates/core/src/envelope.rs` owns `SchemaHeaderSpec`, fixed 128-byte header encoding/decoding, checked checksum validation, and trusted payload identity/length validation. |
+| Evidence type      | Observation                                                                                                                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence | `crates/codegen/src/*.rs` in the new repo are placeholders; `src/main.rs` is empty.                                                                                                                                              |
+| Code-read evidence | `crates/core/src/runtime.rs` exposes `MbtSchema`, `encode`, `encode_owned`, `access`, and `inspect`.                                                                                                                             |
+| Code-read evidence | `crates/core/src/envelope.rs` owns `SchemaHeaderSpec`, fixed 128-byte header encoding/decoding, checked checksum validation, and trusted payload identity/length validation.                                                     |
 | Code-read evidence | Experiment `src/codegen/descriptor.rs` loads descriptor sets with `protoc`, uses `prost_reflect::DescriptorPool`, reads extensions by fully qualified name, builds physical fields, target fields, projections, and schema hash. |
-| Code-read evidence | Experiment `src/codegen/model.rs` defines schema model, field kinds, dictionary model, projection model, codegen requests, and canonical schema requests. |
-| Code-read evidence | Experiment `src/codegen/rust_emit.rs` is 4,155 lines and emits core runtime, projections, boundary writers, transponding, Arrow, Arrow IPC, and Parquet code in one module. |
-| Code-read evidence | Experiment `src/generated/bars_v1.rs` imports Arrow, Parquet, metamorphose, transponding, rkyv, core envelope, and runtime in one generated module. |
-| Code-read evidence | Experiment `src/bin/mbt_codegen.rs` supports `--write`, `--check`, `--inspect-options`, `--all`, and explicit `--schema/--root/--module`. |
-| Code-read evidence | Experiment `crates/schema/proto/mathilde/options.proto` contains MBT transport options plus DB, lookup, MLDB, and cache options. Only MBT transport options are in scope for this repository phase. |
-| Run evidence | `wc -l` reported old codegen files at 6,332 total lines and new codegen skeleton/options placeholder at 30 total lines. |
-| Build evidence | Previous core result review recorded `cargo check --workspace`, core tests, and core clippy passing after core migration. |
-| Hypothesis | The first generated core-only surface can be substantially smaller than old generated modules because adapter/transponding/projection emission is deferred. This requires implementation evidence later. |
+| Code-read evidence | Experiment `src/codegen/model.rs` defines schema model, field kinds, dictionary model, projection model, codegen requests, and canonical schema requests.                                                                        |
+| Code-read evidence | Experiment `src/codegen/rust_emit.rs` is 4,155 lines and emits core runtime, projections, boundary writers, transponding, Arrow, Arrow IPC, and Parquet code in one module.                                                      |
+| Code-read evidence | Experiment `src/generated/bars_v1.rs` imports Arrow, Parquet, metamorphose, transponding, rkyv, core envelope, and runtime in one generated module.                                                                              |
+| Code-read evidence | Experiment `src/bin/mbt_codegen.rs` supports `--write`, `--check`, `--inspect-options`, `--all`, and explicit `--schema/--root/--module`.                                                                                        |
+| Code-read evidence | Experiment `crates/schema/proto/mathilde/options.proto` contains MBT transport options plus DB, lookup, MLDB, and cache options. Only MBT transport options are in scope for this repository phase.                              |
+| Run evidence       | `wc -l` reported old codegen files at 6,332 total lines and new codegen skeleton/options placeholder at 30 total lines.                                                                                                          |
+| Build evidence     | Previous core result review recorded `cargo check --workspace`, core tests, and core clippy passing after core migration.                                                                                                        |
+| Hypothesis         | The first generated core-only surface can be substantially smaller than old generated modules because adapter/transponding/projection emission is deferred. This requires implementation evidence later.                         |
 
 ## Unknowns
 

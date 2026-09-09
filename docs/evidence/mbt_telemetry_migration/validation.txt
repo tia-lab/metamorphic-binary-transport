@@ -1,0 +1,14 @@
+Implementation validation log
+
+Initial telemetry oracle failed because it expected fixed .000 fractional UTC and omitted derived UTC from projected row formats. Code-read diagnosis: core/src/output.rs utc_bytes and core/src/tests/test_output.rs format epoch without fraction; codegen/src/rust_emit.rs remap_projection_derived_utc_fields retains a derived field whenever its source survives. These are existing behavior preserved by spec, so correct the new oracle, not the generator. Initial failure retained in telemetry_tests.txt.
+
+Independent read-back using preinstalled pyarrow 24.0.0
+Initial /tmp lookup failed because Rust temp_dir uses the macOS session temp directory; no reader mismatch.
+full Parquet: all columns and nullability match independent expected values.
+projected Parquet: all columns and nullability match independent expected values.
+
+Interim review: final generated SHA-256 values still match after formatting; cargo fmt --all -- --check and git diff --check passed. Benchmark execution pending the unresolved CSV read-back correctness check.
+
+Final compression run failed at metadata construction: macOS date -u +%s%3N returned 17889709113N. No numeric parsing can accept that suffix. Replace this metadata acquisition with std::time::SystemTime epoch milliseconds; monotonic measurement timers and compression algorithm remain unchanged. Initial failure: compression_run.txt.
+
+Final: approved CSV correction passes 5 adapter tests and 45 generator tests; full workspace all-feature suite passes 154 tests. Timestamp portability correction passes benches tests and release compression smoke run. Regression/projection/compression reports and independent Parquet values verified in final_artifact_checks.txt. Final cargo fmt --all -- --check and git diff --check exit 0.

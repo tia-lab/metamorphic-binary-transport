@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Peer Audit
 
 Slug: `mbt_compression`
@@ -156,24 +139,24 @@ Required amendment:
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| pre-audit closure gate completeness | blocked by findings 1 and 3 |
-| measured object clarity | passed for MBT bytes <-> zstd frame bytes |
-| schema source ownership | passed; compression is schema-agnostic |
-| wire/archive validation | passed; compressed output is not an MBT envelope |
-| trusted-access safety | passed; decompression does not imply trusted access |
-| codegen determinism | passed; no codegen changes authorized |
-| generated-code compile surface | passed, subject to command fix |
-| crate boundary isolation | passed |
-| dependency containment | blocked by executable command shape |
-| correctness oracle | passed for byte equality and caps |
-| benchmark isolation | blocked by fixture identity gap |
-| performance budget | passed; no numeric claim without evidence |
-| failure behavior | passed for first-phase scope |
-| code binding completeness | passed for file paths |
-| generated artifact binding completeness | passed; no generated artifacts owned |
-| client/operator interpretation safety | passed after fixing benchmark identity |
+| Lens                                    | Result                                              |
+| --------------------------------------- | --------------------------------------------------- |
+| pre-audit closure gate completeness     | blocked by findings 1 and 3                         |
+| measured object clarity                 | passed for MBT bytes <-> zstd frame bytes           |
+| schema source ownership                 | passed; compression is schema-agnostic              |
+| wire/archive validation                 | passed; compressed output is not an MBT envelope    |
+| trusted-access safety                   | passed; decompression does not imply trusted access |
+| codegen determinism                     | passed; no codegen changes authorized               |
+| generated-code compile surface          | passed, subject to command fix                      |
+| crate boundary isolation                | passed                                              |
+| dependency containment                  | blocked by executable command shape                 |
+| correctness oracle                      | passed for byte equality and caps                   |
+| benchmark isolation                     | blocked by fixture identity gap                     |
+| performance budget                      | passed; no numeric claim without evidence           |
+| failure behavior                        | passed for first-phase scope                        |
+| code binding completeness               | passed for file paths                               |
+| generated artifact binding completeness | passed; no generated artifacts owned                |
+| client/operator interpretation safety   | passed after fixing benchmark identity              |
 
 ## Required Spec Amendment
 

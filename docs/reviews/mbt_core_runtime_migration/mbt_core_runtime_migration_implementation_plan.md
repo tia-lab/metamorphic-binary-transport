@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan: MBT Core Runtime Migration
 
 Status: `AWAITING_APPROVAL`
@@ -83,7 +66,7 @@ Implementation must follow this policy:
 - it may change only because `cargo check`, `cargo test`, or `cargo clippy`
   resolves `thiserror = "=2.0.17"` and its required transitive dependencies;
 - no other lockfile package additions are accepted except what `cargo tree -p
-  metamorphic_binary_transport_core` proves belongs to `thiserror`.
+metamorphic_binary_transport_core` proves belongs to `thiserror`.
 
 ## 4. Approved Scope
 
@@ -1008,19 +991,19 @@ Expected outputs:
 
 ## 8. Correctness Proof Mapping
 
-| Spec oracle | Planned test |
-| --- | --- |
-| FNV vectors | `test_envelope::fnv_vectors_match_contract` |
-| LF/CRLF schema hash equality | `test_envelope::normalized_proto_hash_treats_lf_and_crlf_equally` |
-| header round trip | `test_envelope::header_round_trips_without_payload` |
-| checked valid header | `test_envelope::checked_validation_accepts_valid_payload` |
-| invalid fields and checksum | individual `checked_validation_rejects_*` tests |
-| trusted payload success | `test_envelope::trusted_payload_returns_payload_without_checksum_requirement` |
-| trusted schema mismatch | `test_envelope::trusted_payload_rejects_schema_mismatch` |
-| trusted length mismatch | `test_envelope::trusted_payload_rejects_length_mismatch` |
-| response checksum | `test_codec::response_checksum_delegates_to_fnv` |
-| runtime dispatch | `test_runtime::runtime_dispatches_to_schema_implementation` |
-| runtime error propagation | `test_runtime::runtime_dispatch_propagates_schema_errors` |
+| Spec oracle                  | Planned test                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| FNV vectors                  | `test_envelope::fnv_vectors_match_contract`                                   |
+| LF/CRLF schema hash equality | `test_envelope::normalized_proto_hash_treats_lf_and_crlf_equally`             |
+| header round trip            | `test_envelope::header_round_trips_without_payload`                           |
+| checked valid header         | `test_envelope::checked_validation_accepts_valid_payload`                     |
+| invalid fields and checksum  | individual `checked_validation_rejects_*` tests                               |
+| trusted payload success      | `test_envelope::trusted_payload_returns_payload_without_checksum_requirement` |
+| trusted schema mismatch      | `test_envelope::trusted_payload_rejects_schema_mismatch`                      |
+| trusted length mismatch      | `test_envelope::trusted_payload_rejects_length_mismatch`                      |
+| response checksum            | `test_codec::response_checksum_delegates_to_fnv`                              |
+| runtime dispatch             | `test_runtime::runtime_dispatches_to_schema_implementation`                   |
+| runtime error propagation    | `test_runtime::runtime_dispatch_propagates_schema_errors`                     |
 
 ## 9. Rollback Boundary
 

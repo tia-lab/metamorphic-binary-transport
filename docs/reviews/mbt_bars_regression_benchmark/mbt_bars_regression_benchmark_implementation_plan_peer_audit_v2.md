@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit V2: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -23,16 +6,16 @@ Status: `PEER_AUDIT_PASSED`
 
 ## Required Reads
 
-| Evidence type | Source | Observation |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Implementation requires a passed peer audit, approved implementation plan, and exact bindings before code changes. |
-| Invariant evidence | `docs/invariants/core_invariants.md` | Benchmarks stay outside production libraries; dependency and compile surfaces must be bounded and measured. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | The implementation plan must bind every code file, generated file, dependency change, test, benchmark, artifact, and validation command. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | The audit must classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Protocol evidence | `docs/protocols/implementation_protocol.md` | Implementation must stay inside approved spec and plan bindings. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | The amended spec now binds `Cargo.lock` as a Cargo-generated dependency artifact and forbids manual lockfile edits. |
-| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan_peer_audit.md` | V1 blocked because the plan introduced `Cargo.lock` while the spec did not bind it. |
-| Plan evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | The amended plan now binds `Cargo.lock`, lockfile validation, and panic-free test implementation. |
+| Evidence type        | Source                                                                                                       | Observation                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence    | `AGENTS.md`                                                                                                  | Implementation requires a passed peer audit, approved implementation plan, and exact bindings before code changes.                       |
+| Invariant evidence   | `docs/invariants/core_invariants.md`                                                                         | Benchmarks stay outside production libraries; dependency and compile surfaces must be bounded and measured.                              |
+| Protocol evidence    | `docs/protocols/lifecycle_protocol.md`                                                                       | The implementation plan must bind every code file, generated file, dependency change, test, benchmark, artifact, and validation command. |
+| Protocol evidence    | `docs/protocols/peer_audit_protocol.md`                                                                      | The audit must classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                                                        |
+| Protocol evidence    | `docs/protocols/implementation_protocol.md`                                                                  | Implementation must stay inside approved spec and plan bindings.                                                                         |
+| Spec evidence        | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                           | The amended spec now binds `Cargo.lock` as a Cargo-generated dependency artifact and forbids manual lockfile edits.                      |
+| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan_peer_audit.md` | V1 blocked because the plan introduced `Cargo.lock` while the spec did not bind it.                                                      |
+| Plan evidence        | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md`            | The amended plan now binds `Cargo.lock`, lockfile validation, and panic-free test implementation.                                        |
 
 ## Audit Result
 

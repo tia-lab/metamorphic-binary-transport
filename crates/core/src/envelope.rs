@@ -7,7 +7,7 @@ pub const ENCODING_MBT_RKYV: u16 = 1;
 pub const FLAGS_V1: u16 = 0;
 pub const FNV_OFFSET: u64 = 0xcbf29ce484222325;
 pub const FNV_PRIME: u64 = 0x00000100000001B3;
-pub const BUILD_ID_INPUT: &str = "mathilde_binary_transport:v1:synthetic_benchmark";
+pub const BUILD_ID_INPUT: &str = "mbt:v1:synthetic_example";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SchemaHeaderSpec {

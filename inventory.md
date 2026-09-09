@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # `metamorphic-binary-transport` - Global Inventory (GENERATED; DO NOT EDIT)
 
 Generated: 2026-06-16T13:03:16Z
@@ -38,7 +21,7 @@ If a file purpose is missing in a component inventory, this file will mark it as
 - `crate::compression`
 - `crate::core`
 - `crate::metamorphose`
-- `crate::schemas/bars_core`
+- `crate::schemas/telemetry_core`
 - `crate::schemas/test_compatibility_core`
 - `crate::transponding`
 
@@ -104,15 +87,15 @@ If a file purpose is missing in a component inventory, this file will mark it as
 
 ### Source Files
 
-- `crates/benches/src/bars_regression.rs`: Bars regression fixtures, timing rows, report metadata, old-evidence parsing, and report writing helpers.
-- `crates/benches/src/bin/mbt_bars_regression_bench.rs`: executable Bars regression benchmark timing MBT, projection, and metamorphose lanes.
-- `crates/benches/src/bin/mbt_compression_bench.rs`: executable compression benchmark for full and projected Bars MBT bytes.
-- `crates/benches/src/bin/mbt_projection_bench.rs`: executable projection benchmark for Bars and test-compatibility schemas.
+- `crates/benches/src/telemetry_regression.rs`: Telemetry regression fixtures, timing rows, report metadata, old-evidence parsing, and report writing helpers.
+- `crates/benches/src/bin/mbt_telemetry_regression_bench.rs`: executable Telemetry regression benchmark timing MBT, projection, and metamorphose lanes.
+- `crates/benches/src/bin/mbt_compression_bench.rs`: executable compression benchmark for full and projected Telemetry MBT bytes.
+- `crates/benches/src/bin/mbt_projection_bench.rs`: executable projection benchmark for Telemetry and test-compatibility schemas.
 - `crates/benches/src/compression.rs`: compression benchmark source construction, zstd timing, report writing, environment writing, and summary helpers.
 - `crates/benches/src/lib.rs`: benchmark crate entrypoint and module exports.
-- `crates/benches/src/projection.rs`: projection benchmark fixtures, baseline parsing, measurement rows, and report helpers.
+- `crates/benches/src/projection.rs`: projection benchmark fixtures, measurement rows, and report helpers.
 - `crates/benches/src/tests/mod.rs`: benchmark test module registration.
-- `crates/benches/src/tests/test_bars_regression_bench_output.rs`: Bars regression report output tests.
+- `crates/benches/src/tests/test_telemetry_regression_bench_output.rs`: Telemetry regression report output tests.
 - `crates/benches/src/tests/test_compression_bench_output.rs`: compression benchmark report shape and row-count binding tests.
 - `crates/benches/src/tests/test_projection_bench_output.rs`: projection benchmark report output tests.
 
@@ -182,22 +165,22 @@ If a file purpose is missing in a component inventory, this file will mark it as
 
 ---
 
-## `crates/schemas/bars_core`
+## `crates/schemas/telemetry_core`
 
 ### Source Files
 
-- `crates/schemas/bars_core/src/bars_v1.rs`: generated Bars core schema, envelope access, validation, checksums, views, and MBT-to-MBT projections.
-- `crates/schemas/bars_core/src/bars_v1_arrow.rs`: generated Bars Arrow RecordBatch metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_arrow_ipc.rs`: generated Bars Arrow IPC metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_csv.rs`: generated Bars CSV metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_json.rs`: generated Bars JSON metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_parquet.rs`: generated Bars Parquet metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_protobuf.rs`: generated Bars protobuf metamorphose adapter module.
-- `crates/schemas/bars_core/src/bars_v1_transponding.rs`: generated Bars row-to-column transponding module for columnar adapters.
-- `crates/schemas/bars_core/src/lib.rs`: schema crate entrypoint and feature-gated generated adapter module declarations.
-- `crates/schemas/bars_core/tests/test_bars_metamorphose.rs`: Bars metamorphose tests for derived UTC row outputs and protobuf nesting.
-- `crates/schemas/bars_core/tests/test_bars_projection.rs`: Bars projection tests for checked/trusted parity and projected schema identity.
-- `crates/schemas/bars_core/tests/test_bars_shape.rs`: Bars generated-shape tests for schema constants and public type behavior.
+- `crates/schemas/telemetry_core/src/telemetry_v1.rs`: generated Telemetry core schema, envelope access, validation, checksums, views, and MBT-to-MBT projections.
+- `crates/schemas/telemetry_core/src/telemetry_v1_arrow.rs`: generated Telemetry Arrow RecordBatch metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_arrow_ipc.rs`: generated Telemetry Arrow IPC metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_csv.rs`: generated Telemetry CSV metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_json.rs`: generated Telemetry JSON metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_parquet.rs`: generated Telemetry Parquet metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_protobuf.rs`: generated Telemetry protobuf metamorphose adapter module.
+- `crates/schemas/telemetry_core/src/telemetry_v1_transponding.rs`: generated Telemetry row-to-column transponding module for columnar adapters.
+- `crates/schemas/telemetry_core/src/lib.rs`: schema crate entrypoint and feature-gated generated adapter module declarations.
+- `crates/schemas/telemetry_core/tests/test_telemetry_metamorphose.rs`: Telemetry metamorphose tests for derived UTC row outputs and protobuf nesting.
+- `crates/schemas/telemetry_core/tests/test_telemetry_projection.rs`: Telemetry projection tests for checked/trusted parity and projected schema identity.
+- `crates/schemas/telemetry_core/tests/test_telemetry_shape.rs`: Telemetry generated-shape tests for schema constants and public type behavior.
 
 ---
 

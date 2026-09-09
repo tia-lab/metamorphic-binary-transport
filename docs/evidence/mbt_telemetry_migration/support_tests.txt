@@ -1,0 +1,116 @@
+   Compiling zstd-sys v2.1.0+zstd.1.5.7
+   Compiling serde_core v1.0.228
+   Compiling memchr v2.8.3
+   Compiling mbt_core v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/core)
+   Compiling mbt_schema_test_compatibility v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/test_compatibility_core)
+   Compiling zstd-safe v7.3.0
+   Compiling zstd v0.13.3
+   Compiling parquet v56.2.1
+   Compiling mbt_compression v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/compression)
+   Compiling serde_json v1.0.145
+   Compiling serde v1.0.228
+   Compiling mbt_adapter_parquet v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/adapters/parquet)
+   Compiling mbt_schema_telemetry v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
+   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.03s
+     Running unittests src/lib.rs (target/debug/deps/mbt_benches-b6aece91dac2b073)
+
+running 9 tests
+test tests::test_compression_bench_output::compression_lanes_are_bound ... ok
+test tests::test_projection_bench_output::required_projection_labels_and_row_counts_are_bound ... ok
+test tests::test_compression_bench_output::compression_row_counts_are_bound ... ok
+test tests::test_compression_bench_output::sample_compression_report_records_zstd_level_three ... ok
+test tests::test_telemetry_regression_bench_output::labels_and_fixture_are_bound ... ok
+test tests::test_compression_bench_output::next_compression_run_path_refuses_overwrite ... ok
+test tests::test_compression_bench_output::compression_report_uses_required_fields ... ok
+test tests::test_telemetry_regression_bench_output::report_binds_new_dataset_and_refuses_overwrite ... ok
+test tests::test_projection_bench_output::projection_report_uses_stable_field_order ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running unittests src/bin/mbt_compression_bench.rs (target/debug/deps/mbt_compression_bench-98f6d6d56353fc46)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mbt_projection_bench.rs (target/debug/deps/mbt_projection_bench-efdab31410361f51)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mbt_telemetry_regression_bench.rs (target/debug/deps/mbt_telemetry_regression_bench-e8d4789366e7fe94)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_compression-952ed783c3422ab6)
+
+running 9 tests
+test tests::test_runtime::decompress_rejects_invalid_zstd_bytes ... ok
+test tests::test_runtime::compress_into_and_decompress_into_preserve_bytes ... ok
+test tests::test_runtime::decompress_rejects_truncated_zstd_bytes ... ok
+test tests::test_runtime::default_config_uses_level_three ... ok
+test tests::test_runtime::compress_and_decompress_preserve_bytes ... ok
+test tests::test_runtime::decompress_into_reuses_preallocated_buffer_on_success ... ok
+test tests::test_runtime::compress_into_rejects_compressed_cap_overflow ... ok
+test tests::test_runtime::compress_into_reuses_preallocated_buffer_on_success ... ok
+test tests::test_runtime::decompress_into_rejects_decompressed_cap_overflow ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_core-8a8a002225014b79)
+
+running 29 tests
+test tests::test_codec::response_checksum_delegates_to_fnv ... ok
+test tests::test_envelope::checked_validation_accepts_valid_payload ... ok
+test tests::test_envelope::checked_validation_rejects_encoding_kind ... ok
+test tests::test_envelope::checked_validation_rejects_header_length ... ok
+test tests::test_envelope::checked_validation_rejects_flags ... ok
+test tests::test_envelope::checked_validation_rejects_payload_checksum ... ok
+test tests::test_envelope::checked_validation_rejects_payload_length ... ok
+test tests::test_envelope::checked_validation_rejects_schema_hash ... ok
+test tests::test_envelope::checked_validation_rejects_schema_id ... ok
+test tests::test_envelope::checked_validation_rejects_schema_version ... ok
+test tests::test_envelope::checked_validation_rejects_transport_version ... ok
+test tests::test_envelope::decode_rejects_corrupt_magic ... ok
+test tests::test_envelope::decode_rejects_non_zero_reserved_short ... ok
+test tests::test_envelope::decode_rejects_non_zero_reserved_tail ... ok
+test tests::test_envelope::decode_rejects_truncated_payload ... ok
+test tests::test_envelope::default_build_id_is_deterministic ... ok
+test tests::test_envelope::fnv_vectors_match_contract ... ok
+test tests::test_envelope::header_round_trips_without_payload ... ok
+test tests::test_envelope::normalized_proto_hash_treats_lf_and_crlf_equally ... ok
+test tests::test_envelope::trusted_payload_rejects_length_mismatch ... ok
+test tests::test_envelope::trusted_payload_rejects_schema_mismatch ... ok
+test tests::test_envelope::trusted_payload_returns_payload_without_checksum_requirement ... ok
+test tests::test_output::base64_writer_handles_padding ... ok
+test tests::test_output::checked_bytes_enforces_response_cap ... ok
+test tests::test_output::checked_len_add_reports_overflow_and_cap ... ok
+test tests::test_output::protobuf_length_helpers_match_wire_shape ... ok
+test tests::test_output::utc_helpers_format_epoch_without_allocation ... ok
+test tests::test_runtime::runtime_dispatch_propagates_schema_errors ... ok
+test tests::test_runtime::runtime_dispatches_to_schema_implementation ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_benches
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_compression
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

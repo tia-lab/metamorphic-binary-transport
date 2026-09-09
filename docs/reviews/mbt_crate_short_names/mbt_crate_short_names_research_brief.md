@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Crate Short Names Research Brief
 
 ## Status
@@ -72,20 +55,20 @@ unless the approved spec explicitly binds a current-doc rewrite.
 
 ## Evidence Table
 
-| Evidence type | Source | Observation |
-| --- | --- | --- |
-| Code-read evidence | `Cargo.toml` | Current workspace members are path-based and include core, codegen, metamorphose, transponding, compression, adapters, benches, and two schema crates. There is no current `crates/projection` member. |
-| Code-read evidence | workspace crate `Cargo.toml` files | Package names and dependency keys currently use `metamorphic_binary_transport_*`. |
-| Code-read evidence | `crates/codegen/src/rust_emit.rs` | Codegen emits long crate names into generated core, projection, metamorphose, transponding, Arrow, Arrow IPC, and Parquet modules. |
-| Code-read evidence | `crates/schemas/*/src/*.rs` | Generated schema modules currently import long crate names and therefore must be regenerated or reproduced from codegen. |
-| Code-read evidence | `README.md` | Public examples currently expose long dependency and import names. |
-| Code-read evidence | `docs/specs/mbt_workspace_architecture_SPEC.md` | Earlier workspace package table binds long package names. A new spec must locally supersede only that naming table while preserving crate boundaries. |
-| Run evidence | None | No validation command was run for this research brief. |
-| Build evidence | None | Build impact is expected to be naming-only but must be proved after implementation. |
-| Benchmark evidence | None | No runtime speed claim is made. |
-| Schema evidence | Existing generated files | Generated files are codegen-owned and must not be hand-edited to apply the rename. |
-| External-doc evidence | None | Cargo package/import rename behavior is standard Rust/Cargo behavior and no date-sensitive upstream claim is needed for the spec. |
-| Hypothesis | Rename impact | Runtime performance should be unchanged because symbols and dependency names change, not encoding/access algorithms. This remains a hypothesis until tests pass and no benchmark claim is made. |
+| Evidence type         | Source                                          | Observation                                                                                                                                                                                            |
+| --------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Code-read evidence    | `Cargo.toml`                                    | Current workspace members are path-based and include core, codegen, metamorphose, transponding, compression, adapters, benches, and two schema crates. There is no current `crates/projection` member. |
+| Code-read evidence    | workspace crate `Cargo.toml` files              | Package names and dependency keys currently use `metamorphic_binary_transport_*`.                                                                                                                      |
+| Code-read evidence    | `crates/codegen/src/rust_emit.rs`               | Codegen emits long crate names into generated core, projection, metamorphose, transponding, Arrow, Arrow IPC, and Parquet modules.                                                                     |
+| Code-read evidence    | `crates/schemas/*/src/*.rs`                     | Generated schema modules currently import long crate names and therefore must be regenerated or reproduced from codegen.                                                                               |
+| Code-read evidence    | `README.md`                                     | Public examples currently expose long dependency and import names.                                                                                                                                     |
+| Code-read evidence    | `docs/specs/mbt_workspace_architecture_SPEC.md` | Earlier workspace package table binds long package names. A new spec must locally supersede only that naming table while preserving crate boundaries.                                                  |
+| Run evidence          | None                                            | No validation command was run for this research brief.                                                                                                                                                 |
+| Build evidence        | None                                            | Build impact is expected to be naming-only but must be proved after implementation.                                                                                                                    |
+| Benchmark evidence    | None                                            | No runtime speed claim is made.                                                                                                                                                                        |
+| Schema evidence       | Existing generated files                        | Generated files are codegen-owned and must not be hand-edited to apply the rename.                                                                                                                     |
+| External-doc evidence | None                                            | Cargo package/import rename behavior is standard Rust/Cargo behavior and no date-sensitive upstream claim is needed for the spec.                                                                      |
+| Hypothesis            | Rename impact                                   | Runtime performance should be unchanged because symbols and dependency names change, not encoding/access algorithms. This remains a hypothesis until tests pass and no benchmark claim is made.        |
 
 ## MBT Binding Surface
 

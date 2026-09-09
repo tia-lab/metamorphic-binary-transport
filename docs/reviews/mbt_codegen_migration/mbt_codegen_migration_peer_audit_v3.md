@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V3: MBT Codegen Migration
 
 Status: `PEER_AUDIT_PASSED`
@@ -86,12 +69,12 @@ No build, codegen, or benchmark command was run for this audit.
 
 ## V2 Blocker Resolution
 
-| V2 blocker | V3 status |
-| --- | --- |
-| Generated view and archived-row API surface not exact | Resolved. Section 8 now binds marker, view, rows iterator, archived-row wrapper, getters, and presence accessors. |
-| Schema hash normal form under-specified | Resolved. Section 9 now binds FNV-1a constants, normalized lines, ordering, included values, and excluded values. |
-| Dictionary alias behavior undefined | Resolved. Section 6 now states aliases are accepted but do not affect ordinals, archive fields, core hash, or core helper APIs. |
-| Projection option behavior ambiguous in core mode | Resolved. Section 6 now states `--surface core` recognizes but does not construct, hash, or emit projection output; section 9 forbids projection output strings. |
+| V2 blocker                                            | V3 status                                                                                                                                                        |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generated view and archived-row API surface not exact | Resolved. Section 8 now binds marker, view, rows iterator, archived-row wrapper, getters, and presence accessors.                                                |
+| Schema hash normal form under-specified               | Resolved. Section 9 now binds FNV-1a constants, normalized lines, ordering, included values, and excluded values.                                                |
+| Dictionary alias behavior undefined                   | Resolved. Section 6 now states aliases are accepted but do not affect ordinals, archive fields, core hash, or core helper APIs.                                  |
+| Projection option behavior ambiguous in core mode     | Resolved. Section 6 now states `--surface core` recognizes but does not construct, hash, or emit projection output; section 9 forbids projection output strings. |
 
 ## Findings
 
@@ -104,23 +87,23 @@ an implementation plan.
 
 ## Audit Lenses
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Passed. The measured object is codegen migration and isolation, not runtime speed. |
-| Schema source ownership | Passed. `.proto + proto/mathilde/options.proto` is the source of truth, and external schema roots are allowed. |
-| Wire/archive validation | Passed. Core envelope use, checked access, trusted access, and no envelope change are specified. |
-| Trusted-access safety | Passed. Trusted access is unsafe and has a caller contract. |
-| Codegen determinism | Passed. Input order, root, module, rustfmt, deterministic compare, and schema hash normal form are specified. |
-| Generated-code compile surface | Passed. The smoke crate compile is mandatory. |
-| Crate boundary isolation | Passed. Core, adapters, projection, transponding, benches, and codegen boundaries are explicit. |
-| Dependency containment | Passed. `prost-build`, adapter deps, serde, and zstd are forbidden for codegen in this spec; generated consumer deps are separate. |
-| Correctness oracle | Passed. Descriptor, model, invalid-schema, deterministic output, forbidden-surface, API, hash, and smoke compile checks are bound. |
-| Benchmark isolation | Passed. No runtime benchmark claim is made. |
-| Performance budget | Passed. Runtime parity is explicitly deferred. |
-| Failure behavior | Passed. Typed error classes and non-zero CLI behavior are specified. |
-| Code binding completeness | Passed. Implementation files, test files, forbidden files, and artifact paths are bound. |
-| Generated artifact binding completeness | Passed. No committed generated artifacts; temporary paths and smoke crate paths are bound. |
-| Client/operator interpretation safety | Passed. Generated API and deferred surfaces are explicit enough for planning. |
+| Lens                                    | Result                                                                                                                             |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Measured object clarity                 | Passed. The measured object is codegen migration and isolation, not runtime speed.                                                 |
+| Schema source ownership                 | Passed. `.proto + proto/mathilde/options.proto` is the source of truth, and external schema roots are allowed.                     |
+| Wire/archive validation                 | Passed. Core envelope use, checked access, trusted access, and no envelope change are specified.                                   |
+| Trusted-access safety                   | Passed. Trusted access is unsafe and has a caller contract.                                                                        |
+| Codegen determinism                     | Passed. Input order, root, module, rustfmt, deterministic compare, and schema hash normal form are specified.                      |
+| Generated-code compile surface          | Passed. The smoke crate compile is mandatory.                                                                                      |
+| Crate boundary isolation                | Passed. Core, adapters, projection, transponding, benches, and codegen boundaries are explicit.                                    |
+| Dependency containment                  | Passed. `prost-build`, adapter deps, serde, and zstd are forbidden for codegen in this spec; generated consumer deps are separate. |
+| Correctness oracle                      | Passed. Descriptor, model, invalid-schema, deterministic output, forbidden-surface, API, hash, and smoke compile checks are bound. |
+| Benchmark isolation                     | Passed. No runtime benchmark claim is made.                                                                                        |
+| Performance budget                      | Passed. Runtime parity is explicitly deferred.                                                                                     |
+| Failure behavior                        | Passed. Typed error classes and non-zero CLI behavior are specified.                                                               |
+| Code binding completeness               | Passed. Implementation files, test files, forbidden files, and artifact paths are bound.                                           |
+| Generated artifact binding completeness | Passed. No committed generated artifacts; temporary paths and smoke crate paths are bound.                                         |
+| Client/operator interpretation safety   | Passed. Generated API and deferred surfaces are explicit enough for planning.                                                      |
 
 ## Implementation-Plan Requirements
 

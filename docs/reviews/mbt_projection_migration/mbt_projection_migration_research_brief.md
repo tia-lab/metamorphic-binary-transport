@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Projection Migration
 
 Status: draft for spec authoring
@@ -143,21 +126,21 @@ string, dictionary, bitmask, numeric array, and nullable array field kinds.
 
 ## Evidence Table
 
-| Evidence type | Observation |
-| --- | --- |
-| Code-read evidence | `proto/mathilde/options.proto` defines `ProjectionDefinition`, repeated message option `mathilde.projection`, and field option `mathilde.projection_group`. |
-| Code-read evidence | `crates/schemas/test_compatibility_core/proto/.../all_fields.proto` already declares two projections: `no_optional` and `numeric_only`. |
-| Code-read evidence | `crates/codegen/src/options.rs` loads `mathilde.projection` and `mathilde.projection_group` descriptors. |
-| Code-read evidence | `crates/codegen/src/model.rs` stores `projection_group` on `PhysicalField`, but `SchemaModel` does not yet store projection definitions or projection target models. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` currently propagates inherited projection groups, but it binds `let _projection = &extensions.projection;`, so root projection declarations are intentionally ignored by core-only codegen. |
-| Code-read evidence | `crates/codegen/src/rust_emit.rs` emits one source schema only and has no projected marker types, projected row/payload structs, projection APIs, or projected schema hashes. |
-| Code-read evidence | `crates/codegen/src/tests/test_descriptor.rs` has a current core-only assertion named `alias_and_projection_do_not_affect_core_hash_or_fields`; projection migration must replace the projection-ignored part of that contract. |
-| Code-read evidence | `crates/schemas/test_compatibility_core/src/test_compatibility_v1.rs` has checked `access_archived`, unsafe trusted `access_archived_trusted_unchecked`, and generated `inspect`, which are the necessary source access points for projection. |
-| Code-read evidence | `crates/projection/src/lib.rs` and `crates/projection/src/runtime.rs` are placeholders. They do not currently own shared projection runtime logic. |
+| Evidence type             | Observation                                                                                                                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence        | `proto/mathilde/options.proto` defines `ProjectionDefinition`, repeated message option `mathilde.projection`, and field option `mathilde.projection_group`.                                                                                                       |
+| Code-read evidence        | `crates/schemas/test_compatibility_core/proto/.../all_fields.proto` already declares two projections: `no_optional` and `numeric_only`.                                                                                                                           |
+| Code-read evidence        | `crates/codegen/src/options.rs` loads `mathilde.projection` and `mathilde.projection_group` descriptors.                                                                                                                                                          |
+| Code-read evidence        | `crates/codegen/src/model.rs` stores `projection_group` on `PhysicalField`, but `SchemaModel` does not yet store projection definitions or projection target models.                                                                                              |
+| Code-read evidence        | `crates/codegen/src/descriptor.rs` currently propagates inherited projection groups, but it binds `let _projection = &extensions.projection;`, so root projection declarations are intentionally ignored by core-only codegen.                                    |
+| Code-read evidence        | `crates/codegen/src/rust_emit.rs` emits one source schema only and has no projected marker types, projected row/payload structs, projection APIs, or projected schema hashes.                                                                                     |
+| Code-read evidence        | `crates/codegen/src/tests/test_descriptor.rs` has a current core-only assertion named `alias_and_projection_do_not_affect_core_hash_or_fields`; projection migration must replace the projection-ignored part of that contract.                                   |
+| Code-read evidence        | `crates/schemas/test_compatibility_core/src/test_compatibility_v1.rs` has checked `access_archived`, unsafe trusted `access_archived_trusted_unchecked`, and generated `inspect`, which are the necessary source access points for projection.                    |
+| Code-read evidence        | `crates/projection/src/lib.rs` and `crates/projection/src/runtime.rs` are placeholders. They do not currently own shared projection runtime logic.                                                                                                                |
 | Prior experiment evidence | The experiment projection result review records public checked projection, crate-private archived projection, trusted projection, wrong-marker rejection, projected output validation, and public/trusted byte equality as validated in the old monolithic crate. |
-| Prior benchmark evidence | The experiment fast-path result review records the intended timing boundary: archived projection removes repeated source-byte validation from projection timing while projected output validation remains separate. |
-| Run evidence | None in this repository for projection. No projection performance or correctness claim is made for the split workspace yet. |
-| Hypothesis | The split workspace can recover the old projection behavior with codegen-only changes and no MBT core wire/runtime changes. This remains unproved until implementation and validation run. |
+| Prior benchmark evidence  | The experiment fast-path result review records the intended timing boundary: archived projection removes repeated source-byte validation from projection timing while projected output validation remains separate.                                               |
+| Run evidence              | None in this repository for projection. No projection performance or correctness claim is made for the split workspace yet.                                                                                                                                       |
+| Hypothesis                | The split workspace can recover the old projection behavior with codegen-only changes and no MBT core wire/runtime changes. This remains unproved until implementation and validation run.                                                                        |
 
 ## Important Existing Split-Workspace Constraint
 

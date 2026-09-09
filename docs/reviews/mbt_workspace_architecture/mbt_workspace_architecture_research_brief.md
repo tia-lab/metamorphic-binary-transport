@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Workspace Architecture Research Brief
 
 Status: complete for initial spec draft
@@ -101,14 +84,14 @@ The workspace architecture must preserve these boundaries:
 
 ## Evidence Table
 
-| Evidence type | Source | Observation |
-| --- | --- | --- |
-| Code-read evidence | `AGENTS.md` | The repository requires no code before approved spec and implementation plan, speed claims require run evidence, compile-time claims require build evidence, and MBT core must remain small. |
-| Code-read evidence | `docs/invariants/core_invariants.md` | Core invariants require schemas, adapters, codegen, and benchmarks to be separate surfaces; features are not the primary isolation mechanism. |
-| Code-read evidence | `docs/architecture/repository_structure.md` | The current architecture guardrail names target crate families and forbids a monolithic crate compiling every schema and adapter. |
-| Code-read evidence | root `Cargo.toml` | The repository is currently a single skeleton package named `metamorphic-binary-transport`; no workspace members exist yet. |
-| Code-read evidence | `README.md` | The repository currently documents governance first and says production implementation is not present yet. |
-| Hypothesis | Experiment history summarized in protocol docs and architecture guardrail | The monolithic experiment crate caused compile-surface pressure by compiling schemas, adapters, generated protobuf DTOs, and benches together. This must be re-proved if used as a quantitative claim in this repository. |
+| Evidence type      | Source                                                                    | Observation                                                                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence | `AGENTS.md`                                                               | The repository requires no code before approved spec and implementation plan, speed claims require run evidence, compile-time claims require build evidence, and MBT core must remain small.                              |
+| Code-read evidence | `docs/invariants/core_invariants.md`                                      | Core invariants require schemas, adapters, codegen, and benchmarks to be separate surfaces; features are not the primary isolation mechanism.                                                                             |
+| Code-read evidence | `docs/architecture/repository_structure.md`                               | The current architecture guardrail names target crate families and forbids a monolithic crate compiling every schema and adapter.                                                                                         |
+| Code-read evidence | root `Cargo.toml`                                                         | The repository is currently a single skeleton package named `metamorphic-binary-transport`; no workspace members exist yet.                                                                                               |
+| Code-read evidence | `README.md`                                                               | The repository currently documents governance first and says production implementation is not present yet.                                                                                                                |
+| Hypothesis         | Experiment history summarized in protocol docs and architecture guardrail | The monolithic experiment crate caused compile-surface pressure by compiling schemas, adapters, generated protobuf DTOs, and benches together. This must be re-proved if used as a quantitative claim in this repository. |
 
 ## Unknowns
 

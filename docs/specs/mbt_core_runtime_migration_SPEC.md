@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # SPEC: MBT Core Runtime Migration
 
 ## 1. Identification
@@ -183,22 +166,22 @@ spec may rename or version it, but this migration must not.
 
 Header byte layout:
 
-| Byte range | Field |
-| --- | --- |
-| `0..8` | magic |
-| `8..10` | transport version, little-endian `u16` |
-| `10..12` | header length, little-endian `u16` |
-| `12..14` | encoding kind, little-endian `u16` |
-| `14..16` | flags, little-endian `u16` |
-| `16..20` | schema id, little-endian `u32` |
-| `20..22` | schema version, little-endian `u16` |
-| `22..24` | reserved zero bytes |
-| `24..32` | logical proto schema hash, little-endian `u64` |
-| `32..40` | build id, little-endian `u64` |
-| `40..48` | row count, little-endian `u64` |
-| `48..56` | payload length, little-endian `u64` |
-| `56..64` | payload checksum, little-endian `u64` |
-| `64..128` | reserved zero bytes |
+| Byte range | Field                                          |
+| ---------- | ---------------------------------------------- |
+| `0..8`     | magic                                          |
+| `8..10`    | transport version, little-endian `u16`         |
+| `10..12`   | header length, little-endian `u16`             |
+| `12..14`   | encoding kind, little-endian `u16`             |
+| `14..16`   | flags, little-endian `u16`                     |
+| `16..20`   | schema id, little-endian `u32`                 |
+| `20..22`   | schema version, little-endian `u16`            |
+| `22..24`   | reserved zero bytes                            |
+| `24..32`   | logical proto schema hash, little-endian `u64` |
+| `32..40`   | build id, little-endian `u64`                  |
+| `40..48`   | row count, little-endian `u64`                 |
+| `48..56`   | payload length, little-endian `u64`            |
+| `56..64`   | payload checksum, little-endian `u64`          |
+| `64..128`  | reserved zero bytes                            |
 
 Required public envelope API:
 

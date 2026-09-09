@@ -237,30 +237,39 @@ fn valid_optional_projection_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 19;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.optional_projection.v1";
-  option (mathilde.payload_root) = true;
-  option (mathilde.projection) = {
+  option (mbt.schema_id) = 19;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.optional_projection.v1";
+  option (mbt.payload_root) = true;
+  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   optional int64 optional_value = 3 [
-    (mathilde.presence_bit) = 0,
-    (mathilde.projection_group) = "core"
+    (mbt.presence_bit) = 0,
+    (mbt.projection_group) = "core"
   ];
 }
 "#
+}
+
+#[test]
+fn csv_bitmask_strings_use_nested_array_escaping() -> Result<()> {
+    let proto = invalid_nullable_bitmask_proto().replace(", (mbt.presence_bit) = 0", "");
+    let source = run_metamorphose_codegen_to_string(&proto, Adapter::Csv)?;
+    assert!(source.contains("writer.array_string_cell(\"a\")?;"));
+    assert!(!source.contains("writer.string_cell(\"a\")?;"));
+    Ok(())
 }

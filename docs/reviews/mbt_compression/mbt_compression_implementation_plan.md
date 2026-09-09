@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Implementation Plan
 
 Slug: `mbt_compression`
@@ -383,22 +366,22 @@ Required lanes:
 
 Required full-run row counts and iterations:
 
-| Label | Rows | Iterations |
-| --- | ---: | ---: |
-| one | 1 | 50 |
-| small | 100 | 50 |
-| page_500 | 500 | 50 |
-| page_1000 | 1,000 | 50 |
-| medium | 10,000 | 10 |
-| large | 100,000 | 3 |
+| Label     |    Rows | Iterations |
+| --------- | ------: | ---------: |
+| one       |       1 |         50 |
+| small     |     100 |         50 |
+| page_500  |     500 |         50 |
+| page_1000 |   1,000 |         50 |
+| medium    |  10,000 |         10 |
+| large     | 100,000 |          3 |
 
 Required smoke-run row counts and iterations:
 
-| Label | Rows | Iterations |
-| --- | ---: | ---: |
-| one | 1 | 3 |
-| small | 100 | 3 |
-| page_1000 | 1,000 | 3 |
+| Label     |  Rows | Iterations |
+| --------- | ----: | ---------: |
+| one       |     1 |          3 |
+| small     |   100 |          3 |
+| page_1000 | 1,000 |          3 |
 
 Metric semantics:
 

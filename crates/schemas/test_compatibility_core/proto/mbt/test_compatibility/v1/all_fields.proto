@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package mbt.test_compatibility.v1;
+
+import "mbt/options.proto";
+
+option (mbt.dictionary_values) = {
+  name: "tenant"
+  value: "alpha"
+  value: "beta"
+};
+
+option (mbt.dictionary_values) = {
+  name: "entity"
+  value: "entity_a"
+  value: "entity_b"
+  value: "entity_c"
+};
+
+option (mbt.dictionary_values) = {
+  name: "status"
+  value: "active"
+  value: "paused"
+  value: "closed"
+};
+
+option (mbt.dictionary_values) = {
+  name: "venue"
+  value: "site_a"
+  value: "site_b"
+  value: "site_c"
+};
+
+message TestCompatibilityResponseV1 {
+  option (mbt.schema_id) = 40001;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "mbt.test_compatibility.v1";
+  option (mbt.payload_root) = true;
+  option (mbt.projection) = {
+    name: "no_optional"
+    rust_marker: "TestCompatibilityV1NoOptional"
+    exclude_group: "optional"
+  };
+  option (mbt.projection) = {
+    name: "numeric_only"
+    rust_marker: "TestCompatibilityV1NumericOnly"
+    include_field: "schema_version"
+    include_field: "tenant"
+    include_field: "entity"
+    include_field: "close_ms"
+    include_field: "required_i64"
+    include_field: "optional_i64"
+    include_field: "required_i32"
+    include_field: "optional_i32"
+    include_field: "required_u32"
+    include_field: "optional_u32"
+    include_field: "required_f64"
+    include_field: "optional_f64"
+    include_field: "required_f32"
+    include_field: "optional_f32"
+    include_field: "required_i64_array"
+    include_field: "nullable_i64_array"
+    include_field: "required_i32_array"
+    include_field: "nullable_i32_array"
+    include_field: "required_u32_array"
+    include_field: "nullable_u32_array"
+    include_field: "required_f64_array"
+    include_field: "nullable_f64_array"
+    include_field: "required_f32_array"
+    include_field: "nullable_f32_array"
+  };
+
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestCompatibilityRowV1 rows = 2 [(mbt.repeated_payload) = true];
+}
+
+message TestCompatibilityRowV1 {
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  string tenant = 2 [
+    (mbt.dictionary) = "tenant",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1,
+    (mbt.projection_group) = "key"
+  ];
+  string entity = 3 [
+    (mbt.dictionary) = "entity",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2,
+    (mbt.projection_group) = "key"
+  ];
+  int64 close_ms = 4 [
+    (mbt.key_part) = true,
+    (mbt.key_order) = 3,
+    (mbt.projection_group) = "key"
+  ];
+  string status = 5 [(mbt.dictionary) = "status"];
+  optional string optional_status = 6 [
+    (mbt.dictionary) = "status",
+    (mbt.presence_bit) = 0,
+    (mbt.projection_group) = "optional"
+  ];
+  repeated string venues = 7 [(mbt.bitmask_dictionary) = "venue"];
+  int64 required_i64 = 8;
+  optional int64 optional_i64 = 9 [
+    (mbt.presence_bit) = 1,
+    (mbt.projection_group) = "optional"
+  ];
+  int32 required_i32 = 10;
+  optional int32 optional_i32 = 11 [
+    (mbt.presence_bit) = 2,
+    (mbt.projection_group) = "optional"
+  ];
+  uint32 required_u32 = 12;
+  optional uint32 optional_u32 = 13 [
+    (mbt.presence_bit) = 3,
+    (mbt.projection_group) = "optional"
+  ];
+  double required_f64 = 14;
+  optional double optional_f64 = 15 [
+    (mbt.presence_bit) = 4,
+    (mbt.projection_group) = "optional"
+  ];
+  float required_f32 = 16;
+  optional float optional_f32 = 17 [
+    (mbt.presence_bit) = 5,
+    (mbt.projection_group) = "optional"
+  ];
+  bool required_bool = 18;
+  optional bool optional_bool = 19 [
+    (mbt.presence_bit) = 6,
+    (mbt.projection_group) = "optional"
+  ];
+  string required_text = 20 [(mbt.raw_string) = true];
+  optional string optional_text = 21 [
+    (mbt.raw_string) = true,
+    (mbt.presence_bit) = 7,
+    (mbt.projection_group) = "optional"
+  ];
+  bytes required_bytes = 22;
+  optional bytes optional_bytes = 23 [
+    (mbt.presence_bit) = 8,
+    (mbt.projection_group) = "optional"
+  ];
+  string uuid_text = 24 [(mbt.raw_string) = true];
+  string jsonb_text = 25 [(mbt.raw_string) = true];
+  string timestamptz_text = 26 [(mbt.raw_string) = true];
+  string numeric_text = 27 [(mbt.raw_string) = true];
+  repeated int64 required_i64_array = 28;
+  repeated int64 nullable_i64_array = 29 [
+    (mbt.presence_bit) = 9,
+    (mbt.projection_group) = "optional"
+  ];
+  repeated int32 required_i32_array = 30;
+  repeated int32 nullable_i32_array = 31 [
+    (mbt.presence_bit) = 10,
+    (mbt.projection_group) = "optional"
+  ];
+  repeated uint32 required_u32_array = 32;
+  repeated uint32 nullable_u32_array = 33 [
+    (mbt.presence_bit) = 11,
+    (mbt.projection_group) = "optional"
+  ];
+  repeated double required_f64_array = 34;
+  repeated double nullable_f64_array = 35 [
+    (mbt.presence_bit) = 12,
+    (mbt.projection_group) = "optional"
+  ];
+  repeated float required_f32_array = 36;
+  repeated float nullable_f32_array = 37 [
+    (mbt.presence_bit) = 13,
+    (mbt.projection_group) = "optional"
+  ];
+}

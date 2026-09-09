@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Schema Core Generation
 
 Status: `BLOCKED`
@@ -151,23 +134,23 @@ surface.
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Blocked by optional schema identity mutation tests |
-| Trusted-access safety | Passed |
-| Codegen determinism | Passed |
-| Generated-code compile surface | Passed |
-| Crate boundary isolation | Passed |
-| Dependency containment | Passed |
-| Correctness oracle | Passed except the blocked failure-contract gap |
-| Benchmark isolation | Passed |
-| Runtime performance budget | Passed, no throughput claim is made |
-| Failure behavior | Blocked |
-| Code binding completeness | Passed |
-| Generated artifact binding completeness | Passed |
-| Client/operator interpretation safety | Passed |
+| Lens                                    | Result                                             |
+| --------------------------------------- | -------------------------------------------------- |
+| Measured object clarity                 | Passed                                             |
+| Schema source ownership                 | Passed                                             |
+| Wire/archive validation                 | Blocked by optional schema identity mutation tests |
+| Trusted-access safety                   | Passed                                             |
+| Codegen determinism                     | Passed                                             |
+| Generated-code compile surface          | Passed                                             |
+| Crate boundary isolation                | Passed                                             |
+| Dependency containment                  | Passed                                             |
+| Correctness oracle                      | Passed except the blocked failure-contract gap     |
+| Benchmark isolation                     | Passed                                             |
+| Runtime performance budget              | Passed, no throughput claim is made                |
+| Failure behavior                        | Blocked                                            |
+| Code binding completeness               | Passed                                             |
+| Generated artifact binding completeness | Passed                                             |
+| Client/operator interpretation safety   | Passed                                             |
 
 ## Required Amendment
 

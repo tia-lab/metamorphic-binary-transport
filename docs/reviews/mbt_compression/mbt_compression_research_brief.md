@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Research Brief
 
 Slug: `mbt_compression`
@@ -147,21 +130,21 @@ MBT wire envelope. A caller must decompress before calling MBT access.
 
 ## Evidence Table
 
-| Evidence type | Source | Observation |
-| --- | --- | --- |
-| Code-read evidence | `docs/invariants/core_invariants.md` | Compression is outside the MBT envelope unless a later approved spec changes that contract. |
-| Code-read evidence | `architecture.md` | Core, schemas, adapters, benches, and codegen are separate compile surfaces; adapters do not enter core. |
-| Code-read evidence | `Cargo.toml` | Current workspace has no `crates/compression` member and only pins `rkyv` in workspace dependencies. |
-| Code-read evidence | `crates/core/src/envelope.rs` | Checked access validates identity, length, and checksum; trusted access validates identity and length only. |
-| Code-read evidence | `crates/core/src/error.rs` | `TransportError::ResponseTooLarge` and `TransportError::MalformedArchive` already provide reusable cap and corrupt-byte failure surfaces. |
-| Code-read evidence | `crates/core/src/output.rs` | Existing output helpers enforce response caps while writing into owned buffers. Compression should follow this style with a capped writer. |
-| Code-read evidence | `crates/metamorphose/src/runtime.rs` | Trusted access is explicit and unsafe at MBT access boundaries. Compression should not hide validation or trusted access. |
-| Code-read evidence | `crates/schemas/bars_core/src/bars_v1.rs` | Full and projected MBT paths already produce completed MBT byte vectors; compression can treat them as opaque bytes. |
-| Prior benchmark evidence | Old `docs/bench_results.md` | Existing MBT compression evidence measured zstd `0.13.3` level `3` externally over completed response bytes. |
-| Prior correctness evidence | Old `docs/test_results.md` | Prior compression benchmark proved byte equality and stable response/compressed checksums for its measured run. |
-| External-doc evidence | docs.rs `zstd 0.13.3` crate docs | The crate provides read/write wrappers and common convenience functions for compression and decompression. |
-| External-doc evidence | docs.rs `Encoder` docs | Stream encoder writes compressed data into a supplied writer; level `0` maps to zstd default level `3`. |
-| External-doc evidence | docs.rs `encode_all` docs | Convenience `encode_all` returns `Vec<u8>` and produces zstd frame-format output. |
+| Evidence type              | Source                                    | Observation                                                                                                                                |
+| -------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Code-read evidence         | `docs/invariants/core_invariants.md`      | Compression is outside the MBT envelope unless a later approved spec changes that contract.                                                |
+| Code-read evidence         | `architecture.md`                         | Core, schemas, adapters, benches, and codegen are separate compile surfaces; adapters do not enter core.                                   |
+| Code-read evidence         | `Cargo.toml`                              | Current workspace has no `crates/compression` member and only pins `rkyv` in workspace dependencies.                                       |
+| Code-read evidence         | `crates/core/src/envelope.rs`             | Checked access validates identity, length, and checksum; trusted access validates identity and length only.                                |
+| Code-read evidence         | `crates/core/src/error.rs`                | `TransportError::ResponseTooLarge` and `TransportError::MalformedArchive` already provide reusable cap and corrupt-byte failure surfaces.  |
+| Code-read evidence         | `crates/core/src/output.rs`               | Existing output helpers enforce response caps while writing into owned buffers. Compression should follow this style with a capped writer. |
+| Code-read evidence         | `crates/metamorphose/src/runtime.rs`      | Trusted access is explicit and unsafe at MBT access boundaries. Compression should not hide validation or trusted access.                  |
+| Code-read evidence         | `crates/schemas/bars_core/src/bars_v1.rs` | Full and projected MBT paths already produce completed MBT byte vectors; compression can treat them as opaque bytes.                       |
+| Prior benchmark evidence   | Old `docs/bench_results.md`               | Existing MBT compression evidence measured zstd `0.13.3` level `3` externally over completed response bytes.                               |
+| Prior correctness evidence | Old `docs/test_results.md`                | Prior compression benchmark proved byte equality and stable response/compressed checksums for its measured run.                            |
+| External-doc evidence      | docs.rs `zstd 0.13.3` crate docs          | The crate provides read/write wrappers and common convenience functions for compression and decompression.                                 |
+| External-doc evidence      | docs.rs `Encoder` docs                    | Stream encoder writes compressed data into a supplied writer; level `0` maps to zstd default level `3`.                                    |
+| External-doc evidence      | docs.rs `encode_all` docs                 | Convenience `encode_all` returns `Vec<u8>` and produces zstd frame-format output.                                                          |
 
 ## Hypotheses
 

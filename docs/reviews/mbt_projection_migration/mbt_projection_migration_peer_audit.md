@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Projection Migration
 
 Status: `BLOCKED`
@@ -245,23 +228,23 @@ Required amendment:
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Blocked by missing mandatory section split |
-| Trusted-access safety | Blocked by missing mandatory section split |
-| Codegen determinism | Blocked by projected schema-hash under-specification |
-| Generated-code compile surface | Blocked by insufficient measurable compile-surface budget |
-| Crate boundary isolation | Passed directionally; must be preserved under mandatory section order |
-| Dependency containment | Passed directionally; must be preserved under mandatory section order |
-| Correctness oracle | Blocked by oracle/test-plan combination |
-| Benchmark isolation | Passed because no runtime benchmark is required for this spec |
-| Performance budget | Passed directionally; must be split into compile and runtime sections |
-| Failure behavior | Passed directionally |
-| Code binding completeness | Passed directionally |
-| Generated artifact binding completeness | Passed directionally |
-| Client/operator interpretation safety | Passed |
+| Lens                                    | Result                                                                |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| Measured object clarity                 | Passed                                                                |
+| Schema source ownership                 | Passed                                                                |
+| Wire/archive validation                 | Blocked by missing mandatory section split                            |
+| Trusted-access safety                   | Blocked by missing mandatory section split                            |
+| Codegen determinism                     | Blocked by projected schema-hash under-specification                  |
+| Generated-code compile surface          | Blocked by insufficient measurable compile-surface budget             |
+| Crate boundary isolation                | Passed directionally; must be preserved under mandatory section order |
+| Dependency containment                  | Passed directionally; must be preserved under mandatory section order |
+| Correctness oracle                      | Blocked by oracle/test-plan combination                               |
+| Benchmark isolation                     | Passed because no runtime benchmark is required for this spec         |
+| Performance budget                      | Passed directionally; must be split into compile and runtime sections |
+| Failure behavior                        | Passed directionally                                                  |
+| Code binding completeness               | Passed directionally                                                  |
+| Generated artifact binding completeness | Passed directionally                                                  |
+| Client/operator interpretation safety   | Passed                                                                |
 
 ## Non-Blocking Observations
 

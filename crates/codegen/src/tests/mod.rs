@@ -32,7 +32,7 @@ fn temp_root(label: &str) -> Result<PathBuf> {
 }
 
 fn write_options_proto(root: &Path) -> Result<()> {
-    write_proto(root, "mathilde/options.proto", options_proto())?;
+    write_proto(root, "mbt/options.proto", options_proto())?;
     Ok(())
 }
 
@@ -157,34 +157,34 @@ fn valid_scalar_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
-option (mathilde.dictionary_values) = {
+option (mbt.dictionary_values) = {
   name: "entity"
   value: "btc"
   value: "eth"
 };
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 11;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.fixture.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 11;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.fixture.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
   string entity = 2 [
-    (mathilde.dictionary) = "entity",
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 1
+    (mbt.dictionary) = "entity",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1
   ];
   int64 close_ms = 3 [
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 2
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2
   ];
   double c = 4;
   float f = 5;
@@ -199,23 +199,23 @@ fn valid_raw_string_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 12;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.raw.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 12;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.raw.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
-  optional string text = 3 [(mathilde.raw_string) = true, (mathilde.presence_bit) = 0];
-  optional bytes raw = 4 [(mathilde.presence_bit) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
+  optional string text = 3 [(mbt.raw_string) = true, (mbt.presence_bit) = 0];
+  optional bytes raw = 4 [(mbt.presence_bit) = 1];
 }
 "#
 }
@@ -224,26 +224,26 @@ fn valid_array_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 13;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.array.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 13;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.array.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   repeated int64 xs_i64 = 3;
   repeated int32 xs_i32 = 4;
   repeated uint32 xs_u32 = 5;
   repeated double xs_f64 = 6;
-  repeated float xs_f32 = 7 [(mathilde.presence_bit) = 0];
+  repeated float xs_f32 = 7 [(mbt.presence_bit) = 0];
 }
 "#
 }
@@ -252,7 +252,7 @@ fn valid_wide_presence_proto() -> String {
     let mut fields = String::new();
     for idx in 0..70_u32 {
         fields.push_str(&format!(
-            "  optional int64 opt_{idx} = {} [(mathilde.presence_bit) = {idx}];\n",
+            "  optional int64 opt_{idx} = {} [(mbt.presence_bit) = {idx}];\n",
             idx + 3
         ));
     }
@@ -260,21 +260,21 @@ fn valid_wide_presence_proto() -> String {
         r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
 message TestPayloadV1 {{
-  option (mathilde.schema_id) = 14;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.wide.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 14;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.wide.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }}
 
 message TestRowV1 {{
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
 {fields}}}
 "#
     )
@@ -284,39 +284,39 @@ fn valid_alias_and_projection_ignored_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
-option (mathilde.dictionary_values) = {
+option (mbt.dictionary_values) = {
   name: "entity"
   value: "btc"
   alias: { value: "btc" alias: "xbt" }
 };
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 15;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.alias.v1";
-  option (mathilde.payload_root) = true;
-  option (mathilde.projection) = {
+  option (mbt.schema_id) = 15;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.alias.v1";
+  option (mbt.payload_root) = true;
+  option (mbt.projection) = {
     name: "small"
     rust_marker: "SmallProjection"
     include_group: "core"
   };
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
   string entity = 2 [
-    (mathilde.dictionary) = "entity",
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 1,
-    (mathilde.projection_group) = "core"
+    (mbt.dictionary) = "entity",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1,
+    (mbt.projection_group) = "core"
   ];
-  int64 close_ms = 3 [(mathilde.key_part) = true, (mathilde.key_order) = 2];
-  string ignored_utc = 4 [(mathilde.ignored) = true, (mathilde.derived_utc_from) = "close_ms"];
+  int64 close_ms = 3 [(mbt.key_part) = true, (mbt.key_order) = 2];
+  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];
 }
 "#
 }
@@ -325,47 +325,47 @@ fn valid_nested_derived_utc_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
-option (mathilde.dictionary_values) = {
+option (mbt.dictionary_values) = {
   name: "entity"
   value: "btc"
   value: "eth"
 };
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 18;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.derived.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 18;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.derived.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
   string entity = 2 [
-    (mathilde.dictionary) = "entity",
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 1
+    (mbt.dictionary) = "entity",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1
   ];
   int64 close_ms = 3 [
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 2
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2
   ];
   string close_utc = 4 [
-    (mathilde.ignored) = true,
-    (mathilde.derived_utc_from) = "close_ms"
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "close_ms"
   ];
   TestMetadataV1 metadata = 5;
 }
 
 message TestMetadataV1 {
-  optional int64 ingested_at_ms = 1 [(mathilde.presence_bit) = 0];
+  optional int64 ingested_at_ms = 1 [(mbt.presence_bit) = 0];
   optional string ingested_at_utc = 2 [
-    (mathilde.ignored) = true,
-    (mathilde.derived_utc_from) = "ingested_at_ms"
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "ingested_at_ms"
   ];
 }
 "#
@@ -375,29 +375,29 @@ fn imported_dictionary_root_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 import "shared/instruments.proto";
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 21;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.imported.dictionary.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 21;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.imported.dictionary.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
   string instrument = 2 [
-    (mathilde.dictionary) = "instrument",
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 1
+    (mbt.dictionary) = "instrument",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1
   ];
   int64 close_ms = 3 [
-    (mathilde.key_part) = true,
-    (mathilde.key_order) = 2
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2
   ];
 }
 "#
@@ -408,9 +408,9 @@ fn shared_instrument_dictionary_proto(values: &[&str]) -> String {
         r#"
 syntax = "proto3";
 package test.shared.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
-option (mathilde.dictionary_values) = {
+option (mbt.dictionary_values) = {
   name: "instrument"
 "#,
     );
@@ -426,11 +426,11 @@ fn invalid_derived_utc_without_ignored_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
             r#"  string close_utc = 4 [
-    (mathilde.ignored) = true,
-    (mathilde.derived_utc_from) = "close_ms"
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "close_ms"
   ];"#,
             r#"  string close_utc = 4 [
-    (mathilde.derived_utc_from) = "close_ms"
+    (mbt.derived_utc_from) = "close_ms"
   ];"#,
         )
         .leak()
@@ -439,8 +439,8 @@ fn invalid_derived_utc_without_ignored_proto() -> &'static str {
 fn invalid_derived_utc_unknown_source_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
-            r#"(mathilde.derived_utc_from) = "close_ms""#,
-            r#"(mathilde.derived_utc_from) = "missing_ms""#,
+            r#"(mbt.derived_utc_from) = "close_ms""#,
+            r#"(mbt.derived_utc_from) = "missing_ms""#,
         )
         .leak()
 }
@@ -448,8 +448,8 @@ fn invalid_derived_utc_unknown_source_proto() -> &'static str {
 fn invalid_derived_utc_non_i64_source_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
-            r#"(mathilde.derived_utc_from) = "close_ms""#,
-            r#"(mathilde.derived_utc_from) = "entity""#,
+            r#"(mbt.derived_utc_from) = "close_ms""#,
+            r#"(mbt.derived_utc_from) = "entity""#,
         )
         .leak()
 }
@@ -479,21 +479,21 @@ fn invalid_duplicate_protobuf_helper_stem_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
+import "mbt/options.proto";
 
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 19;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.helper.collision.v1";
-  option (mathilde.payload_root) = true;
+  option (mbt.schema_id) = 19;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.helper.collision.v1";
+  option (mbt.payload_root) = true;
 
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  int64 close_ms = 2 [(mathilde.key_part) = true, (mathilde.key_order) = 1];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   Foo foo = 3;
   FooBar foo_bar = 4;
 }
@@ -521,8 +521,8 @@ fn invalid_unannotated_string_proto() -> &'static str {
 fn invalid_missing_presence_proto() -> &'static str {
     valid_raw_string_proto()
         .replace(
-            "optional string text = 3 [(mathilde.raw_string) = true, (mathilde.presence_bit) = 0];",
-            "optional string text = 3 [(mathilde.raw_string) = true];",
+            "optional string text = 3 [(mbt.raw_string) = true, (mbt.presence_bit) = 0];",
+            "optional string text = 3 [(mbt.raw_string) = true];",
         )
         .leak()
 }
@@ -530,8 +530,8 @@ fn invalid_missing_presence_proto() -> &'static str {
 fn invalid_duplicate_presence_proto() -> &'static str {
     valid_raw_string_proto()
         .replace(
-            "optional bytes raw = 4 [(mathilde.presence_bit) = 1];",
-            "optional bytes raw = 4 [(mathilde.presence_bit) = 0];",
+            "optional bytes raw = 4 [(mbt.presence_bit) = 1];",
+            "optional bytes raw = 4 [(mbt.presence_bit) = 0];",
         )
         .leak()
 }
@@ -539,21 +539,21 @@ fn invalid_duplicate_presence_proto() -> &'static str {
 fn invalid_gapped_presence_proto() -> &'static str {
     valid_raw_string_proto()
         .replace(
-            "optional bytes raw = 4 [(mathilde.presence_bit) = 1];",
-            "optional bytes raw = 4 [(mathilde.presence_bit) = 2];",
+            "optional bytes raw = 4 [(mbt.presence_bit) = 1];",
+            "optional bytes raw = 4 [(mbt.presence_bit) = 2];",
         )
         .leak()
 }
 
 fn invalid_duplicate_key_order_proto() -> &'static str {
     valid_scalar_proto()
-        .replace("(mathilde.key_order) = 2", "(mathilde.key_order) = 1")
+        .replace("(mbt.key_order) = 2", "(mbt.key_order) = 1")
         .leak()
 }
 
 fn invalid_gapped_key_order_proto() -> &'static str {
     valid_scalar_proto()
-        .replace("(mathilde.key_order) = 2", "(mathilde.key_order) = 3")
+        .replace("(mbt.key_order) = 2", "(mbt.key_order) = 3")
         .leak()
 }
 
@@ -561,19 +561,19 @@ fn invalid_nullable_bitmask_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
-option (mathilde.dictionary_values) = { name: "tag" value: "a" };
+import "mbt/options.proto";
+option (mbt.dictionary_values) = { name: "tag" value: "a" };
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 16;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.invalid.v1";
-  option (mathilde.payload_root) = true;
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  option (mbt.schema_id) = 16;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.invalid.v1";
+  option (mbt.payload_root) = true;
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated string tags = 2 [(mathilde.bitmask_dictionary) = "tag", (mathilde.presence_bit) = 0];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated string tags = 2 [(mbt.bitmask_dictionary) = "tag", (mbt.presence_bit) = 0];
 }
 "#
 }
@@ -600,24 +600,24 @@ fn invalid_duplicate_rust_field_proto() -> &'static str {
     r#"
 syntax = "proto3";
 package test.fixture.v1;
-import "mathilde/options.proto";
-option (mathilde.dictionary_values) = { name: "entity" value: "btc" };
+import "mbt/options.proto";
+option (mbt.dictionary_values) = { name: "entity" value: "btc" };
 message TestPayloadV1 {
-  option (mathilde.schema_id) = 17;
-  option (mathilde.schema_version) = 1;
-  option (mathilde.transport_name) = "test.duplicate.v1";
-  option (mathilde.payload_root) = true;
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  repeated TestRowV1 rows = 2 [(mathilde.repeated_payload) = true];
+  option (mbt.schema_id) = 17;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "test.duplicate.v1";
+  option (mbt.payload_root) = true;
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated TestRowV1 rows = 2 [(mbt.repeated_payload) = true];
 }
 message TestRowV1 {
-  uint32 schema_version = 1 [(mathilde.const_u16) = 1];
-  string entity = 2 [(mathilde.dictionary) = "entity"];
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  string entity = 2 [(mbt.dictionary) = "entity"];
   uint32 entity_ordinal = 3;
 }
 "#
 }
 
 fn options_proto() -> &'static str {
-    include_str!("../../../../proto/mathilde/options.proto")
+    include_str!("../../../../proto/mbt/options.proto")
 }

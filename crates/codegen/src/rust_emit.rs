@@ -1026,7 +1026,7 @@ fn emit_csv_bitmask_helpers(out: &mut String, scope: &EmitScope<'_>) {
             out.push_str(
                 "        if first { first = false; } else { writer.array_cell_comma()?; }\n",
             );
-            out.push_str(&format!("        writer.string_cell({value:?})?;\n"));
+            out.push_str(&format!("        writer.array_string_cell({value:?})?;\n"));
             out.push_str("    }\n");
         }
         out.push_str("    let _ = first;\n");

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Corrective Result Review: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -161,16 +144,16 @@ The old evidence files used for comparison are:
 
 Rows/sec values are arithmetic means across three runs.
 
-| lane | old rows/sec | new rows/sec | new/old | old bytes | new bytes |
-|---|---:|---:|---:|---:|---:|
-| MBT encode + inspect checked | 644091.509 | 635666.617 | 0.987 | 32400138 | 32400138 |
-| JSON checked | 197932.199 | 207980.727 | 1.051 | 140088238 | 165788238 |
-| JSON trusted | 214656.748 | 246297.061 | 1.147 | 140088238 | 165788238 |
-| Protobuf trusted | 321657.392 | 316561.854 | 0.984 | 50450538 | 50450538 |
-| CSV trusted | 326946.017 | 347760.087 | 1.064 | 52289248 | 51689248 |
-| Arrow IPC trusted | 2413451.797 | 2012328.780 | 0.834 | 32159688 | 32159432 |
-| Parquet trusted | 671348.549 | 628384.798 | 0.936 | 17407852 | 17407584 |
-| serde JSON baseline | 520330.169 | 489194.992 | 0.940 | 108598210 | 108598210 |
+| lane                         | old rows/sec | new rows/sec | new/old | old bytes | new bytes |
+| ---------------------------- | -----------: | -----------: | ------: | --------: | --------: |
+| MBT encode + inspect checked |   644091.509 |   635666.617 |   0.987 |  32400138 |  32400138 |
+| JSON checked                 |   197932.199 |   207980.727 |   1.051 | 140088238 | 165788238 |
+| JSON trusted                 |   214656.748 |   246297.061 |   1.147 | 140088238 | 165788238 |
+| Protobuf trusted             |   321657.392 |   316561.854 |   0.984 |  50450538 |  50450538 |
+| CSV trusted                  |   326946.017 |   347760.087 |   1.064 |  52289248 |  51689248 |
+| Arrow IPC trusted            |  2413451.797 |  2012328.780 |   0.834 |  32159688 |  32159432 |
+| Parquet trusted              |   671348.549 |   628384.798 |   0.936 |  17407852 |  17407584 |
+| serde JSON baseline          |   520330.169 |   489194.992 |   0.940 | 108598210 | 108598210 |
 
 ## Evidence Assessment
 

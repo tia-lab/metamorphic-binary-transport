@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan: MBT Explicit Dictionary Source Composition V1
 
 Slug: `mbt_explicit_dictionary_source_composition_v1`
@@ -348,4 +331,3 @@ surfaces are out of scope.
    codegen test helper and parser return paths.
 4. Schema-registry implementation remains blocked until this plan is approved,
    implemented, validated, reviewed, and released by version bump.
-

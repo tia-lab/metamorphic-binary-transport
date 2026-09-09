@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # SPEC: MBT Compression
 
 ## 1. Identification
@@ -321,16 +304,16 @@ compression correctness oracle.
 
 Required failures:
 
-| Case | Required behavior |
-| --- | --- |
-| compressed output exceeds cap | return `TransportError::ResponseTooLarge` |
-| decompressed output exceeds cap | return `TransportError::ResponseTooLarge` |
-| invalid zstd frame | return `TransportError::MalformedArchive` |
-| truncated zstd frame | return `TransportError::MalformedArchive` |
-| zstd encoder error | return `TransportError::MalformedArchive` |
-| zstd decoder error | return `TransportError::MalformedArchive` |
-| empty input compression | allowed if zstd accepts it; roundtrip must equal empty bytes |
-| empty input decompression | reject unless zstd accepts it as a valid frame |
+| Case                            | Required behavior                                            |
+| ------------------------------- | ------------------------------------------------------------ |
+| compressed output exceeds cap   | return `TransportError::ResponseTooLarge`                    |
+| decompressed output exceeds cap | return `TransportError::ResponseTooLarge`                    |
+| invalid zstd frame              | return `TransportError::MalformedArchive`                    |
+| truncated zstd frame            | return `TransportError::MalformedArchive`                    |
+| zstd encoder error              | return `TransportError::MalformedArchive`                    |
+| zstd decoder error              | return `TransportError::MalformedArchive`                    |
+| empty input compression         | allowed if zstd accepts it; roundtrip must equal empty bytes |
+| empty input decompression       | reject unless zstd accepts it as a valid frame               |
 
 The implementation must not use `unwrap`, `expect`, or `panic!` in library code.
 
@@ -452,26 +435,26 @@ cargo run --release -p metamorphic_binary_transport_benches --bin mbt_compressio
 
 Required row-count shape:
 
-| Label | Rows | Full-run iterations |
-| --- | ---: | ---: |
-| one | 1 | 50 |
-| small | 100 | 50 |
-| page_500 | 500 | 50 |
-| page_1000 | 1,000 | 50 |
-| medium | 10,000 | 10 |
-| large | 100,000 | 3 |
+| Label     |    Rows | Full-run iterations |
+| --------- | ------: | ------------------: |
+| one       |       1 |                  50 |
+| small     |     100 |                  50 |
+| page_500  |     500 |                  50 |
+| page_1000 |   1,000 |                  50 |
+| medium    |  10,000 |                  10 |
+| large     | 100,000 |                   3 |
 
 Required fixture identity:
 
-| Field | Value |
-| --- | --- |
-| fixture source | `crates/benches/src/projection.rs::bars_rows` |
-| fixture shape | deterministic synthetic Bars rows derived from row index |
-| RNG seed | not applicable; no RNG is used |
-| max response bytes | `crates/benches/src/projection.rs::MAX_RESPONSE_BYTES = 1_073_741_824` |
-| full schema hash | `BarsV1::SCHEMA_HASH = 6061383958499356843` |
-| no-metadata schema hash | `BarsV1NoMetadata::SCHEMA_HASH = 2810655320728765998` |
-| OHLCV-only schema hash | `BarsV1OhlcvOnly::SCHEMA_HASH = 792323260406987672` |
+| Field                   | Value                                                                  |
+| ----------------------- | ---------------------------------------------------------------------- |
+| fixture source          | `crates/benches/src/projection.rs::bars_rows`                          |
+| fixture shape           | deterministic synthetic Bars rows derived from row index               |
+| RNG seed                | not applicable; no RNG is used                                         |
+| max response bytes      | `crates/benches/src/projection.rs::MAX_RESPONSE_BYTES = 1_073_741_824` |
+| full schema hash        | `BarsV1::SCHEMA_HASH = 6061383958499356843`                            |
+| no-metadata schema hash | `BarsV1NoMetadata::SCHEMA_HASH = 2810655320728765998`                  |
+| OHLCV-only schema hash  | `BarsV1OhlcvOnly::SCHEMA_HASH = 792323260406987672`                    |
 
 Required benchmark lanes:
 
@@ -481,11 +464,11 @@ Required benchmark lanes:
 
 Required source byte construction:
 
-| Lane | Source byte construction |
-| --- | --- |
-| `mbt_full` | `BarsV1::encode(&bars_rows(row_count), MAX_RESPONSE_BYTES)` |
+| Lane              | Source byte construction                                                          |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `mbt_full`        | `BarsV1::encode(&bars_rows(row_count), MAX_RESPONSE_BYTES)`                       |
 | `mbt_no_metadata` | full MBT bytes, then `BarsV1::project_no_metadata(&full_mbt, MAX_RESPONSE_BYTES)` |
-| `mbt_ohlcv_only` | full MBT bytes, then `BarsV1::project_ohlcv_only(&full_mbt, MAX_RESPONSE_BYTES)` |
+| `mbt_ohlcv_only`  | full MBT bytes, then `BarsV1::project_ohlcv_only(&full_mbt, MAX_RESPONSE_BYTES)`  |
 
 The source byte construction happens outside the measured
 compression/decompression loop.
@@ -786,24 +769,24 @@ Pre-audit closure checklist:
 
 - [x] mandatory section order matches `docs/protocols/spec_protocol.md`;
 - [x] prior specs searched for `compression`, `zstd`, `compressed`, and
-  `decompress`;
+      `decompress`;
 - [x] prior invariant that compression is outside the MBT envelope is preserved;
 - [x] command surfaces are exact for checks, tests, and benchmarks, including
-  executable negative dependency checks;
+      executable negative dependency checks;
 - [x] generated artifact ownership is closed: no generated source artifacts are
-  owned; `Cargo.lock` is bound as a Cargo-generated dependency artifact for
-  `zstd = "=0.13.3"`;
+      owned; `Cargo.lock` is bound as a Cargo-generated dependency artifact for
+      `zstd = "=0.13.3"`;
 - [x] runtime dispatch paths are closed: compression is a separate crate and
-  does not enter core/metamorphose dispatch;
+      does not enter core/metamorphose dispatch;
 - [x] test migration is closed: old convenience compression benchmark behavior
-  is not copied as production API; `*_into` is the new hot path;
+      is not copied as production API; `*_into` is the new hot path;
 - [x] benchmark source bytes are bound to deterministic Bars fixture,
-  deterministic construction paths, and schema hashes;
+      deterministic construction paths, and schema hashes;
 - [x] optional compatibility-schema benchmark lane is removed from this phase;
 - [x] exact code paths are bound;
 - [x] no design decision is deferred to the implementation plan;
 - [x] compile-surface evidence commands are defined, including lockfile version
-  evidence.
+      evidence.
 
 Implementation readiness:
 

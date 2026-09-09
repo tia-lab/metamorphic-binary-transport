@@ -1,14 +1,13 @@
 use std::error::Error;
-use std::io;
 use std::path::PathBuf;
 use std::time::Instant;
+use std::{eprintln, io, println};
 
 use mbt_benches::projection::{
-    BenchResult, BenchRow, MAX_RESPONSE_BYTES, OLD_BENCH_RESULTS, SchemaName, comparison_for,
-    inspection_checksums, measured_rates, next_run_path, parse_current_owned_baselines,
-    parse_old_crate_projection_baselines, response_checksum, write_report, write_summary,
+    BenchResult, BenchRow, MAX_RESPONSE_BYTES, SchemaName, inspection_checksums, measured_rates,
+    next_run_path, response_checksum, write_report,
 };
-use mbt_schema_bars::bars_v1::{BarsV1, BarsV1NoMetadata, BarsV1OhlcvOnly};
+use mbt_schema_telemetry::telemetry_v1::{TelemetryV1, TelemetryV1TemperatureOnly};
 use mbt_schema_test_compatibility::test_compatibility_v1::{
     TestCompatibilityV1, TestCompatibilityV1NoOptional, TestCompatibilityV1NumericOnly,
 };
@@ -22,37 +21,20 @@ fn main() {
 
 fn run() -> BenchResult<()> {
     let report_dir = parse_report_dir(std::env::args().skip(1))?;
-    let old_baselines = parse_old_crate_projection_baselines(OLD_BENCH_RESULTS.as_ref())?;
-    verify_old_baselines(&old_baselines)?;
-    let current_baselines = parse_current_owned_baselines(
-        "docs/evidence/mbt_projection_direct_writer/current_owned_row_projection_baseline.json"
-            .as_ref(),
-    )?;
-
     let mut rows = Vec::new();
     for row_count in mbt_benches::projection::ROW_COUNTS {
-        let bars_rows = mbt_benches::projection::bars_rows(row_count);
-        let bars_source = BarsV1::encode(&bars_rows, MAX_RESPONSE_BYTES)?;
-        rows.extend(measure_bars(
-            row_count,
-            &bars_source,
-            &old_baselines,
-            &current_baselines,
-        )?);
+        let telemetry_rows = mbt_benches::projection::telemetry_rows(row_count)?;
+        let telemetry_source = TelemetryV1::encode(&telemetry_rows, MAX_RESPONSE_BYTES)?;
+        rows.extend(measure_telemetry(row_count, &telemetry_source)?);
 
         let compatibility_rows = mbt_benches::projection::test_compatibility_rows(row_count);
         let compatibility_source =
             TestCompatibilityV1::encode(&compatibility_rows, MAX_RESPONSE_BYTES)?;
-        rows.extend(measure_compatibility(
-            row_count,
-            &compatibility_source,
-            &current_baselines,
-        )?);
+        rows.extend(measure_compatibility(row_count, &compatibility_source)?);
     }
 
     let path = next_run_path(&report_dir)?;
     write_report(&path, &rows)?;
-    write_summary(&report_dir)?;
     println!("{}", path.display());
     Ok(())
 }
@@ -65,111 +47,45 @@ fn parse_report_dir(args: impl Iterator<Item = String>) -> BenchResult<PathBuf> 
     Ok(PathBuf::from(&collected[1]))
 }
 
-fn verify_old_baselines(baselines: &[mbt_benches::projection::BaselineEntry]) -> BenchResult<()> {
-    // Missing old baselines make the regression comparison invalid.
-    for label in [
-        "mathilde_binary_project_no_metadata_public",
-        "mathilde_binary_project_no_metadata_archived",
-        "mathilde_binary_project_no_metadata_inspect",
-        "mathilde_binary_project_ohlcv_only_public",
-        "mathilde_binary_project_ohlcv_only_archived",
-        "mathilde_binary_project_ohlcv_only_inspect",
-    ] {
-        for row_count in mbt_benches::projection::ROW_COUNTS {
-            if !baselines
-                .iter()
-                .any(|entry| entry.label == label && entry.row_count == row_count)
-            {
-                return Err(io::Error::other(format!(
-                    "missing old projection baseline {label} row_count={row_count}"
-                ))
-                .into());
-            }
-        }
-    }
-    Ok(())
-}
-
-fn measure_bars(
-    row_count: usize,
-    source: &[u8],
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
-) -> BenchResult<Vec<BenchRow>> {
-    // Bars projection paths are compared against the historical MBT crate.
+fn measure_telemetry(row_count: usize, source: &[u8]) -> BenchResult<Vec<BenchRow>> {
+    // Validate once before any trusted projection of these immutable bytes.
+    TelemetryV1::access(source)?;
     let mut out = Vec::with_capacity(6);
     out.push(measure_public(
-        "mathilde_binary_project_no_metadata_public",
-        SchemaName::Bars,
+        "telemetry_project_temperature_only_public",
+        SchemaName::Telemetry,
         row_count,
         source,
-        |bytes| BarsV1::project_no_metadata(bytes, MAX_RESPONSE_BYTES),
-        |bytes| BarsV1NoMetadata::inspect(bytes),
-        old_baselines,
-        current_baselines,
+        |bytes| TelemetryV1::project_temperature_only(bytes, MAX_RESPONSE_BYTES),
+        |bytes| TelemetryV1TemperatureOnly::inspect(bytes),
     )?);
     out.push(measure_archived(
-        "mathilde_binary_project_no_metadata_archived",
-        SchemaName::Bars,
+        "telemetry_project_temperature_only_archived",
+        SchemaName::Telemetry,
         row_count,
         source,
-        |bytes| BarsV1::access(bytes).map(|_| ()),
-        |bytes| unsafe { BarsV1::project_no_metadata_trusted_unchecked(bytes, MAX_RESPONSE_BYTES) },
-        |bytes| BarsV1NoMetadata::inspect(bytes),
-        old_baselines,
-        current_baselines,
+        |bytes| TelemetryV1::access(bytes).map(|_| ()),
+        |bytes| unsafe {
+            TelemetryV1::project_temperature_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
+        },
+        |bytes| TelemetryV1TemperatureOnly::inspect(bytes),
     )?);
     out.push(measure_inspect(
-        "mathilde_binary_project_no_metadata_inspect",
-        SchemaName::Bars,
+        "telemetry_project_temperature_only_inspect",
+        SchemaName::Telemetry,
         row_count,
         source,
-        |bytes| unsafe { BarsV1::project_no_metadata_trusted_unchecked(bytes, MAX_RESPONSE_BYTES) },
-        |bytes| BarsV1NoMetadata::inspect(bytes),
-        old_baselines,
-        current_baselines,
-    )?);
-    out.push(measure_public(
-        "mathilde_binary_project_ohlcv_only_public",
-        SchemaName::Bars,
-        row_count,
-        source,
-        |bytes| BarsV1::project_ohlcv_only(bytes, MAX_RESPONSE_BYTES),
-        |bytes| BarsV1OhlcvOnly::inspect(bytes),
-        old_baselines,
-        current_baselines,
-    )?);
-    out.push(measure_archived(
-        "mathilde_binary_project_ohlcv_only_archived",
-        SchemaName::Bars,
-        row_count,
-        source,
-        |bytes| BarsV1::access(bytes).map(|_| ()),
-        |bytes| unsafe { BarsV1::project_ohlcv_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES) },
-        |bytes| BarsV1OhlcvOnly::inspect(bytes),
-        old_baselines,
-        current_baselines,
-    )?);
-    out.push(measure_inspect(
-        "mathilde_binary_project_ohlcv_only_inspect",
-        SchemaName::Bars,
-        row_count,
-        source,
-        |bytes| unsafe { BarsV1::project_ohlcv_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES) },
-        |bytes| BarsV1OhlcvOnly::inspect(bytes),
-        old_baselines,
-        current_baselines,
+        |bytes| unsafe {
+            TelemetryV1::project_temperature_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
+        },
+        |bytes| TelemetryV1TemperatureOnly::inspect(bytes),
     )?);
     Ok(out)
 }
 
-fn measure_compatibility(
-    row_count: usize,
-    source: &[u8],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
-) -> BenchResult<Vec<BenchRow>> {
-    // Compatibility projections prove the generator path beyond the Bars schema.
-    let empty_old = [];
+fn measure_compatibility(row_count: usize, source: &[u8]) -> BenchResult<Vec<BenchRow>> {
+    // Validate once before any trusted projection of these immutable bytes.
+    TestCompatibilityV1::access(source)?;
     let mut out = Vec::with_capacity(6);
     out.push(measure_public(
         "mbt_project_no_optional_public",
@@ -178,8 +94,6 @@ fn measure_compatibility(
         source,
         |bytes| TestCompatibilityV1::project_no_optional(bytes, MAX_RESPONSE_BYTES),
         |bytes| TestCompatibilityV1NoOptional::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     out.push(measure_archived(
         "mbt_project_no_optional_archived",
@@ -191,8 +105,6 @@ fn measure_compatibility(
             TestCompatibilityV1::project_no_optional_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
         },
         |bytes| TestCompatibilityV1NoOptional::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     out.push(measure_inspect(
         "mbt_project_no_optional_inspect",
@@ -203,8 +115,6 @@ fn measure_compatibility(
             TestCompatibilityV1::project_no_optional_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
         },
         |bytes| TestCompatibilityV1NoOptional::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     out.push(measure_public(
         "mbt_project_numeric_only_public",
@@ -213,8 +123,6 @@ fn measure_compatibility(
         source,
         |bytes| TestCompatibilityV1::project_numeric_only(bytes, MAX_RESPONSE_BYTES),
         |bytes| TestCompatibilityV1NumericOnly::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     out.push(measure_archived(
         "mbt_project_numeric_only_archived",
@@ -226,8 +134,6 @@ fn measure_compatibility(
             TestCompatibilityV1::project_numeric_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
         },
         |bytes| TestCompatibilityV1NumericOnly::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     out.push(measure_inspect(
         "mbt_project_numeric_only_inspect",
@@ -238,8 +144,6 @@ fn measure_compatibility(
             TestCompatibilityV1::project_numeric_only_trusted_unchecked(bytes, MAX_RESPONSE_BYTES)
         },
         |bytes| TestCompatibilityV1NumericOnly::inspect(bytes),
-        &empty_old,
-        current_baselines,
     )?);
     Ok(out)
 }
@@ -251,8 +155,6 @@ fn measure_public<F, I, E>(
     source: &[u8],
     project: F,
     inspect: I,
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     F: FnOnce(&[u8]) -> Result<Vec<u8>, E>,
@@ -272,8 +174,6 @@ where
         projection_ms,
         0.0,
         inspect,
-        old_baselines,
-        current_baselines,
     )
 }
 
@@ -285,8 +185,6 @@ fn measure_archived<A, F, I, E>(
     access: A,
     project: F,
     inspect: I,
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     A: FnOnce(&[u8]) -> Result<(), E>,
@@ -310,8 +208,6 @@ where
         projection_ms,
         0.0,
         inspect,
-        old_baselines,
-        current_baselines,
     )
 }
 
@@ -322,8 +218,6 @@ fn measure_inspect<F, I, E>(
     source: &[u8],
     project: F,
     inspect: I,
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     F: FnOnce(&[u8]) -> Result<Vec<u8>, E>,
@@ -336,16 +230,7 @@ where
     let inspection = inspect(&projected)?;
     let inspect_ms = elapsed_ms(inspect_started);
     build_inspected_row(
-        label,
-        schema,
-        row_count,
-        projected,
-        0.0,
-        0.0,
-        inspect_ms,
-        inspection,
-        old_baselines,
-        current_baselines,
+        label, schema, row_count, projected, 0.0, 0.0, inspect_ms, inspection,
     )
 }
 
@@ -358,8 +243,6 @@ fn build_row<I, E>(
     projection_ms: f64,
     inspect_ms: f64,
     inspect: I,
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow>
 where
     I: FnOnce(&[u8]) -> Result<mbt_core::runtime::BinaryInspection, E>,
@@ -375,8 +258,6 @@ where
         projection_ms,
         inspect_ms,
         inspection,
-        old_baselines,
-        current_baselines,
     )
 }
 
@@ -389,15 +270,14 @@ fn build_inspected_row(
     projection_ms: f64,
     inspect_ms: f64,
     inspection: mbt_core::runtime::BinaryInspection,
-    old_baselines: &[mbt_benches::projection::BaselineEntry],
-    current_baselines: &[mbt_benches::projection::BaselineEntry],
 ) -> BenchResult<BenchRow> {
     let total_ms = access_ms + projection_ms + inspect_ms;
-    let (rows_per_second, mb_per_second) = measured_rates(row_count, projected.len(), total_ms);
+    let (rows_per_second, mb_per_second) = measured_rates(row_count, projected.len(), total_ms)?;
     let (semantic_checksum, minimal_projection_checksum) = inspection_checksums(inspection);
     Ok(BenchRow {
         label,
         schema,
+        schema_hash: mbt_core::envelope::decode_header(&projected)?.logical_proto_schema_hash,
         row_count,
         output_bytes: projected.len(),
         total_milliseconds: total_ms,
@@ -409,13 +289,6 @@ fn build_inspected_row(
         response_checksum: response_checksum(&projected),
         semantic_checksum,
         minimal_projection_checksum,
-        old_crate_comparison: comparison_for(old_baselines, label, row_count, rows_per_second),
-        current_owned_row_comparison: comparison_for(
-            current_baselines,
-            label,
-            row_count,
-            rows_per_second,
-        ),
     })
 }
 

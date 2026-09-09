@@ -1,0 +1,51 @@
+syntax = "proto2";
+
+package mbt;
+
+import "google/protobuf/descriptor.proto";
+
+message DictionaryAlias {
+  required string value = 1;
+  repeated string alias = 2;
+}
+
+message Dictionary {
+  required string name = 1;
+  repeated string value = 2;
+  repeated DictionaryAlias alias = 3;
+}
+
+message ProjectionDefinition {
+  required string name = 1;
+  required string rust_marker = 2;
+  repeated string include_group = 3;
+  repeated string exclude_group = 4;
+  repeated string include_field = 5;
+  repeated string exclude_field = 6;
+}
+
+extend google.protobuf.FileOptions {
+  repeated Dictionary dictionary_values = 50001;
+}
+
+extend google.protobuf.MessageOptions {
+  optional uint32 schema_id = 50101;
+  optional uint32 schema_version = 50102;
+  optional string transport_name = 50103;
+  optional bool payload_root = 50104;
+  repeated ProjectionDefinition projection = 50105;
+}
+
+extend google.protobuf.FieldOptions {
+  optional string dictionary = 50201;
+  optional string bitmask_dictionary = 50202;
+  optional uint32 presence_bit = 50203;
+  optional bool key_part = 50204;
+  optional uint32 key_order = 50205;
+  optional uint32 const_u16 = 50206;
+  optional bool repeated_payload = 50207;
+  optional bool raw_string = 50208;
+  optional bool ignored = 50209;
+  optional string projection_group = 50210;
+  optional string derived_utc_from = 50211;
+}

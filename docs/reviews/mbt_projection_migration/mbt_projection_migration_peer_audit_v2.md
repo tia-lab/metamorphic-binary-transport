@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V2: MBT Projection Migration
 
 Status: `BLOCKED`
@@ -158,33 +141,33 @@ Required amendment:
 The previous peer audit blockers are resolved except for the new conflict
 above:
 
-| Previous blocker | V2 result |
-| --- | --- |
-| Mandatory section order missing | Resolved |
-| Exact codegen-check command deferred | Resolved, but command surface conflicts with older specs |
-| Projected schema hash under-specified | Resolved directionally |
-| Compile-surface budget not measurable | Resolved |
-| Correctness oracle and test plan combined | Resolved |
+| Previous blocker                          | V2 result                                                |
+| ----------------------------------------- | -------------------------------------------------------- |
+| Mandatory section order missing           | Resolved                                                 |
+| Exact codegen-check command deferred      | Resolved, but command surface conflicts with older specs |
+| Projected schema hash under-specified     | Resolved directionally                                   |
+| Compile-surface budget not measurable     | Resolved                                                 |
+| Correctness oracle and test plan combined | Resolved                                                 |
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Passed |
-| Trusted-access safety | Passed |
-| Codegen determinism | Blocked by unresolved codegen surface conflict |
-| Generated-code compile surface | Passed directionally |
-| Crate boundary isolation | Passed directionally |
-| Dependency containment | Passed |
-| Correctness oracle | Passed |
-| Benchmark isolation | Passed |
-| Runtime performance budget | Passed |
-| Failure behavior | Passed |
-| Code binding completeness | Blocked because CLI/config binding depends on the unresolved surface choice |
-| Generated artifact binding completeness | Passed |
-| Client/operator interpretation safety | Blocked by conflicting `--surface core` interpretation |
+| Lens                                    | Result                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| Measured object clarity                 | Passed                                                                      |
+| Schema source ownership                 | Passed                                                                      |
+| Wire/archive validation                 | Passed                                                                      |
+| Trusted-access safety                   | Passed                                                                      |
+| Codegen determinism                     | Blocked by unresolved codegen surface conflict                              |
+| Generated-code compile surface          | Passed directionally                                                        |
+| Crate boundary isolation                | Passed directionally                                                        |
+| Dependency containment                  | Passed                                                                      |
+| Correctness oracle                      | Passed                                                                      |
+| Benchmark isolation                     | Passed                                                                      |
+| Runtime performance budget              | Passed                                                                      |
+| Failure behavior                        | Passed                                                                      |
+| Code binding completeness               | Blocked because CLI/config binding depends on the unresolved surface choice |
+| Generated artifact binding completeness | Passed                                                                      |
+| Client/operator interpretation safety   | Blocked by conflicting `--surface core` interpretation                      |
 
 ## Required Amendment Summary
 

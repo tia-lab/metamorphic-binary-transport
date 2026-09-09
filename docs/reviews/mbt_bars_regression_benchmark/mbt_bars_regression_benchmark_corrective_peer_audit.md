@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Bars Regression Benchmark Corrective Amendment
 
 Slug: `mbt_bars_regression_benchmark`
@@ -42,18 +25,18 @@ still required before editing benchmark code.
 
 ## Required Reads
 
-| Evidence type | Source | Observed contract |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Specs require separate peer audit and an approved implementation plan before code changes. |
-| Protocol evidence | `docs/invariants/core_invariants.md` | Baselines must use identical logical payloads; benchmark setup work must be outside measured loops unless specified. |
-| Protocol evidence | `docs/protocols/spec_protocol.md` | Specs must bind exact code paths, benchmark method, correctness oracle, and artifact ownership. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | The audit must try to falsify the spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Protocol evidence | `docs/protocols/testing_benchmark_protocol.md` | Performance claims require identical logical payload and correctness before speed claims. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | Corrective amendment binds old fixture, old iteration table, timing boundaries, and blocked prior artifacts. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/fixtures.rs` | Old benchmark fixture uses `DEFAULT_SEED`, `FIRST_CLOSE_MS`, old `Lcg`, pair/time ordering, and selective presence branches. |
-| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bench.rs` | Old benchmark uses row-count-specific iteration counts and computes throughput from `row_count * iterations` over accumulated timing. |
-| Code-read evidence | `crates/benches/src/projection.rs` | Current projection fixture is not the old fixture and must not be used for old-baseline parity comparison. |
-| Result evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md` | Existing run ratios were produced before the corrective amendment and cannot prove old-baseline parity. |
+| Evidence type      | Source                                                                                         | Observed contract                                                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence  | `AGENTS.md`                                                                                    | Specs require separate peer audit and an approved implementation plan before code changes.                                            |
+| Protocol evidence  | `docs/invariants/core_invariants.md`                                                           | Baselines must use identical logical payloads; benchmark setup work must be outside measured loops unless specified.                  |
+| Protocol evidence  | `docs/protocols/spec_protocol.md`                                                              | Specs must bind exact code paths, benchmark method, correctness oracle, and artifact ownership.                                       |
+| Protocol evidence  | `docs/protocols/peer_audit_protocol.md`                                                        | The audit must try to falsify the spec and classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                         |
+| Protocol evidence  | `docs/protocols/testing_benchmark_protocol.md`                                                 | Performance claims require identical logical payload and correctness before speed claims.                                             |
+| Spec evidence      | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                             | Corrective amendment binds old fixture, old iteration table, timing boundaries, and blocked prior artifacts.                          |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/fixtures.rs` | Old benchmark fixture uses `DEFAULT_SEED`, `FIRST_CLOSE_MS`, old `Lcg`, pair/time ordering, and selective presence branches.          |
+| Code-read evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/src/benches/bench.rs`    | Old benchmark uses row-count-specific iteration counts and computes throughput from `row_count * iterations` over accumulated timing. |
+| Code-read evidence | `crates/benches/src/projection.rs`                                                             | Current projection fixture is not the old fixture and must not be used for old-baseline parity comparison.                            |
+| Result evidence    | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_result_review.md`    | Existing run ratios were produced before the corrective amendment and cannot prove old-baseline parity.                               |
 
 ## Findings
 
@@ -98,14 +81,14 @@ regression benchmark delegated to the projection fixture.
 
 The amended spec binds the old iteration table:
 
-| Label | Rows | Iterations |
-|---|---:|---:|
-| `one` | 1 | 50 |
-| `small` | 100 | 50 |
-| `page_500` | 500 | 50 |
-| `page_1000` | 1,000 | 50 |
-| `medium` | 10,000 | 10 |
-| `large` | 100,000 | 3 |
+| Label       |    Rows | Iterations |
+| ----------- | ------: | ---------: |
+| `one`       |       1 |         50 |
+| `small`     |     100 |         50 |
+| `page_500`  |     500 |         50 |
+| `page_1000` |   1,000 |         50 |
+| `medium`    |  10,000 |         10 |
+| `large`     | 100,000 |          3 |
 
 It also defines throughput as:
 

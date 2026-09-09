@@ -9,7 +9,7 @@ the result reviews and evidence artifacts that measured them.
 ```text
 +---------------------- CORE ARCHITECTURE ----------------------+
 |                                                               |
-|  .proto + proto/mathilde/options.proto                        |
+|  .proto + proto/mbt/options.proto                        |
 |              |                                                |
 |              v                                                |
 |  crates/codegen                                               |
@@ -180,8 +180,9 @@ Evidence remains in result reviews and evidence artifacts:
 - core runtime correctness: core runtime result;
 - schema generation correctness: schema core generation result;
 - projection direct writer correctness and measured lanes: projection result;
-- Bars runtime/archive parity and adapter caveats: Bars regression corrective
-  result.
+- telemetry migration: its spec, implementation plan and new validation evidence.
+
+Historical application-schema measurements do not establish telemetry performance.
 
 Do not infer source-data finality, adapter parity, compile-time improvement, or
 production serving behavior from this architecture document alone.

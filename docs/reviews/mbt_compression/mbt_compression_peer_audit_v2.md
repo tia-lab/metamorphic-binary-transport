@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Peer Audit V2
 
 Slug: `mbt_compression`
@@ -53,11 +36,11 @@ Completed reads:
 
 ## Prior Blocker Closure
 
-| Prior blocker | Result |
-| --- | --- |
-| Dependency no-match commands were not executable success checks | Closed. The spec now uses explicit negative checks with `! cargo tree ... \| rg`. |
-| Benchmark fixture identity was under-specified | Closed. The spec now binds the deterministic Bars fixture, no-RNG seed policy, max response bytes, source construction paths, and schema hashes. |
-| Optional compatibility-schema lane deferred scope to implementation plan | Closed. The spec now excludes all-fields compatibility schema benchmarking from this phase. |
+| Prior blocker                                                            | Result                                                                                                                                           |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dependency no-match commands were not executable success checks          | Closed. The spec now uses explicit negative checks with `! cargo tree ... \| rg`.                                                                |
+| Benchmark fixture identity was under-specified                           | Closed. The spec now binds the deterministic Bars fixture, no-RNG seed policy, max response bytes, source construction paths, and schema hashes. |
+| Optional compatibility-schema lane deferred scope to implementation plan | Closed. The spec now excludes all-fields compatibility schema benchmarking from this phase.                                                      |
 
 ## Findings
 
@@ -113,24 +96,24 @@ or a stricter structured lockfile check if the implementation plan chooses one.
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| pre-audit closure gate completeness | blocked by missing lockfile ownership |
-| measured object clarity | passed |
-| schema source ownership | passed |
-| wire/archive validation | passed |
-| trusted-access safety | passed |
-| codegen determinism | passed; no codegen changes authorized |
-| generated-code compile surface | passed for generated schema files; blocked for lockfile artifact |
-| crate boundary isolation | passed |
-| dependency containment | blocked only by missing lockfile binding |
-| correctness oracle | passed |
-| benchmark isolation | passed |
-| performance budget | passed |
-| failure behavior | passed |
-| code binding completeness | blocked by missing `Cargo.lock` |
-| generated artifact binding completeness | blocked by missing Cargo-generated artifact policy |
-| client/operator interpretation safety | passed |
+| Lens                                    | Result                                                           |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| pre-audit closure gate completeness     | blocked by missing lockfile ownership                            |
+| measured object clarity                 | passed                                                           |
+| schema source ownership                 | passed                                                           |
+| wire/archive validation                 | passed                                                           |
+| trusted-access safety                   | passed                                                           |
+| codegen determinism                     | passed; no codegen changes authorized                            |
+| generated-code compile surface          | passed for generated schema files; blocked for lockfile artifact |
+| crate boundary isolation                | passed                                                           |
+| dependency containment                  | blocked only by missing lockfile binding                         |
+| correctness oracle                      | passed                                                           |
+| benchmark isolation                     | passed                                                           |
+| performance budget                      | passed                                                           |
+| failure behavior                        | passed                                                           |
+| code binding completeness               | blocked by missing `Cargo.lock`                                  |
+| generated artifact binding completeness | blocked by missing Cargo-generated artifact policy               |
+| client/operator interpretation safety   | passed                                                           |
 
 ## Required Spec Amendment
 

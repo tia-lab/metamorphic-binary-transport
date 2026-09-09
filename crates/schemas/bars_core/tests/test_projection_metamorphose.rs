@@ -1,3 +1,4 @@
+use std::assert_eq;
 use std::error::Error;
 
 use mbt_adapter_arrow_ipc::record_batch_from_ipc_stream;

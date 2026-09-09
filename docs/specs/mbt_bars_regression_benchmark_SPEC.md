@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # SPEC: MBT Bars Regression Benchmark
 
 ## 1. Identification
@@ -403,17 +386,17 @@ Source fixture to mirror:
 
 Required fixture identity:
 
-| Property | Required value |
-|---|---|
-| function semantics | current `projection::bars_rows(row_count)` |
-| first close timestamp | `1_700_000_000_000` |
-| time step | `60_000` ms |
-| entity | BTCUSDT only |
-| timeframe | `1m` |
-| source | `frontier` |
-| process | `derived` |
-| presence | all Bars presence bits set through the generated allowed mask |
-| row values | deterministic arithmetic values from current `projection::bars_rows` |
+| Property              | Required value                                                       |
+| --------------------- | -------------------------------------------------------------------- |
+| function semantics    | current `projection::bars_rows(row_count)`                           |
+| first close timestamp | `1_700_000_000_000`                                                  |
+| time step             | `60_000` ms                                                          |
+| entity                | BTCUSDT only                                                         |
+| timeframe             | `1m`                                                                 |
+| source                | `frontier`                                                           |
+| process               | `derived`                                                            |
+| presence              | all Bars presence bits set through the generated allowed mask        |
+| row values            | deterministic arithmetic values from current `projection::bars_rows` |
 
 The old parity port must not use the old `generate_rows(row_count,
 DEFAULT_SEED)` fixture for this corrective comparison.
@@ -505,18 +488,18 @@ historical old markdown table.
 
 Required current/new labels and old parity labels are identical:
 
-| Label | Measured surface |
-|---|---|
-| `bars_mbt_full_encode_inspect_checked` | encode plus inspect |
-| `bars_metamorphose_json_checked` | checked JSON metamorphose |
-| `bars_metamorphose_protobuf_checked` | checked protobuf metamorphose |
-| `bars_metamorphose_csv_checked` | checked CSV metamorphose |
-| `bars_metamorphose_json_trusted` | trusted JSON metamorphose |
-| `bars_metamorphose_protobuf_trusted` | trusted protobuf metamorphose |
-| `bars_metamorphose_csv_trusted` | trusted CSV metamorphose |
-| `bars_metamorphose_arrow_ipc_trusted` | trusted Arrow IPC metamorphose |
-| `bars_metamorphose_parquet_trusted` | trusted Parquet metamorphose |
-| `bars_serde_json_baseline` | bench-only Rust DTO rows through `serde_json::to_vec` |
+| Label                                  | Measured surface                                      |
+| -------------------------------------- | ----------------------------------------------------- |
+| `bars_mbt_full_encode_inspect_checked` | encode plus inspect                                   |
+| `bars_metamorphose_json_checked`       | checked JSON metamorphose                             |
+| `bars_metamorphose_protobuf_checked`   | checked protobuf metamorphose                         |
+| `bars_metamorphose_csv_checked`        | checked CSV metamorphose                              |
+| `bars_metamorphose_json_trusted`       | trusted JSON metamorphose                             |
+| `bars_metamorphose_protobuf_trusted`   | trusted protobuf metamorphose                         |
+| `bars_metamorphose_csv_trusted`        | trusted CSV metamorphose                              |
+| `bars_metamorphose_arrow_ipc_trusted`  | trusted Arrow IPC metamorphose                        |
+| `bars_metamorphose_parquet_trusted`    | trusted Parquet metamorphose                          |
+| `bars_serde_json_baseline`             | bench-only Rust DTO rows through `serde_json::to_vec` |
 
 Required comparisons:
 

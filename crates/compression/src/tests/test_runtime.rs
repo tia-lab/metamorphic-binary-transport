@@ -4,7 +4,7 @@ use crate::{
     CompressionConfig, DEFAULT_ZSTD_LEVEL, compress, compress_into, decompress, decompress_into,
 };
 
-const SAMPLE_BYTES: &[u8] = b"mathilde-binary-transport-compression-sample";
+const SAMPLE_BYTES: &[u8] = b"mbt-compression-sample";
 
 #[test]
 fn default_config_uses_level_three() -> Result<()> {

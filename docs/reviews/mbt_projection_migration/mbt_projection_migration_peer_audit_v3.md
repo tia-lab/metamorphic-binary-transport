@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V3: MBT Projection Migration
 
 Status: `BLOCKED`
@@ -174,35 +157,35 @@ Required amendment:
 
 ## Resolved Previous Audit Blockers
 
-| Previous blocker | V3 result |
-| --- | --- |
-| Mandatory spec section order | Resolved |
-| Exact codegen-check command missing | Resolved for projection surface |
-| Projected schema-hash inputs under-specified | Resolved directionally |
-| Compile-surface budget not measurable | Resolved |
-| Correctness oracle and test plan combined | Resolved |
-| `--surface core` conceptual conflict | Resolved by introducing `--surface projection` |
-| Existing projection-ignored assertion migration missing | Resolved directionally |
+| Previous blocker                                        | V3 result                                      |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| Mandatory spec section order                            | Resolved                                       |
+| Exact codegen-check command missing                     | Resolved for projection surface                |
+| Projected schema-hash inputs under-specified            | Resolved directionally                         |
+| Compile-surface budget not measurable                   | Resolved                                       |
+| Correctness oracle and test plan combined               | Resolved                                       |
+| `--surface core` conceptual conflict                    | Resolved by introducing `--surface projection` |
+| Existing projection-ignored assertion migration missing | Resolved directionally                         |
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Passed |
-| Trusted-access safety | Passed |
-| Codegen determinism | Blocked by generated artifact ownership conflict |
-| Generated-code compile surface | Passed directionally |
-| Crate boundary isolation | Passed directionally |
-| Dependency containment | Passed |
-| Correctness oracle | Passed |
-| Benchmark isolation | Passed |
-| Runtime performance budget | Passed |
-| Failure behavior | Passed |
-| Code binding completeness | Blocked because `emit.rs` is missing |
-| Generated artifact binding completeness | Blocked by core/projection output collision |
-| Client/operator interpretation safety | Blocked until generated artifact ownership is explicit |
+| Lens                                    | Result                                                 |
+| --------------------------------------- | ------------------------------------------------------ |
+| Measured object clarity                 | Passed                                                 |
+| Schema source ownership                 | Passed                                                 |
+| Wire/archive validation                 | Passed                                                 |
+| Trusted-access safety                   | Passed                                                 |
+| Codegen determinism                     | Blocked by generated artifact ownership conflict       |
+| Generated-code compile surface          | Passed directionally                                   |
+| Crate boundary isolation                | Passed directionally                                   |
+| Dependency containment                  | Passed                                                 |
+| Correctness oracle                      | Passed                                                 |
+| Benchmark isolation                     | Passed                                                 |
+| Runtime performance budget              | Passed                                                 |
+| Failure behavior                        | Passed                                                 |
+| Code binding completeness               | Blocked because `emit.rs` is missing                   |
+| Generated artifact binding completeness | Blocked by core/projection output collision            |
+| Client/operator interpretation safety   | Blocked until generated artifact ownership is explicit |
 
 ## Required Amendment Summary
 

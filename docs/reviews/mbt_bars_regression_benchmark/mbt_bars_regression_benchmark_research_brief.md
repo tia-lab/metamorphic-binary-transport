@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Bars Regression Benchmark Research Brief
 
 Slug: `mbt_bars_regression_benchmark`
@@ -39,16 +22,16 @@ Compression and wide-schema performance are out of scope for this pass.
 
 ## Source Materials
 
-| Evidence type | Source | Observation |
-|---|---|---|
-| Code-read evidence | `crates/benches/src/bin/mbt_projection_bench.rs` | Existing dedicated projection benchmark writes JSON artifacts and compares Bars projection labels against old tracked baselines. |
-| Code-read evidence | `crates/benches/src/projection.rs` | Existing fixture generation covers Bars and test compatibility rows and has old baseline parsing for projection labels. |
-| Code-read evidence | `crates/schemas/bars_core/Cargo.toml` | Adapter dependencies are feature-gated in the schema crate. Core schema builds without adapter dependencies. |
-| Code-read evidence | `crates/schemas/bars_core/src/lib.rs` | Adapter modules are included only when selected features are enabled. |
-| Code-read evidence | `crates/schemas/bars_core/src/bars_v1*.rs` | Generated schema exposes core encode/access/inspect, projection functions, and feature-gated metamorphose functions. |
-| Benchmark evidence | `docs/evidence/mbt_projection_direct_writer/projection_run_4.json` | One projection smoke/regression run exists for the split workspace. It is not enough for final stability claims. |
+| Evidence type               | Source                                                                                       | Observation                                                                                                                             |
+| --------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence          | `crates/benches/src/bin/mbt_projection_bench.rs`                                             | Existing dedicated projection benchmark writes JSON artifacts and compares Bars projection labels against old tracked baselines.        |
+| Code-read evidence          | `crates/benches/src/projection.rs`                                                           | Existing fixture generation covers Bars and test compatibility rows and has old baseline parsing for projection labels.                 |
+| Code-read evidence          | `crates/schemas/bars_core/Cargo.toml`                                                        | Adapter dependencies are feature-gated in the schema crate. Core schema builds without adapter dependencies.                            |
+| Code-read evidence          | `crates/schemas/bars_core/src/lib.rs`                                                        | Adapter modules are included only when selected features are enabled.                                                                   |
+| Code-read evidence          | `crates/schemas/bars_core/src/bars_v1*.rs`                                                   | Generated schema exposes core encode/access/inspect, projection functions, and feature-gated metamorphose functions.                    |
+| Benchmark evidence          | `docs/evidence/mbt_projection_direct_writer/projection_run_4.json`                           | One projection smoke/regression run exists for the split workspace. It is not enough for final stability claims.                        |
 | Benchmark baseline evidence | `/home/tia/_DEV/MATHILDE/experiments/crates/mathilde-binary-transport/docs/bench_results.md` | Old tracked table includes Bars full MBT, protobuf, JSON, metamorphose JSON/protobuf, CSV, Arrow IPC, Parquet, and compression results. |
-| Protocol evidence | `docs/protocols/testing_benchmark_protocol.md` | Benchmark artifacts must record environment, command, dataset identity, row counts, profile, and results. |
+| Protocol evidence           | `docs/protocols/testing_benchmark_protocol.md`                                               | Benchmark artifacts must record environment, command, dataset identity, row counts, profile, and results.                               |
 
 ## Candidate Approach
 
@@ -100,23 +83,23 @@ The benchmark binds:
 
 ## Unknowns
 
-| Unknown | Required evidence |
-|---|---|
-| Whether full core MBT split workspace stays within old tracked large-row performance | Run `mbt_bars_regression_bench` under release profile and compare 100k rows to old table. |
-| Whether metamorphose JSON/protobuf/CSV is at parity with old tracked evidence | Run current generated adapter paths and compare labels by row count. |
-| Whether current serde JSON baseline is slower or faster than current metamorphose JSON | Add bench-only serde DTO path and measure same logical rows. |
-| Whether Arrow IPC and Parquet adapter paths are already comparable enough for a final claim | Measure current full archived paths and compare to old tracked full archived labels. |
-| Whether benchmark output is stable enough | Require at least three runs before final result review claims stability. |
+| Unknown                                                                                     | Required evidence                                                                         |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Whether full core MBT split workspace stays within old tracked large-row performance        | Run `mbt_bars_regression_bench` under release profile and compare 100k rows to old table. |
+| Whether metamorphose JSON/protobuf/CSV is at parity with old tracked evidence               | Run current generated adapter paths and compare labels by row count.                      |
+| Whether current serde JSON baseline is slower or faster than current metamorphose JSON      | Add bench-only serde DTO path and measure same logical rows.                              |
+| Whether Arrow IPC and Parquet adapter paths are already comparable enough for a final claim | Measure current full archived paths and compare to old tracked full archived labels.      |
+| Whether benchmark output is stable enough                                                   | Require at least three runs before final result review claims stability.                  |
 
 ## Risks
 
-| Risk | Mitigation |
-|---|---|
-| Over-bloating benchmark scope | One new binary only; projection remains existing bench; no compression or wide-schema lane. |
-| Pulling serde into production | Add serde dependencies only to `crates/benches`, which is `publish = false`. |
-| Comparing non-identical payloads | Use the same deterministic `bars_rows` fixture for MBT, metamorphose, and serde JSON baseline. |
-| Old table parsing drift | Fail if required old labels and row counts cannot be parsed. |
-| Hiding instability | Write raw JSON per run and require a later result review to report spread across at least three runs. |
+| Risk                             | Mitigation                                                                                            |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Over-bloating benchmark scope    | One new binary only; projection remains existing bench; no compression or wide-schema lane.           |
+| Pulling serde into production    | Add serde dependencies only to `crates/benches`, which is `publish = false`.                          |
+| Comparing non-identical payloads | Use the same deterministic `bars_rows` fixture for MBT, metamorphose, and serde JSON baseline.        |
+| Old table parsing drift          | Fail if required old labels and row counts cannot be parsed.                                          |
+| Hiding instability               | Write raw JSON per run and require a later result review to report spread across at least three runs. |
 
 ## Required Decisions Before Implementation
 
@@ -132,4 +115,3 @@ The benchmark binds:
 ## Recommended Next Phase
 
 Proceed to the spec and peer audit for `mbt_bars_regression_benchmark`.
-

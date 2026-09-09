@@ -254,7 +254,7 @@ fn full_row() -> TestCompatibilityRowV1 {
         close_ms: 1_000,
         status_ordinal: STATUS_ACTIVE,
         optional_status_ordinal: STATUS_PAUSED,
-        venues_mask: (1 << VENUE_BINANCE_BIT) | (1 << VENUE_BYBIT_BIT),
+        venues_mask: (1 << VENUE_SITE_A_BIT) | (1 << VENUE_SITE_B_BIT),
         required_i64: -10,
         optional_i64: 20,
         required_i32: -30,

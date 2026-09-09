@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Core Runtime Migration Research Brief
 
 Status: `COMPLETE_FOR_SPEC_DRAFT`
@@ -114,17 +97,17 @@ Experiment source code:
 
 ## 4. Evidence Table
 
-| Evidence type | Observation |
-| --- | --- |
-| Code-read evidence | Experiment `src/envelope.rs` owns `MAGIC`, `HEADER_LEN`, transport version, encoding kind, FNV-1a checksum, fixed 128-byte header encode/decode, checked validation, and trusted payload validation. |
-| Code-read evidence | Experiment `src/envelope.rs` also contains Bars-specific constants and `schema_hash()` reading `crate::schema::GENERATED_SCHEMA_HASH`; those are not acceptable in schema-agnostic core. |
-| Code-read evidence | Experiment `src/runtime.rs` defines `BinaryInspection`, `MbtSchema`, and generic `encode`, `encode_owned`, `access`, and `inspect` wrappers without adapter dependencies. |
-| Code-read evidence | Experiment `src/codec.rs` only wraps `fnv1a64` as `response_checksum`. |
-| Code-read evidence | Experiment `src/error.rs` mixes transport errors with adapter, CLI, report I/O, JSON, protobuf, Arrow, Parquet, and compression errors. Core migration must remove adapter and benchmark errors from core. |
-| Code-read evidence | Experiment `src/lib.rs` exposes adapter modules, benches, generated schemas, schema aliases, codegen, and tests from one crate. The new core must not reproduce that module graph. |
-| Code-read evidence | Generated `bars_v1.rs` uses core for `SchemaHeaderSpec`, `TransportHeader::new_with_schema`, `encode_header`, `decode_header`, `validate_header_for_schema`, `trusted_payload_for_schema`, `fnv1a64`, `Result`, `TransportError`, `BinaryInspection`, and `MbtSchema`. |
-| Code-read evidence | Generated `bars_v1.rs` owns rkyv serialization/access and row/archive validation. Core does not need a direct `rkyv` dependency for this migration slice. |
-| Build evidence | Workspace skeleton validation passed in `mbt_workspace_architecture_result_review.md`; core currently has no runtime implementation and no dependencies. |
+| Evidence type      | Observation                                                                                                                                                                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence | Experiment `src/envelope.rs` owns `MAGIC`, `HEADER_LEN`, transport version, encoding kind, FNV-1a checksum, fixed 128-byte header encode/decode, checked validation, and trusted payload validation.                                                                                               |
+| Code-read evidence | Experiment `src/envelope.rs` also contains Bars-specific constants and `schema_hash()` reading `crate::schema::GENERATED_SCHEMA_HASH`; those are not acceptable in schema-agnostic core.                                                                                                           |
+| Code-read evidence | Experiment `src/runtime.rs` defines `BinaryInspection`, `MbtSchema`, and generic `encode`, `encode_owned`, `access`, and `inspect` wrappers without adapter dependencies.                                                                                                                          |
+| Code-read evidence | Experiment `src/codec.rs` only wraps `fnv1a64` as `response_checksum`.                                                                                                                                                                                                                             |
+| Code-read evidence | Experiment `src/error.rs` mixes transport errors with adapter, CLI, report I/O, JSON, protobuf, Arrow, Parquet, and compression errors. Core migration must remove adapter and benchmark errors from core.                                                                                         |
+| Code-read evidence | Experiment `src/lib.rs` exposes adapter modules, benches, generated schemas, schema aliases, codegen, and tests from one crate. The new core must not reproduce that module graph.                                                                                                                 |
+| Code-read evidence | Generated `bars_v1.rs` uses core for `SchemaHeaderSpec`, `TransportHeader::new_with_schema`, `encode_header`, `decode_header`, `validate_header_for_schema`, `trusted_payload_for_schema`, `fnv1a64`, `Result`, `TransportError`, `BinaryInspection`, and `MbtSchema`.                             |
+| Code-read evidence | Generated `bars_v1.rs` owns rkyv serialization/access and row/archive validation. Core does not need a direct `rkyv` dependency for this migration slice.                                                                                                                                          |
+| Build evidence     | Workspace skeleton validation passed in `mbt_workspace_architecture_result_review.md`; core currently has no runtime implementation and no dependencies.                                                                                                                                           |
 | Benchmark evidence | Existing experiment benchmark evidence records the current MBT baseline, including large-row `mathilde_binary_generated` at 535,720 rows/sec and 165.53 MB/sec for 100,000 synthetic Bars rows. This is a future parity baseline after schema/bench migration, not proof for this core-only slice. |
 
 ## 5. Hypotheses

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Schema Core Generation
 
 Status: draft for spec authoring
@@ -120,21 +103,21 @@ is committed as a generated artifact only if it is reproducible by the bound
 
 ## Evidence Table
 
-| Evidence type | Observation |
-| --- | --- |
-| Code-read evidence | `docs/specs/mbt_workspace_architecture_SPEC.md` reserves `crates/schemas/[schema_name]/` for later approved workspace schema crates. |
-| Code-read evidence | `docs/reviews/mbt_codegen_migration/mbt_codegen_migration_result_review.md` records `crates/codegen` as implemented and validated for explicit `--proto-root`, `--schema`, `--root`, `--module`, and `--surface core` inputs. |
-| Code-read evidence | `proto/mathilde/options.proto` in this repository contains MBT-only option definitions and does not contain DB/cache/lookup options. |
-| Code-read evidence | `crates/codegen/src/config.rs` supports only `Surface::Core`, which matches this phase boundary. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` maps supported protobuf kinds to MBT `FieldKind` values: dictionaries, bitmask dictionaries, `i32`, `u32`, `i64`, `f32`, `f64`, `bool`, `bytes`, raw strings, and numeric arrays. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` rejects unannotated strings, unsupported repeated bool/bytes, nullable bitmask dictionaries, duplicate presence bits, presence gaps, duplicate key orders, and key-order gaps. |
-| Code-read evidence | `crates/codegen/src/rust_emit.rs` emits core-only generated code: schema constants, dictionaries, presence constants, row/payload structs, validation, checksums, runtime API, `MbtSchema`, view types, and decode helpers. |
-| Code-read evidence | `crates/core/src/runtime.rs` defines the schema contract used by generated modules: `MbtSchema`, `encode`, `encode_owned`, `access`, and `inspect`. |
-| Code-read evidence | `crates/core/src/envelope.rs` owns the fixed header, schema identity validation, checksum validation, and trusted payload identity/length validation. |
-| Code-read evidence | Experiment `all_fields.proto` includes DB/cache annotations that are outside MBT core scope, but its MBT physical field set covers the broad compatibility surface needed for this schema proof. |
-| Build evidence | Existing codegen migration result review records `cargo check --workspace`, `cargo test -p metamorphic_binary_transport_codegen`, and `cargo clippy -p metamorphic_binary_transport_codegen --all-targets -- -D warnings` passing before this schema phase. |
-| Benchmark evidence | None. This phase does not claim runtime throughput. |
-| Hypothesis | A committed MBT-only all-fields schema crate can compile without adapter dependencies and prove generated core support for all MBT physical field kinds. This remains unproved until the implementation plan is executed. |
+| Evidence type      | Observation                                                                                                                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code-read evidence | `docs/specs/mbt_workspace_architecture_SPEC.md` reserves `crates/schemas/[schema_name]/` for later approved workspace schema crates.                                                                                                                        |
+| Code-read evidence | `docs/reviews/mbt_codegen_migration/mbt_codegen_migration_result_review.md` records `crates/codegen` as implemented and validated for explicit `--proto-root`, `--schema`, `--root`, `--module`, and `--surface core` inputs.                               |
+| Code-read evidence | `proto/mathilde/options.proto` in this repository contains MBT-only option definitions and does not contain DB/cache/lookup options.                                                                                                                        |
+| Code-read evidence | `crates/codegen/src/config.rs` supports only `Surface::Core`, which matches this phase boundary.                                                                                                                                                            |
+| Code-read evidence | `crates/codegen/src/descriptor.rs` maps supported protobuf kinds to MBT `FieldKind` values: dictionaries, bitmask dictionaries, `i32`, `u32`, `i64`, `f32`, `f64`, `bool`, `bytes`, raw strings, and numeric arrays.                                        |
+| Code-read evidence | `crates/codegen/src/descriptor.rs` rejects unannotated strings, unsupported repeated bool/bytes, nullable bitmask dictionaries, duplicate presence bits, presence gaps, duplicate key orders, and key-order gaps.                                           |
+| Code-read evidence | `crates/codegen/src/rust_emit.rs` emits core-only generated code: schema constants, dictionaries, presence constants, row/payload structs, validation, checksums, runtime API, `MbtSchema`, view types, and decode helpers.                                 |
+| Code-read evidence | `crates/core/src/runtime.rs` defines the schema contract used by generated modules: `MbtSchema`, `encode`, `encode_owned`, `access`, and `inspect`.                                                                                                         |
+| Code-read evidence | `crates/core/src/envelope.rs` owns the fixed header, schema identity validation, checksum validation, and trusted payload identity/length validation.                                                                                                       |
+| Code-read evidence | Experiment `all_fields.proto` includes DB/cache annotations that are outside MBT core scope, but its MBT physical field set covers the broad compatibility surface needed for this schema proof.                                                            |
+| Build evidence     | Existing codegen migration result review records `cargo check --workspace`, `cargo test -p metamorphic_binary_transport_codegen`, and `cargo clippy -p metamorphic_binary_transport_codegen --all-targets -- -D warnings` passing before this schema phase. |
+| Benchmark evidence | None. This phase does not claim runtime throughput.                                                                                                                                                                                                         |
+| Hypothesis         | A committed MBT-only all-fields schema crate can compile without adapter dependencies and prove generated core support for all MBT physical field kinds. This remains unproved until the implementation plan is executed.                                   |
 
 ## MBT Physical Field Coverage From Source
 

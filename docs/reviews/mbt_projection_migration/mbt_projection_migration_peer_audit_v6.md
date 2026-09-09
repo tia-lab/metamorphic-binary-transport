@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V6: MBT Projection Migration
 
 Status: `PEER_AUDIT_PASSED`
@@ -125,24 +108,24 @@ The exact projection command surfaces are also bound:
 
 ## Audit Lens Results
 
-| Lens | Result |
-| --- | --- |
-| Pre-audit closure gate completeness | Passed |
-| Measured object clarity | Passed |
-| Schema source ownership | Passed |
-| Wire/archive validation | Passed |
-| Trusted-access safety | Passed |
-| Codegen determinism | Passed |
-| Generated-code compile surface | Passed |
-| Crate boundary isolation | Passed |
-| Dependency containment | Passed |
-| Correctness oracle | Passed |
-| Benchmark isolation | Passed |
-| Performance budget | Passed |
-| Failure behavior | Passed |
-| Code binding completeness | Passed |
+| Lens                                    | Result |
+| --------------------------------------- | ------ |
+| Pre-audit closure gate completeness     | Passed |
+| Measured object clarity                 | Passed |
+| Schema source ownership                 | Passed |
+| Wire/archive validation                 | Passed |
+| Trusted-access safety                   | Passed |
+| Codegen determinism                     | Passed |
+| Generated-code compile surface          | Passed |
+| Crate boundary isolation                | Passed |
+| Dependency containment                  | Passed |
+| Correctness oracle                      | Passed |
+| Benchmark isolation                     | Passed |
+| Performance budget                      | Passed |
+| Failure behavior                        | Passed |
+| Code binding completeness               | Passed |
 | Generated artifact binding completeness | Passed |
-| Client/operator interpretation safety | Passed |
+| Client/operator interpretation safety   | Passed |
 
 ## Conditions Before Code
 

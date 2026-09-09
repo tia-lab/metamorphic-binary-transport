@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Codegen Migration
 
 Status: `BLOCKED`
@@ -249,23 +232,23 @@ Define:
 
 ## Audit Lenses
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Mostly clear. Blocked by optional generated compile oracle. |
-| Schema source ownership | Clear at high level. Blocked by missing exact options surface. |
-| Wire/archive validation | Clear enough for core-only migration. |
-| Trusted-access safety | Clear enough for generated API shape. |
-| Codegen determinism | Direction clear. Exact CLI/check command missing. |
-| Generated-code compile surface | Blocked by optional smoke compile and incomplete generated dependency contract. |
-| Crate boundary isolation | Direction clear. Dependency issue with `prost-build` must be corrected or justified. |
-| Dependency containment | Blocked by `prost-build` rationale and missing generated-consumer deps. |
-| Correctness oracle | Too weak until generated compile check is mandatory. |
-| Benchmark isolation | Acceptable: no benchmark claim for this migration. |
-| Performance budget | Acceptable: no runtime speed claim. |
-| Failure behavior | Error classes are clear enough. |
-| Code bindings | Mostly clear for codegen files. |
-| Generated artifact bindings | Blocked by conceptual CLI and optional smoke output. |
-| Client/operator safety | Needs exact generated command and option surface. |
+| Lens                           | Result                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| Measured object clarity        | Mostly clear. Blocked by optional generated compile oracle.                          |
+| Schema source ownership        | Clear at high level. Blocked by missing exact options surface.                       |
+| Wire/archive validation        | Clear enough for core-only migration.                                                |
+| Trusted-access safety          | Clear enough for generated API shape.                                                |
+| Codegen determinism            | Direction clear. Exact CLI/check command missing.                                    |
+| Generated-code compile surface | Blocked by optional smoke compile and incomplete generated dependency contract.      |
+| Crate boundary isolation       | Direction clear. Dependency issue with `prost-build` must be corrected or justified. |
+| Dependency containment         | Blocked by `prost-build` rationale and missing generated-consumer deps.              |
+| Correctness oracle             | Too weak until generated compile check is mandatory.                                 |
+| Benchmark isolation            | Acceptable: no benchmark claim for this migration.                                   |
+| Performance budget             | Acceptable: no runtime speed claim.                                                  |
+| Failure behavior               | Error classes are clear enough.                                                      |
+| Code bindings                  | Mostly clear for codegen files.                                                      |
+| Generated artifact bindings    | Blocked by conceptual CLI and optional smoke output.                                 |
+| Client/operator safety         | Needs exact generated command and option surface.                                    |
 
 ## Required Amendments Before Next Audit
 

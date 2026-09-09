@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Derived UTC Metamorphose Codegen
 
 Slug: `mbt_derived_utc_metamorphose_codegen`
@@ -93,25 +76,25 @@ This research binds:
 
 ## Evidence Table
 
-| Evidence type | Surface | Observation |
-| --- | --- | --- |
-| Protocol evidence | `AGENTS.md` | Generated code must come only from approved codegen; no code change is allowed before approved spec and approved implementation plan. |
-| Protocol evidence | `docs/invariants/core_invariants.md` | Adapter output must preserve semantic equivalence with the MBT schema; generated code must not emit unrelated adapters by default. |
-| Protocol evidence | `docs/protocols/codegen_protocol.md` | Generated code must be deterministic, reject unsupported schema shapes, and not require manual generated edits. |
-| Schema evidence | `proto/mathilde/options.proto` | `optional string derived_utc_from = 50211;` already exists. |
-| Schema evidence | `crates/schemas/bars_core/proto/mathilde/binary_transport/v1/bars.proto` | Bars declares `open_utc`, `close_utc`, and metadata UTC fields as ignored strings derived from `*_ms` fields. |
-| Code-read evidence | `crates/codegen/src/options.rs` | `derived_utc_from` is already loaded into `MbtExtensions`. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `collect_physical_fields` skips ignored fields before preserving derived UTC metadata. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `physical_field` references `extensions.derived_utc_from` only as an unused binding, so no derived model is produced. |
-| Code-read evidence | `crates/codegen/src/model.rs` | `SchemaModel` has `fields` and `projections`, but no row-format derived-output field model. |
-| Code-read evidence | `crates/codegen/src/rust_emit.rs` | JSON, protobuf, and CSV emitters iterate `model.fields`, so ignored derived UTC fields cannot be emitted. |
-| Code-read evidence | `crates/core/src/output.rs` | `utc_len`, `utc_bytes`, and `write_utc` already exist and write UTC without heap allocation beyond the output buffer. |
-| Code-read evidence | `crates/adapters/json/src/lib.rs` | `JsonWriter::utc_value(ms)` already exists. |
-| Code-read evidence | `crates/adapters/protobuf/src/lib.rs` | `ProtoWriter::utc(tag, ms)` already exists. |
-| Code-read evidence | `crates/adapters/csv/src/lib.rs` | `CsvWriter::utc_cell(ms)` already exists. |
-| Code-read evidence | `crates/schemas/bars_core/src/bars_v1_csv.rs` | Current new Bars CSV header lacks `open_utc`, `close_utc`, and metadata UTC columns. |
-| Code-read evidence | Old experiment generated Bars | Old Bars CSV header includes `open_utc`, `close_utc`, and metadata UTC columns in proto traversal order. |
-| Result evidence | `mbt_bars_regression_benchmark_corrective_result_review.md` | Old/new semantic checksum parity failed structurally; UTC output differences are one diagnosed cause. |
+| Evidence type      | Surface                                                                  | Observation                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence  | `AGENTS.md`                                                              | Generated code must come only from approved codegen; no code change is allowed before approved spec and approved implementation plan. |
+| Protocol evidence  | `docs/invariants/core_invariants.md`                                     | Adapter output must preserve semantic equivalence with the MBT schema; generated code must not emit unrelated adapters by default.    |
+| Protocol evidence  | `docs/protocols/codegen_protocol.md`                                     | Generated code must be deterministic, reject unsupported schema shapes, and not require manual generated edits.                       |
+| Schema evidence    | `proto/mathilde/options.proto`                                           | `optional string derived_utc_from = 50211;` already exists.                                                                           |
+| Schema evidence    | `crates/schemas/bars_core/proto/mathilde/binary_transport/v1/bars.proto` | Bars declares `open_utc`, `close_utc`, and metadata UTC fields as ignored strings derived from `*_ms` fields.                         |
+| Code-read evidence | `crates/codegen/src/options.rs`                                          | `derived_utc_from` is already loaded into `MbtExtensions`.                                                                            |
+| Code-read evidence | `crates/codegen/src/descriptor.rs`                                       | `collect_physical_fields` skips ignored fields before preserving derived UTC metadata.                                                |
+| Code-read evidence | `crates/codegen/src/descriptor.rs`                                       | `physical_field` references `extensions.derived_utc_from` only as an unused binding, so no derived model is produced.                 |
+| Code-read evidence | `crates/codegen/src/model.rs`                                            | `SchemaModel` has `fields` and `projections`, but no row-format derived-output field model.                                           |
+| Code-read evidence | `crates/codegen/src/rust_emit.rs`                                        | JSON, protobuf, and CSV emitters iterate `model.fields`, so ignored derived UTC fields cannot be emitted.                             |
+| Code-read evidence | `crates/core/src/output.rs`                                              | `utc_len`, `utc_bytes`, and `write_utc` already exist and write UTC without heap allocation beyond the output buffer.                 |
+| Code-read evidence | `crates/adapters/json/src/lib.rs`                                        | `JsonWriter::utc_value(ms)` already exists.                                                                                           |
+| Code-read evidence | `crates/adapters/protobuf/src/lib.rs`                                    | `ProtoWriter::utc(tag, ms)` already exists.                                                                                           |
+| Code-read evidence | `crates/adapters/csv/src/lib.rs`                                         | `CsvWriter::utc_cell(ms)` already exists.                                                                                             |
+| Code-read evidence | `crates/schemas/bars_core/src/bars_v1_csv.rs`                            | Current new Bars CSV header lacks `open_utc`, `close_utc`, and metadata UTC columns.                                                  |
+| Code-read evidence | Old experiment generated Bars                                            | Old Bars CSV header includes `open_utc`, `close_utc`, and metadata UTC columns in proto traversal order.                              |
+| Result evidence    | `mbt_bars_regression_benchmark_corrective_result_review.md`              | Old/new semantic checksum parity failed structurally; UTC output differences are one diagnosed cause.                                 |
 
 ## Hypotheses
 

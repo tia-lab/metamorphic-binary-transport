@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan: MBT Metamorphose Migration
 
 Status: `AUDITED_AWAITING_OWNER_APPROVAL`
@@ -190,29 +173,29 @@ No performance claim is allowed until the benchmark evidence files exist.
 
 Exact dependency additions:
 
-| File | Dependency |
-| --- | --- |
-| `crates/metamorphose/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../core" }` |
-| `crates/transponding/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../core" }` |
-| `crates/adapters/json/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/protobuf/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/protobuf/Cargo.toml` | `prost = "=0.14.4"` |
-| `crates/adapters/csv/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/csv/Cargo.toml` | `itoa = "=1.0.18"` |
-| `crates/adapters/arrow/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/arrow/Cargo.toml` | `metamorphic_binary_transport_transponding = { path = "../../transponding" }` |
-| `crates/adapters/arrow/Cargo.toml` | `arrow-array = "=56.2.1"` |
-| `crates/adapters/arrow/Cargo.toml` | `arrow-buffer = "=56.2.1"` |
-| `crates/adapters/arrow/Cargo.toml` | `arrow-schema = "=56.2.1"` |
-| `crates/adapters/arrow_ipc/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-array = "=56.2.1"` |
-| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-ipc = "=56.2.1"` |
-| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-schema = "=56.2.1"` |
-| `crates/adapters/parquet/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }` |
-| `crates/adapters/parquet/Cargo.toml` | `arrow-array = "=56.2.1"` |
-| `crates/adapters/parquet/Cargo.toml` | `arrow-schema = "=56.2.1"` |
-| `crates/adapters/parquet/Cargo.toml` | `parquet = "=56.2.1"` |
-| `crates/benches/Cargo.toml` | `metamorphic_binary_transport_metamorphose = { path = "../metamorphose" }` |
+| File                                   | Dependency                                                                    |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| `crates/metamorphose/Cargo.toml`       | `metamorphic_binary_transport_core = { path = "../core" }`                    |
+| `crates/transponding/Cargo.toml`       | `metamorphic_binary_transport_core = { path = "../core" }`                    |
+| `crates/adapters/json/Cargo.toml`      | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/protobuf/Cargo.toml`  | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/protobuf/Cargo.toml`  | `prost = "=0.14.4"`                                                           |
+| `crates/adapters/csv/Cargo.toml`       | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/csv/Cargo.toml`       | `itoa = "=1.0.18"`                                                            |
+| `crates/adapters/arrow/Cargo.toml`     | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/arrow/Cargo.toml`     | `metamorphic_binary_transport_transponding = { path = "../../transponding" }` |
+| `crates/adapters/arrow/Cargo.toml`     | `arrow-array = "=56.2.1"`                                                     |
+| `crates/adapters/arrow/Cargo.toml`     | `arrow-buffer = "=56.2.1"`                                                    |
+| `crates/adapters/arrow/Cargo.toml`     | `arrow-schema = "=56.2.1"`                                                    |
+| `crates/adapters/arrow_ipc/Cargo.toml` | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-array = "=56.2.1"`                                                     |
+| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-ipc = "=56.2.1"`                                                       |
+| `crates/adapters/arrow_ipc/Cargo.toml` | `arrow-schema = "=56.2.1"`                                                    |
+| `crates/adapters/parquet/Cargo.toml`   | `metamorphic_binary_transport_core = { path = "../../core" }`                 |
+| `crates/adapters/parquet/Cargo.toml`   | `arrow-array = "=56.2.1"`                                                     |
+| `crates/adapters/parquet/Cargo.toml`   | `arrow-schema = "=56.2.1"`                                                    |
+| `crates/adapters/parquet/Cargo.toml`   | `parquet = "=56.2.1"`                                                         |
+| `crates/benches/Cargo.toml`            | `metamorphic_binary_transport_metamorphose = { path = "../metamorphose" }`    |
 
 `crates/core` receives no new external dependency for `crates/core/src/output.rs`.
 
@@ -247,20 +230,20 @@ No edit to `crates/core/src/error.rs` is authorized by this plan.
 
 All adapter failures must map to existing `TransportError` variants:
 
-| Failure | Mapping |
-| --- | --- |
-| wrong schema | existing generated checked access error |
-| corrupt header | existing generated checked access error |
-| corrupt archive | existing generated checked access error |
-| old or unsupported schema version | existing generated checked access error |
-| response cap overflow | `TransportError::ResponseTooLarge { observed, cap }` |
-| checked non-finite numeric field | `TransportError::NonFiniteNumeric(field)` |
-| invalid time conversion for UTC text | `TransportError::InvalidTimeGrid(message)` |
+| Failure                                     | Mapping                                                                |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| wrong schema                                | existing generated checked access error                                |
+| corrupt header                              | existing generated checked access error                                |
+| corrupt archive                             | existing generated checked access error                                |
+| old or unsupported schema version           | existing generated checked access error                                |
+| response cap overflow                       | `TransportError::ResponseTooLarge { observed, cap }`                   |
+| checked non-finite numeric field            | `TransportError::NonFiniteNumeric(field)`                              |
+| invalid time conversion for UTC text        | `TransportError::InvalidTimeGrid(message)`                             |
 | unsupported field kind for selected adapter | `CodegenError::InvalidSchema(message)` before generated runtime exists |
-| selected adapter feature missing | Rust compile-time missing trait/module error |
-| Arrow RecordBatch construction failure | `TransportError::MalformedArchive(message)` |
-| Arrow IPC writer failure | `TransportError::MalformedArchive(message)` |
-| Parquet writer failure | `TransportError::MalformedArchive(message)` |
+| selected adapter feature missing            | Rust compile-time missing trait/module error                           |
+| Arrow RecordBatch construction failure      | `TransportError::MalformedArchive(message)`                            |
+| Arrow IPC writer failure                    | `TransportError::MalformedArchive(message)`                            |
+| Parquet writer failure                      | `TransportError::MalformedArchive(message)`                            |
 
 Generated MBT raw strings are Rust strings after archive validation. Adapter
 writers must not perform fallible UTF-8 conversion in the row loop. Bytes fields

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # MBT Compression Result Review
 
 Slug: `mbt_compression`
@@ -232,35 +215,35 @@ Full benchmark deterministic result:
 
 ```json
 {
-  "all_byte_equal": true,
-  "source_checksum_stable": true,
-  "compressed_checksum_stable": true,
-  "decompressed_checksum_stable": true
+	"all_byte_equal": true,
+	"source_checksum_stable": true,
+	"compressed_checksum_stable": true,
+	"decompressed_checksum_stable": true
 }
 ```
 
 Full benchmark summary:
 
-| Label | Lane | Rows | Uncompressed bytes | Compressed bytes | Ratio | Reduction % | Compress MB/s | Decompress MB/s |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| one | mbt_full | 1 | 462 | 206 | 0.445887 | 55.411255 | 4.541098 | 84.699998 |
-| one | mbt_no_metadata | 1 | 288 | 160 | 0.555556 | 44.444444 | 5.882433 | 136.431383 |
-| one | mbt_ohlcv_only | 1 | 200 | 114 | 0.570000 | 43.000000 | 4.228035 | 110.620955 |
-| small | mbt_full | 100 | 32538 | 5233 | 0.160827 | 83.917266 | 238.181262 | 648.484983 |
-| small | mbt_no_metadata | 100 | 15138 | 3777 | 0.249505 | 75.049544 | 202.726957 | 596.939609 |
-| small | mbt_ohlcv_only | 100 | 6338 | 1770 | 0.279268 | 72.073209 | 165.970440 | 701.973834 |
-| page_500 | mbt_full | 500 | 162138 | 24848 | 0.153252 | 84.674783 | 414.359358 | 1127.373134 |
-| page_500 | mbt_no_metadata | 500 | 75138 | 17692 | 0.235460 | 76.453991 | 297.656862 | 833.364511 |
-| page_500 | mbt_ohlcv_only | 500 | 31138 | 7266 | 0.233348 | 76.665168 | 265.228004 | 710.789279 |
-| page_1000 | mbt_full | 1000 | 324138 | 49275 | 0.152019 | 84.798142 | 404.681186 | 1147.437039 |
-| page_1000 | mbt_no_metadata | 1000 | 150138 | 35311 | 0.235190 | 76.480971 | 299.218112 | 833.227642 |
-| page_1000 | mbt_ohlcv_only | 1000 | 62138 | 14159 | 0.227864 | 77.213621 | 291.030184 | 768.855101 |
-| medium | mbt_full | 10000 | 3240138 | 515683 | 0.159155 | 84.084536 | 335.132688 | 1137.355684 |
-| medium | mbt_no_metadata | 10000 | 1500138 | 372364 | 0.248220 | 75.178017 | 255.214367 | 828.339810 |
-| medium | mbt_ohlcv_only | 10000 | 620138 | 135534 | 0.218555 | 78.144542 | 268.289735 | 782.145065 |
-| large | mbt_full | 100000 | 32400138 | 5415168 | 0.167134 | 83.286590 | 290.388576 | 1031.673879 |
-| large | mbt_no_metadata | 100000 | 15000138 | 3939701 | 0.262644 | 73.735568 | 173.768741 | 750.633507 |
-| large | mbt_ohlcv_only | 100000 | 6200138 | 1455666 | 0.234780 | 76.522039 | 196.932443 | 723.468055 |
+| Label     | Lane            |   Rows | Uncompressed bytes | Compressed bytes |    Ratio | Reduction % | Compress MB/s | Decompress MB/s |
+| --------- | --------------- | -----: | -----------------: | ---------------: | -------: | ----------: | ------------: | --------------: |
+| one       | mbt_full        |      1 |                462 |              206 | 0.445887 |   55.411255 |      4.541098 |       84.699998 |
+| one       | mbt_no_metadata |      1 |                288 |              160 | 0.555556 |   44.444444 |      5.882433 |      136.431383 |
+| one       | mbt_ohlcv_only  |      1 |                200 |              114 | 0.570000 |   43.000000 |      4.228035 |      110.620955 |
+| small     | mbt_full        |    100 |              32538 |             5233 | 0.160827 |   83.917266 |    238.181262 |      648.484983 |
+| small     | mbt_no_metadata |    100 |              15138 |             3777 | 0.249505 |   75.049544 |    202.726957 |      596.939609 |
+| small     | mbt_ohlcv_only  |    100 |               6338 |             1770 | 0.279268 |   72.073209 |    165.970440 |      701.973834 |
+| page_500  | mbt_full        |    500 |             162138 |            24848 | 0.153252 |   84.674783 |    414.359358 |     1127.373134 |
+| page_500  | mbt_no_metadata |    500 |              75138 |            17692 | 0.235460 |   76.453991 |    297.656862 |      833.364511 |
+| page_500  | mbt_ohlcv_only  |    500 |              31138 |             7266 | 0.233348 |   76.665168 |    265.228004 |      710.789279 |
+| page_1000 | mbt_full        |   1000 |             324138 |            49275 | 0.152019 |   84.798142 |    404.681186 |     1147.437039 |
+| page_1000 | mbt_no_metadata |   1000 |             150138 |            35311 | 0.235190 |   76.480971 |    299.218112 |      833.227642 |
+| page_1000 | mbt_ohlcv_only  |   1000 |              62138 |            14159 | 0.227864 |   77.213621 |    291.030184 |      768.855101 |
+| medium    | mbt_full        |  10000 |            3240138 |           515683 | 0.159155 |   84.084536 |    335.132688 |     1137.355684 |
+| medium    | mbt_no_metadata |  10000 |            1500138 |           372364 | 0.248220 |   75.178017 |    255.214367 |      828.339810 |
+| medium    | mbt_ohlcv_only  |  10000 |             620138 |           135534 | 0.218555 |   78.144542 |    268.289735 |      782.145065 |
+| large     | mbt_full        | 100000 |           32400138 |          5415168 | 0.167134 |   83.286590 |    290.388576 |     1031.673879 |
+| large     | mbt_no_metadata | 100000 |           15000138 |          3939701 | 0.262644 |   73.735568 |    173.768741 |      750.633507 |
+| large     | mbt_ohlcv_only  | 100000 |            6200138 |          1455666 | 0.234780 |   76.522039 |    196.932443 |      723.468055 |
 
 ## Proved By This Run
 

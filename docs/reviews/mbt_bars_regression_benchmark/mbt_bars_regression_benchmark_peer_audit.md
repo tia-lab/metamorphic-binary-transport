@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -23,15 +6,15 @@ Status: `BLOCKED`
 
 ## Required Reads
 
-| Evidence type | Source | Observation |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Peer audit is a no-code phase and must classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | Code cannot start while peer audit is blocked. |
-| Protocol evidence | `docs/protocols/spec_protocol.md` | The spec must close command, artifact, dependency, code binding, and generated artifact contracts before audit. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | Block if dependency behavior, code bindings, or benchmark method are under-specified. |
-| Invariant evidence | `docs/invariants/core_invariants.md` | Benchmarks are isolated from production crates; adapter dependencies must not enter core. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | The benchmark scope is Bars full MBT plus metamorphose JSON/protobuf/CSV/Arrow IPC/Parquet and a bench-only serde JSON baseline. |
-| Research evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | The intended scope is one new benchmark binary and existing projection benchmark reuse. |
+| Evidence type      | Source                                                                                       | Observation                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence  | `AGENTS.md`                                                                                  | Peer audit is a no-code phase and must classify exactly `PEER_AUDIT_PASSED` or `BLOCKED`.                                        |
+| Protocol evidence  | `docs/protocols/lifecycle_protocol.md`                                                       | Code cannot start while peer audit is blocked.                                                                                   |
+| Protocol evidence  | `docs/protocols/spec_protocol.md`                                                            | The spec must close command, artifact, dependency, code binding, and generated artifact contracts before audit.                  |
+| Protocol evidence  | `docs/protocols/peer_audit_protocol.md`                                                      | Block if dependency behavior, code bindings, or benchmark method are under-specified.                                            |
+| Invariant evidence | `docs/invariants/core_invariants.md`                                                         | Benchmarks are isolated from production crates; adapter dependencies must not enter core.                                        |
+| Spec evidence      | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                           | The benchmark scope is Bars full MBT plus metamorphose JSON/protobuf/CSV/Arrow IPC/Parquet and a bench-only serde JSON baseline. |
+| Research evidence  | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | The intended scope is one new benchmark binary and existing projection benchmark reuse.                                          |
 
 ## Audit Result
 

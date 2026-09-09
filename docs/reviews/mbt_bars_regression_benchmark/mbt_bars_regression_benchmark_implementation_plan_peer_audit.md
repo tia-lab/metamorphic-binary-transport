@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan Peer Audit: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -23,15 +6,15 @@ Status: `BLOCKED`
 
 ## Required Reads
 
-| Evidence type | Source | Observation |
-|---|---|---|
-| Protocol evidence | `AGENTS.md` | Implementation may start only after approved spec, passed peer audit, approved implementation plan. |
-| Protocol evidence | `docs/protocols/lifecycle_protocol.md` | The implementation plan must bind every code file, generated file, dependency change, test, benchmark, artifact, and validation command. |
-| Protocol evidence | `docs/protocols/implementation_protocol.md` | Implementation must stay within approved spec and plan. |
-| Protocol evidence | `docs/protocols/peer_audit_protocol.md` | Block if dependency behavior or artifact bindings are under-specified. |
-| Spec evidence | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | Dependency edits are limited to `crates/benches/Cargo.toml`; code bindings do not list `Cargo.lock`. |
-| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit_v2.md` | Spec passed after binding Bars features and exact benchmark labels. |
-| Plan evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | The plan introduces `Cargo.lock` as a Cargo-generated dependency artifact. |
+| Evidence type        | Source                                                                                            | Observation                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence    | `AGENTS.md`                                                                                       | Implementation may start only after approved spec, passed peer audit, approved implementation plan.                                      |
+| Protocol evidence    | `docs/protocols/lifecycle_protocol.md`                                                            | The implementation plan must bind every code file, generated file, dependency change, test, benchmark, artifact, and validation command. |
+| Protocol evidence    | `docs/protocols/implementation_protocol.md`                                                       | Implementation must stay within approved spec and plan.                                                                                  |
+| Protocol evidence    | `docs/protocols/peer_audit_protocol.md`                                                           | Block if dependency behavior or artifact bindings are under-specified.                                                                   |
+| Spec evidence        | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                                | Dependency edits are limited to `crates/benches/Cargo.toml`; code bindings do not list `Cargo.lock`.                                     |
+| Prior audit evidence | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit_v2.md`       | Spec passed after binding Bars features and exact benchmark labels.                                                                      |
+| Plan evidence        | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_implementation_plan.md` | The plan introduces `Cargo.lock` as a Cargo-generated dependency artifact.                                                               |
 
 ## Audit Result
 

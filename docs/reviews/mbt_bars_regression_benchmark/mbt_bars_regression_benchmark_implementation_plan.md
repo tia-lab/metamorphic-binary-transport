@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Implementation Plan: MBT Bars Regression Benchmark
 
 Slug: `mbt_bars_regression_benchmark`
@@ -24,12 +7,12 @@ Repository: `/home/tia/_DEV/MATHILDE/metamorphic-binary-transport`
 
 ## Source Chain
 
-| Artifact | Path | Status |
-|---|---|---|
-| Research brief | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | complete |
-| Spec | `docs/specs/mbt_bars_regression_benchmark_SPEC.md` | amended with Cargo-generated lockfile binding |
-| Peer audit | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit.md` | blocked |
-| Peer audit v2 | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit_v2.md` | passed |
+| Artifact       | Path                                                                                         | Status                                        |
+| -------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Research brief | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_research_brief.md` | complete                                      |
+| Spec           | `docs/specs/mbt_bars_regression_benchmark_SPEC.md`                                           | amended with Cargo-generated lockfile binding |
+| Peer audit     | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit.md`     | blocked                                       |
+| Peer audit v2  | `docs/reviews/mbt_bars_regression_benchmark/mbt_bars_regression_benchmark_peer_audit_v2.md`  | passed                                        |
 
 This plan does not authorize code changes. Code may change only after this plan
 is explicitly approved.
@@ -181,14 +164,14 @@ metamorphose_parquet_full_archived
 
 4. Label mapping:
 
-| Current label | Old label |
-|---|---|
-| `bars_mbt_full_encode_inspect_checked` | `mathilde_binary_generated` |
-| `bars_metamorphose_json_checked` | `metamorphose_json` |
-| `bars_metamorphose_protobuf_checked` | `metamorphose_protobuf` |
-| `bars_metamorphose_csv_trusted` | `metamorphose_csv_full_archived` |
-| `bars_metamorphose_arrow_ipc_trusted` | `metamorphose_arrow_ipc_full_archived` |
-| `bars_metamorphose_parquet_trusted` | `metamorphose_parquet_full_archived` |
+| Current label                          | Old label                              |
+| -------------------------------------- | -------------------------------------- |
+| `bars_mbt_full_encode_inspect_checked` | `mathilde_binary_generated`            |
+| `bars_metamorphose_json_checked`       | `metamorphose_json`                    |
+| `bars_metamorphose_protobuf_checked`   | `metamorphose_protobuf`                |
+| `bars_metamorphose_csv_trusted`        | `metamorphose_csv_full_archived`       |
+| `bars_metamorphose_arrow_ipc_trusted`  | `metamorphose_arrow_ipc_full_archived` |
+| `bars_metamorphose_parquet_trusted`    | `metamorphose_parquet_full_archived`   |
 
 5. Data types:
 
@@ -280,7 +263,7 @@ Any other CLI shape is an error.
 - measure serde JSON output over prebuilt DTO rows.
 
 4. Trusted calls must be visibly unsafe in the binary only. The safety contract
-is:
+   is:
 
 ```text
 bytes were produced by BarsV1::encode in the same benchmark iteration and are

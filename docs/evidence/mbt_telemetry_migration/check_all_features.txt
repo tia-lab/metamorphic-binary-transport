@@ -1,0 +1,10 @@
+    Checking zstd-sys v2.1.0+zstd.1.5.7
+    Checking zstd-safe v7.3.0
+    Checking zstd v0.13.3
+    Checking parquet v56.2.1
+    Checking mbt_adapter_parquet v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/adapters/parquet)
+    Checking mbt_schema_telemetry v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.05s
+real 2.07
+user 1.64
+sys 0.22

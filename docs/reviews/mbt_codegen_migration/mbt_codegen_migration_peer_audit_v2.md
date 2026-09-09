@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Peer Audit V2: MBT Codegen Migration
 
 Status: `BLOCKED`
@@ -68,14 +51,14 @@ directories are searched in order. This supports the amended repeatable
 
 ## Previous Blocker Resolution
 
-| V1 blocker | V2 status |
-| --- | --- |
-| Exact MBT option surface missing | Resolved: spec now defines MBT-only `proto/mathilde/options.proto`. |
-| Exact CLI/check command missing | Resolved: spec now binds exact `--inspect`, `--write`, and `--check` command shapes. |
-| Generated compile oracle optional | Resolved: smoke crate compile is now mandatory. |
-| `prost-build` allowed without core-only need | Resolved: `prost-build` is now forbidden for `crates/codegen`. |
-| Generated consumer dependencies incomplete | Resolved: smoke/generated consumer deps are defined separately. |
-| Nullable array semantics unclear | Resolved: required versus nullable array semantics are now stated. |
+| V1 blocker                                   | V2 status                                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Exact MBT option surface missing             | Resolved: spec now defines MBT-only `proto/mathilde/options.proto`.                  |
+| Exact CLI/check command missing              | Resolved: spec now binds exact `--inspect`, `--write`, and `--check` command shapes. |
+| Generated compile oracle optional            | Resolved: smoke crate compile is now mandatory.                                      |
+| `prost-build` allowed without core-only need | Resolved: `prost-build` is now forbidden for `crates/codegen`.                       |
+| Generated consumer dependencies incomplete   | Resolved: smoke/generated consumer deps are defined separately.                      |
+| Nullable array semantics unclear             | Resolved: required versus nullable array semantics are now stated.                   |
 
 ## Findings
 
@@ -233,23 +216,23 @@ Define core-surface projection behavior:
 
 ## Audit Lenses
 
-| Lens | Result |
-| --- | --- |
-| Measured object clarity | Mostly clear. |
-| Schema source ownership | Improved. Still blocked by alias and projection option behavior. |
-| Wire/archive validation | Clear enough except schema hash normal form. |
-| Trusted-access safety | Clear. |
-| Codegen determinism | Blocked by schema hash normal form. |
-| Generated-code compile surface | Improved by mandatory smoke compile. |
-| Crate boundary isolation | Clear. |
-| Dependency containment | Clear after `prost-build` removal. |
-| Correctness oracle | Improved, but missing hash and view/accessor exactness. |
-| Benchmark isolation | Acceptable; no benchmark claim. |
-| Performance budget | Acceptable; no runtime speed claim. |
-| Failure behavior | Clear enough for this phase. |
-| Code binding completeness | Mostly clear. |
-| Generated artifact binding completeness | Blocked by generated API ambiguity. |
-| Client/operator interpretation safety | Blocked by undefined generated consumer API. |
+| Lens                                    | Result                                                           |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| Measured object clarity                 | Mostly clear.                                                    |
+| Schema source ownership                 | Improved. Still blocked by alias and projection option behavior. |
+| Wire/archive validation                 | Clear enough except schema hash normal form.                     |
+| Trusted-access safety                   | Clear.                                                           |
+| Codegen determinism                     | Blocked by schema hash normal form.                              |
+| Generated-code compile surface          | Improved by mandatory smoke compile.                             |
+| Crate boundary isolation                | Clear.                                                           |
+| Dependency containment                  | Clear after `prost-build` removal.                               |
+| Correctness oracle                      | Improved, but missing hash and view/accessor exactness.          |
+| Benchmark isolation                     | Acceptable; no benchmark claim.                                  |
+| Performance budget                      | Acceptable; no runtime speed claim.                              |
+| Failure behavior                        | Clear enough for this phase.                                     |
+| Code binding completeness               | Mostly clear.                                                    |
+| Generated artifact binding completeness | Blocked by generated API ambiguity.                              |
+| Client/operator interpretation safety   | Blocked by undefined generated consumer API.                     |
 
 ## Required Amendments Before Next Audit
 

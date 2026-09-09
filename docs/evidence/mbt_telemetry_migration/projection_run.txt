@@ -1,0 +1,5 @@
+Command: cargo run --release -p mbt_benches --bin mbt_projection_bench -- --report-dir docs/evidence/mbt_telemetry_migration/projection
+   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `release` profile [optimized] target(s) in 0.47s
+     Running `target/release/mbt_projection_bench --report-dir docs/evidence/mbt_telemetry_migration/projection`
+docs/evidence/mbt_telemetry_migration/projection/projection_run_1.json

@@ -1,20 +1,3 @@
-```
-MATHILDE PROPRIETARY AND CONFIDENTIAL
-Copyright (c) 2024 MATHILDE. All Rights Reserved.
-
-This document contains trade secrets and confidential information owned
-exclusively by MATHILDE, protected under Swiss law (URG, UWG, Art. 162 StGB).
-
-PROHIBITED: Reproduction, copying, distribution, disclosure, or derivative
-works without prior written authorization from MATHILDE.
-
-ACCESS REQUIREMENT: Executed NDA with MATHILDE required. Unauthorized access
-or possession violates Swiss law. Violations subject to civil remedies,
-injunctive relief, damages, and criminal prosecution.
-
-Legal Contact: massimo.nicora@wnlegal.ch
-```
-
 # Research Brief: MBT Explicit Dictionary Source Composition V1
 
 Slug: `mbt_explicit_dictionary_source_composition_v1`
@@ -108,20 +91,20 @@ The change is owned by `crates/codegen` only:
 
 ## Evidence Table
 
-| Evidence type | Surface | Observation |
-| --- | --- | --- |
-| Protocol evidence | `AGENTS.md` | No code change is allowed before approved spec and approved implementation plan. |
-| Invariant evidence | `docs/invariants/core_invariants.md` | Codegen input must include the exact proto file set and root message. Generated code must be deterministic. |
-| Code-read evidence | `crates/codegen/src/config.rs` | `CodegenConfig` and `SchemaRequest` currently contain proto roots, schema, root, module, surface, adapter, and output, but no dictionary source list. |
-| Code-read evidence | `crates/codegen/src/config.rs` | CLI parsing currently rejects unknown arguments and has no `--dictionary-source` flag. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `load_schema_model` obtains the target source file and calls `dictionaries_from_file(&file.options(), ...)` only for that file. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `run_protoc` already passes `--include_imports`, so imported descriptors can be present in the descriptor pool. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `validate_dictionaries` rejects duplicate dictionary names and duplicate values. |
-| Code-read evidence | `crates/codegen/src/descriptor.rs` | `normalized_hash` already iterates `model.dictionaries`, so a composed dictionary set will be included in hash normalization if stored in `SchemaModel.dictionaries`. |
-| Code-read evidence | `crates/codegen/src/options.rs` | `dictionary_from_value` already parses the `dictionary_values` file option payload. |
-| Code-read evidence | `crates/codegen/src/tests/mod.rs` | Existing test helpers write temporary proto roots and root schema files; dictionary tests declare file-local dictionary values. |
-| Code-read evidence | `crates/codegen/src/tests/test_cli.rs` | Existing CLI tests verify explicit CLI shape and invalid argument rejection. |
-| Consumer spec evidence | `schema_registry_shared_instrument_dictionary_v1_SPEC.md` | `mathilde-mbt-schemas` is blocked until MBT can load dictionaries from target source plus explicit dictionary source files. |
+| Evidence type          | Surface                                                   | Observation                                                                                                                                                           |
+| ---------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Protocol evidence      | `AGENTS.md`                                               | No code change is allowed before approved spec and approved implementation plan.                                                                                      |
+| Invariant evidence     | `docs/invariants/core_invariants.md`                      | Codegen input must include the exact proto file set and root message. Generated code must be deterministic.                                                           |
+| Code-read evidence     | `crates/codegen/src/config.rs`                            | `CodegenConfig` and `SchemaRequest` currently contain proto roots, schema, root, module, surface, adapter, and output, but no dictionary source list.                 |
+| Code-read evidence     | `crates/codegen/src/config.rs`                            | CLI parsing currently rejects unknown arguments and has no `--dictionary-source` flag.                                                                                |
+| Code-read evidence     | `crates/codegen/src/descriptor.rs`                        | `load_schema_model` obtains the target source file and calls `dictionaries_from_file(&file.options(), ...)` only for that file.                                       |
+| Code-read evidence     | `crates/codegen/src/descriptor.rs`                        | `run_protoc` already passes `--include_imports`, so imported descriptors can be present in the descriptor pool.                                                       |
+| Code-read evidence     | `crates/codegen/src/descriptor.rs`                        | `validate_dictionaries` rejects duplicate dictionary names and duplicate values.                                                                                      |
+| Code-read evidence     | `crates/codegen/src/descriptor.rs`                        | `normalized_hash` already iterates `model.dictionaries`, so a composed dictionary set will be included in hash normalization if stored in `SchemaModel.dictionaries`. |
+| Code-read evidence     | `crates/codegen/src/options.rs`                           | `dictionary_from_value` already parses the `dictionary_values` file option payload.                                                                                   |
+| Code-read evidence     | `crates/codegen/src/tests/mod.rs`                         | Existing test helpers write temporary proto roots and root schema files; dictionary tests declare file-local dictionary values.                                       |
+| Code-read evidence     | `crates/codegen/src/tests/test_cli.rs`                    | Existing CLI tests verify explicit CLI shape and invalid argument rejection.                                                                                          |
+| Consumer spec evidence | `schema_registry_shared_instrument_dictionary_v1_SPEC.md` | `mathilde-mbt-schemas` is blocked until MBT can load dictionaries from target source plus explicit dictionary source files.                                           |
 
 ## Hypotheses
 
