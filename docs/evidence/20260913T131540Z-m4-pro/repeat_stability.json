@@ -1,0 +1,1202 @@
+{
+  "measurement_regression": {
+    "runs": 3,
+    "unstable_records": 46,
+    "rows": [
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 289184.499711,
+        "median_mb_per_second": 127.413977,
+        "max_min_ratio": 1.650666666665904,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 15820.782179,
+        "median_mb_per_second": 26.056758,
+        "max_min_ratio": 1.5125060042961338,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 37735.849057,
+        "median_mb_per_second": 18.317744,
+        "max_min_ratio": 1.73672727276009,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 153846.153846,
+        "median_mb_per_second": 235.044039,
+        "max_min_ratio": 1.6691371095746437,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 167841.55757,
+        "median_mb_per_second": 276.434297,
+        "max_min_ratio": 1.7095026127370694,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 124347.177319,
+        "median_mb_per_second": 60.360635,
+        "max_min_ratio": 2.792050691256444,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 240038.406145,
+        "median_mb_per_second": 366.727378,
+        "max_min_ratio": 1.5327419775665236,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 1624.69537,
+        "median_mb_per_second": 20.539247,
+        "max_min_ratio": 2.254944780017995,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 450.907451,
+        "median_mb_per_second": 7.597143,
+        "max_min_ratio": 1.600316987385178,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 10738.255034,
+        "median_mb_per_second": 11.490175,
+        "max_min_ratio": 1.5648962210845017,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 493420.241085,
+        "median_mb_per_second": 153.111532,
+        "max_min_ratio": 2.7722909090913648,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 190264.905828,
+        "median_mb_per_second": 310.429579,
+        "max_min_ratio": 3.4637683350232016,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 197612.446422,
+        "median_mb_per_second": 94.025423,
+        "max_min_ratio": 4.217831125207137,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 260303.461776,
+        "median_mb_per_second": 127.510903,
+        "max_min_ratio": 3.714405096141147,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 238284.163396,
+        "median_mb_per_second": 388.776123,
+        "max_min_ratio": 3.674604703042072,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 225649.079577,
+        "median_mb_per_second": 107.365454,
+        "max_min_ratio": 5.084427540105664,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 315789.141275,
+        "median_mb_per_second": 154.690831,
+        "max_min_ratio": 1.2155864447821756,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 568721.457292,
+        "median_mb_per_second": 236.43213,
+        "max_min_ratio": 1.3543611531735058,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 89652.569398,
+        "median_mb_per_second": 31.612531,
+        "max_min_ratio": 1.367943224510052,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 371978.142564,
+        "median_mb_per_second": 400.02578,
+        "max_min_ratio": 3.7571030421215865,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 549878.971638,
+        "median_mb_per_second": 170.052102,
+        "max_min_ratio": 1.6590735852460308,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 227242.669265,
+        "median_mb_per_second": 371.445161,
+        "max_min_ratio": 2.29555375465287,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 305289.072117,
+        "median_mb_per_second": 145.68905,
+        "max_min_ratio": 2.7922620798145075,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 356643.810554,
+        "median_mb_per_second": 172.830295,
+        "max_min_ratio": 1.7726389680091434,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 310358.14088,
+        "median_mb_per_second": 507.303624,
+        "max_min_ratio": 2.0162309144848765,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 437939.965438,
+        "median_mb_per_second": 208.992274,
+        "max_min_ratio": 1.4893668391868646,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 653808.434129,
+        "median_mb_per_second": 316.836858,
+        "max_min_ratio": 1.7233868385164006,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 2708192.281652,
+        "median_mb_per_second": 877.09627,
+        "max_min_ratio": 1.1020489251297723,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 528052.805281,
+        "median_mb_per_second": 115.262777,
+        "max_min_ratio": 1.2205909487218207,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 418089.564819,
+        "median_mb_per_second": 450.961742,
+        "max_min_ratio": 1.1322618194667078,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 591920.171278,
+        "median_mb_per_second": 182.975598,
+        "max_min_ratio": 1.2726593691841115,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 330182.838747,
+        "median_mb_per_second": 540.051174,
+        "max_min_ratio": 1.0367011308055805,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 445293.668948,
+        "median_mb_per_second": 212.629409,
+        "max_min_ratio": 1.0452008058393245,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 496853.180382,
+        "median_mb_per_second": 240.778401,
+        "max_min_ratio": 1.1136237050825086,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 473363.59389,
+        "median_mb_per_second": 774.239405,
+        "max_min_ratio": 1.140039725355323,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 619242.975462,
+        "median_mb_per_second": 295.690859,
+        "max_min_ratio": 1.2186996259483212,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 757623.396017,
+        "median_mb_per_second": 367.149406,
+        "max_min_ratio": 1.1085735124766516,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 3711732.04264,
+        "median_mb_per_second": 1166.51442,
+        "max_min_ratio": 1.161578947368199,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 924712.668656,
+        "median_mb_per_second": 187.979534,
+        "max_min_ratio": 1.047998073682305,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 679520.937739,
+        "median_mb_per_second": 733.671299,
+        "max_min_ratio": 1.467187795130961,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 945510.959796,
+        "median_mb_per_second": 292.166328,
+        "max_min_ratio": 1.1853548527815911,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 496965.404996,
+        "median_mb_per_second": 816.916601,
+        "max_min_ratio": 1.0406196379120691,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 587919.719562,
+        "median_mb_per_second": 280.885776,
+        "max_min_ratio": 1.0302998742766942,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 650960.466129,
+        "median_mb_per_second": 320.190856,
+        "max_min_ratio": 1.0779298690326655,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 589390.985831,
+        "median_mb_per_second": 968.846676,
+        "max_min_ratio": 1.119129686395254,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 726049.426396,
+        "median_mb_per_second": 346.878918,
+        "max_min_ratio": 1.021370273769276,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 847314.014574,
+        "median_mb_per_second": 416.772161,
+        "max_min_ratio": 1.032916584357664,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 3711147.991675,
+        "median_mb_per_second": 1141.094765,
+        "max_min_ratio": 1.0362447443333007,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1257914.325216,
+        "median_mb_per_second": 248.676016,
+        "max_min_ratio": 1.0734817135847416,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 931557.623034,
+        "median_mb_per_second": 1013.451195,
+        "max_min_ratio": 1.04543217283949,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_mbt_full_encode_inspect_checked",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 923527.678466,
+        "median_mb_per_second": 285.362475,
+        "max_min_ratio": 1.0659313197392248,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_json_checked",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 497384.070653,
+        "median_mb_per_second": 820.556583,
+        "max_min_ratio": 1.0179250299044156,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_checked",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 581695.919912,
+        "median_mb_per_second": 279.318834,
+        "max_min_ratio": 1.0053356269184772,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_csv_checked",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 655987.19513,
+        "median_mb_per_second": 326.495421,
+        "max_min_ratio": 1.04714596351431,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_metamorphose_json_trusted",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 595755.68636,
+        "median_mb_per_second": 982.844605,
+        "max_min_ratio": 1.0800765397786838,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_protobuf_trusted",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 727087.428381,
+        "median_mb_per_second": 349.13295,
+        "max_min_ratio": 1.0702484912006014,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_csv_trusted",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 846605.934374,
+        "median_mb_per_second": 421.369446,
+        "max_min_ratio": 1.0764517967002734,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_arrow_ipc_trusted",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 2659279.754821,
+        "median_mb_per_second": 815.594357,
+        "max_min_ratio": 1.2189830652683145,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_metamorphose_parquet_trusted",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 1260209.00037,
+        "median_mb_per_second": 209.212149,
+        "max_min_ratio": 1.2080254655833238,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_serde_json_baseline",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 958923.320895,
+        "median_mb_per_second": 1048.915753,
+        "max_min_ratio": 1.0440572050330594,
+        "unstable_above_seven_percent": false
+      }
+    ]
+  },
+  "measurement_projection": {
+    "runs": 3,
+    "unstable_records": 59,
+    "rows": [
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 750187.546887,
+        "median_mb_per_second": 206.045164,
+        "max_min_ratio": 1.2308402585401554,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 922509.225092,
+        "median_mb_per_second": 253.374726,
+        "max_min_ratio": 1.318777292577627,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 1848428.83549,
+        "median_mb_per_second": 507.686143,
+        "max_min_ratio": 1.1834061135367344,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 827814.569536,
+        "median_mb_per_second": 157.893099,
+        "max_min_ratio": 1.25,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 958772.770853,
+        "median_mb_per_second": 182.871393,
+        "max_min_ratio": 1.3517406962791887,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 3436426.116838,
+        "median_mb_per_second": 655.446266,
+        "max_min_ratio": 1.8028846153842746,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 232991.612302,
+        "median_mb_per_second": 88.879247,
+        "max_min_ratio": 1.2184827586203046,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 324359.390204,
+        "median_mb_per_second": 123.733288,
+        "max_min_ratio": 2.5489740611757443,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 406669.377796,
+        "median_mb_per_second": 155.132056,
+        "max_min_ratio": 1.5111607142845296,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 165508.109897,
+        "median_mb_per_second": 58.085427,
+        "max_min_ratio": 1.2959716134439994,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 300030.003,
+        "median_mb_per_second": 105.296174,
+        "max_min_ratio": 1.3712737127360906,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 1,
+        "runs": 3,
+        "median_rows_per_second": 545256.270447,
+        "median_mb_per_second": 191.35886,
+        "max_min_ratio": 1.57468506298845,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 1116270.762636,
+        "median_mb_per_second": 161.152905,
+        "max_min_ratio": 1.9173233554430007,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 1128872.031067,
+        "median_mb_per_second": 162.972115,
+        "max_min_ratio": 1.9561532100429946,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 1916957.405206,
+        "median_mb_per_second": 276.745808,
+        "max_min_ratio": 3.056000000000489,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 1437132.632971,
+        "median_mb_per_second": 86.86587,
+        "max_min_ratio": 1.706314828256955,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 1446654.611212,
+        "median_mb_per_second": 87.441415,
+        "max_min_ratio": 1.644329896907661,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 4790419.161677,
+        "median_mb_per_second": 289.551512,
+        "max_min_ratio": 2.0925778766685914,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 465477.836273,
+        "median_mb_per_second": 117.717183,
+        "max_min_ratio": 1.1480863505581598,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 522763.74738,
+        "median_mb_per_second": 132.204524,
+        "max_min_ratio": 2.599344999900767,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 532858.733821,
+        "median_mb_per_second": 134.757499,
+        "max_min_ratio": 1.8327904451690948,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 535833.891494,
+        "median_mb_per_second": 118.23773,
+        "max_min_ratio": 1.9408127524192509,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 543599.388994,
+        "median_mb_per_second": 119.951274,
+        "max_min_ratio": 1.8738715666838597,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 100,
+        "runs": 3,
+        "median_rows_per_second": 633745.690529,
+        "median_mb_per_second": 139.843061,
+        "max_min_ratio": 2.127988748242368,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 1161216.304406,
+        "median_mb_per_second": 166.418973,
+        "max_min_ratio": 1.4728984096067859,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 1168568.316841,
+        "median_mb_per_second": 167.472622,
+        "max_min_ratio": 1.422134092093046,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 2132196.162047,
+        "median_mb_per_second": 305.574332,
+        "max_min_ratio": 1.4118799016633554,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 1614856.68147,
+        "median_mb_per_second": 95.907988,
+        "max_min_ratio": 1.5892835692229017,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 1497198.741155,
+        "median_mb_per_second": 88.920163,
+        "max_min_ratio": 1.4541004625735268,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 5316773.356585,
+        "median_mb_per_second": 315.768602,
+        "max_min_ratio": 1.3782260699119206,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 696621.386277,
+        "median_mb_per_second": 176.608126,
+        "max_min_ratio": 1.2600636893191295,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 698771.978126,
+        "median_mb_per_second": 177.153347,
+        "max_min_ratio": 1.244743853032874,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 739417.45735,
+        "median_mb_per_second": 187.457828,
+        "max_min_ratio": 1.3416192168505467,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 785957.146473,
+        "median_mb_per_second": 172.602718,
+        "max_min_ratio": 1.2946094598312865,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 785802.744652,
+        "median_mb_per_second": 172.56881,
+        "max_min_ratio": 1.289851640050938,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 500,
+        "runs": 3,
+        "median_rows_per_second": 984573.69928,
+        "median_mb_per_second": 216.220563,
+        "max_min_ratio": 1.1295366763573909,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1723766.429649,
+        "median_mb_per_second": 246.813626,
+        "max_min_ratio": 1.1480463419290123,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1696352.841391,
+        "median_mb_per_second": 242.888472,
+        "max_min_ratio": 1.205804876155216,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 2952386.857155,
+        "median_mb_per_second": 422.730883,
+        "max_min_ratio": 1.2227155069549387,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 2242781.0485,
+        "median_mb_per_second": 132.905892,
+        "max_min_ratio": 1.153817005953706,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 2205475.313012,
+        "median_mb_per_second": 130.695176,
+        "max_min_ratio": 1.2162117751839772,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 6713301.73606,
+        "median_mb_per_second": 397.826331,
+        "max_min_ratio": 1.1013511023314517,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1073202.037796,
+        "median_mb_per_second": 272.163143,
+        "max_min_ratio": 1.230264058011551,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1096440.734089,
+        "median_mb_per_second": 278.056457,
+        "max_min_ratio": 1.1115731206918766,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1116434.020424,
+        "median_mb_per_second": 283.126737,
+        "max_min_ratio": 1.1110065606076331,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1045386.500297,
+        "median_mb_per_second": 229.437979,
+        "max_min_ratio": 1.196544453128273,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1085235.479821,
+        "median_mb_per_second": 238.183902,
+        "max_min_ratio": 1.0346749618676296,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 1000,
+        "runs": 3,
+        "median_rows_per_second": 1382489.116354,
+        "median_mb_per_second": 303.424149,
+        "max_min_ratio": 1.0227727540415847,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 2097645.393046,
+        "median_mb_per_second": 300.098187,
+        "max_min_ratio": 1.0702025625438494,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 2154746.572714,
+        "median_mb_per_second": 308.267328,
+        "max_min_ratio": 1.0801963478180276,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 3444465.5705,
+        "median_mb_per_second": 492.780084,
+        "max_min_ratio": 1.0815798303920683,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 2685675.519906,
+        "median_mb_per_second": 158.833451,
+        "max_min_ratio": 1.0672548002077789,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 2758430.453072,
+        "median_mb_per_second": 163.136248,
+        "max_min_ratio": 1.0970774579337736,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 8721878.4833,
+        "median_mb_per_second": 515.820339,
+        "max_min_ratio": 1.0571118068859684,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1051953.345869,
+        "median_mb_per_second": 268.654327,
+        "max_min_ratio": 1.1182370592444966,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1044722.807354,
+        "median_mb_per_second": 266.807748,
+        "max_min_ratio": 1.1518647174062169,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1087700.295931,
+        "median_mb_per_second": 277.783604,
+        "max_min_ratio": 1.082004323648527,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1049620.824477,
+        "median_mb_per_second": 230.242991,
+        "max_min_ratio": 1.044514491980214,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1103732.536468,
+        "median_mb_per_second": 242.112842,
+        "max_min_ratio": 1.1255578983552255,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 10000,
+        "runs": 3,
+        "median_rows_per_second": 1325549.354047,
+        "median_mb_per_second": 290.770191,
+        "max_min_ratio": 1.0765038353671472,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_public",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 2039046.060032,
+        "median_mb_per_second": 291.690562,
+        "max_min_ratio": 1.0967791864158527,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_archived",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 2032093.502962,
+        "median_mb_per_second": 290.695982,
+        "max_min_ratio": 1.2026536881310244,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_without_details_inspect",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 3456848.488716,
+        "median_mb_per_second": 494.510692,
+        "max_min_ratio": 1.2053466038862077,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "measurement_project_values_only_public",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 2461298.66289,
+        "median_mb_per_second": 145.534433,
+        "max_min_ratio": 1.0182867022936024,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_project_values_only_archived",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 2501751.163271,
+        "median_mb_per_second": 147.926354,
+        "max_min_ratio": 1.0088334373366852,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "measurement_project_values_only_inspect",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 8779984.3049,
+        "median_mb_per_second": 519.152778,
+        "max_min_ratio": 1.018052121965882,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_no_optional_public",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 967720.867264,
+        "median_mb_per_second": 256.452066,
+        "max_min_ratio": 1.0483946666146995,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_no_optional_archived",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 967830.523197,
+        "median_mb_per_second": 256.481125,
+        "max_min_ratio": 1.155237722347439,
+        "unstable_above_seven_percent": true
+      },
+      {
+        "label": "mbt_project_no_optional_inspect",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 1031420.949964,
+        "median_mb_per_second": 273.332985,
+        "max_min_ratio": 1.0489513616480375,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_numeric_only_public",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 1047970.86641,
+        "median_mb_per_second": 229.868646,
+        "max_min_ratio": 1.056791060686445,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_numeric_only_archived",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 1048288.541589,
+        "median_mb_per_second": 229.938327,
+        "max_min_ratio": 1.0508476236138624,
+        "unstable_above_seven_percent": false
+      },
+      {
+        "label": "mbt_project_numeric_only_inspect",
+        "row_count": 100000,
+        "runs": 3,
+        "median_rows_per_second": 1289966.100594,
+        "median_mb_per_second": 282.949432,
+        "max_min_ratio": 1.0552357241494943,
+        "unstable_above_seven_percent": false
+      }
+    ]
+  }
+}

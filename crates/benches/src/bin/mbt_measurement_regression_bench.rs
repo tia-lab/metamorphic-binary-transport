@@ -1,0 +1,267 @@
+use std::io;
+use std::path::PathBuf;
+use std::time::Instant;
+
+use mbt_benches::measurement_regression::{
+    BenchResult, Comparison, MAX_RESPONSE_BYTES, MeasurementRegressionRow, ROW_COUNTS,
+    measured_rates, measurement_rows, metadata_for_run, next_measurement_run_path,
+    response_checksum, serde_rows_from_measurement, write_report,
+};
+use mbt_schema_measurement::measurement_v1::MeasurementV1;
+
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("{err}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> BenchResult<()> {
+    let args = std::env::args().collect::<Vec<_>>();
+    let report_dir = parse_report_dir(&args[1..])?;
+    let command = args.join(" ");
+
+    let mut rows = Vec::with_capacity(60);
+    for row_count in ROW_COUNTS {
+        rows.extend(measure_row_count(row_count)?);
+    }
+
+    let path = next_measurement_run_path(&report_dir)?;
+    let metadata = metadata_for_run(command, &path)?;
+    write_report(&path, &metadata, &rows)?;
+    println!("{}", path.display());
+    Ok(())
+}
+
+fn parse_report_dir(args: &[String]) -> BenchResult<PathBuf> {
+    if args.len() != 2 || args[0] != "--report-dir" {
+        return Err(io::Error::other(
+            "usage: mbt_measurement_regression_bench --report-dir <path>",
+        )
+        .into());
+    }
+    Ok(PathBuf::from(&args[1]))
+}
+
+fn measure_row_count(row_count: usize) -> BenchResult<Vec<MeasurementRegressionRow>> {
+    // Each row count is measured across MBT, boundary formats, and the serde baseline.
+    let source_rows = measurement_rows(row_count);
+    let serde_rows = serde_rows_from_measurement(&source_rows);
+    let encoded = MeasurementV1::encode(&source_rows, MAX_RESPONSE_BYTES)?;
+    let inspection = MeasurementV1::inspect(&encoded)?;
+    let semantic_checksum = Some(inspection.semantic_checksum);
+    let minimal_projection_checksum = Some(inspection.minimal_projection_checksum);
+    let serde_baseline = measure_serde_json(row_count, &serde_rows)?;
+
+    let mut out = Vec::with_capacity(10);
+    out.push(measure_full_mbt(row_count, &source_rows)?);
+    let mut json_checked = measure_output(
+        "measurement_metamorphose_json_checked",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(MeasurementV1::metamorphose_json(
+                &encoded,
+                MAX_RESPONSE_BYTES,
+            )?)
+        },
+    )?;
+    json_checked.serde_json_comparison = Some(comparison_against_row(
+        json_checked.rows_per_second,
+        &serde_baseline,
+    ));
+    out.push(json_checked);
+    out.push(measure_output(
+        "measurement_metamorphose_protobuf_checked",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(MeasurementV1::metamorphose_protobuf(
+                &encoded,
+                MAX_RESPONSE_BYTES,
+            )?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_csv_checked",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(MeasurementV1::metamorphose_csv(
+                &encoded,
+                MAX_RESPONSE_BYTES,
+            )?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_json_trusted",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(unsafe {
+                MeasurementV1::metamorphose_json_trusted_unchecked(&encoded, MAX_RESPONSE_BYTES)
+            }?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_protobuf_trusted",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(unsafe {
+                MeasurementV1::metamorphose_protobuf_trusted_unchecked(&encoded, MAX_RESPONSE_BYTES)
+            }?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_csv_trusted",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(unsafe {
+                MeasurementV1::metamorphose_csv_trusted_unchecked(&encoded, MAX_RESPONSE_BYTES)
+            }?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_arrow_ipc_trusted",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(unsafe {
+                MeasurementV1::metamorphose_arrow_ipc_trusted_unchecked(
+                    &encoded,
+                    MAX_RESPONSE_BYTES,
+                )
+            }?)
+        },
+    )?);
+    out.push(measure_output(
+        "measurement_metamorphose_parquet_trusted",
+        row_count,
+        semantic_checksum,
+        minimal_projection_checksum,
+        None,
+        || {
+            Ok(unsafe {
+                MeasurementV1::metamorphose_parquet_trusted_unchecked(&encoded, MAX_RESPONSE_BYTES)
+            }?)
+        },
+    )?);
+    out.push(serde_baseline);
+    Ok(out)
+}
+
+fn measure_full_mbt(
+    row_count: usize,
+    source_rows: &[mbt_schema_measurement::measurement_v1::MeasurementRowV1],
+) -> BenchResult<MeasurementRegressionRow> {
+    // Full MBT timing includes encode plus checked inspection by design.
+    let start = Instant::now();
+    let bytes = MeasurementV1::encode(source_rows, MAX_RESPONSE_BYTES)?;
+    let inspection = MeasurementV1::inspect(&bytes)?;
+    let milliseconds = start.elapsed().as_secs_f64() * 1_000.0;
+    let (rows_per_second, mb_per_second) = measured_rates(row_count, bytes.len(), milliseconds);
+    let label = "measurement_mbt_full_encode_inspect_checked";
+    Ok(MeasurementRegressionRow {
+        label,
+        row_count,
+        output_bytes: bytes.len(),
+        total_milliseconds: milliseconds,
+        rows_per_second,
+        mb_per_second,
+        response_checksum: response_checksum(&bytes),
+        semantic_checksum: Some(inspection.semantic_checksum),
+        minimal_projection_checksum: Some(inspection.minimal_projection_checksum),
+        reference_baseline_label: None,
+        reference_comparison: None,
+        serde_json_comparison: None,
+    })
+}
+
+fn measure_output<F>(
+    label: &'static str,
+    row_count: usize,
+    semantic_checksum: Option<u64>,
+    minimal_projection_checksum: Option<u64>,
+    serde_json_comparison: Option<Comparison>,
+    run: F,
+) -> BenchResult<MeasurementRegressionRow>
+where
+    F: FnOnce() -> BenchResult<Vec<u8>>,
+{
+    // Boundary-format timing starts inside the supplied closure.
+    let start = Instant::now();
+    let bytes = run()?;
+    let milliseconds = start.elapsed().as_secs_f64() * 1_000.0;
+    let (rows_per_second, mb_per_second) = measured_rates(row_count, bytes.len(), milliseconds);
+    Ok(MeasurementRegressionRow {
+        label,
+        row_count,
+        output_bytes: bytes.len(),
+        total_milliseconds: milliseconds,
+        rows_per_second,
+        mb_per_second,
+        response_checksum: response_checksum(&bytes),
+        semantic_checksum,
+        minimal_projection_checksum,
+        reference_baseline_label: None,
+        reference_comparison: None,
+        serde_json_comparison,
+    })
+}
+
+fn measure_serde_json(
+    row_count: usize,
+    rows: &[mbt_benches::measurement_regression::SerdeMeasurementRow],
+) -> BenchResult<MeasurementRegressionRow> {
+    // Serde JSON is the direct Rust DTO baseline for the same logical rows.
+    let start = Instant::now();
+    let bytes = serde_json::to_vec(rows)?;
+    let milliseconds = start.elapsed().as_secs_f64() * 1_000.0;
+    let (rows_per_second, mb_per_second) = measured_rates(row_count, bytes.len(), milliseconds);
+    Ok(MeasurementRegressionRow {
+        label: "measurement_serde_json_baseline",
+        row_count,
+        output_bytes: bytes.len(),
+        total_milliseconds: milliseconds,
+        rows_per_second,
+        mb_per_second,
+        response_checksum: response_checksum(&bytes),
+        semantic_checksum: None,
+        minimal_projection_checksum: None,
+        reference_baseline_label: None,
+        reference_comparison: None,
+        serde_json_comparison: None,
+    })
+}
+
+fn comparison_against_row(
+    observed_rows_per_second: f64,
+    baseline: &MeasurementRegressionRow,
+) -> Comparison {
+    let ratio_rows_per_second = if baseline.rows_per_second <= 0.0 {
+        0.0
+    } else {
+        observed_rows_per_second / baseline.rows_per_second
+    };
+    Comparison {
+        rows_per_second: baseline.rows_per_second,
+        mb_per_second: baseline.mb_per_second,
+        ratio_rows_per_second,
+    }
+}

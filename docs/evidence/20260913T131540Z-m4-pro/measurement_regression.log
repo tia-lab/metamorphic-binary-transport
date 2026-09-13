@@ -1,0 +1,11 @@
+Command: cargo run --release -p mbt_benches --bin mbt_measurement_regression_bench -- --report-dir docs/evidence/20260913T131540Z-m4-pro/measurement_regression
+Machine: machine.json
+Start UTC: 2026-09-13T13:16:05.144762+00:00
+
+   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `release` profile [optimized] target(s) in 0.35s
+     Running `target/release/mbt_measurement_regression_bench --report-dir docs/evidence/20260913T131540Z-m4-pro/measurement_regression`
+docs/evidence/20260913T131540Z-m4-pro/measurement_regression/measurement_regression_run_1.json
+
+Exit code: 0
+End UTC: 2026-09-13T13:16:08.487187+00:00

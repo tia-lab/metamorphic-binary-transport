@@ -1,0 +1,421 @@
+Command: cargo test --workspace --all-features
+Machine: machine.json
+Start UTC: 2026-09-13T12:53:48.375129+00:00
+
+   Compiling mbt_schema_test_compatibility v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/test_compatibility_core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.13s
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_arrow-14143d543979488c)
+
+running 4 tests
+test tests::optional_numeric_column_preserves_nulls ... ok
+test tests::record_batch_enforces_size_cap_and_has_stable_checksum ... ok
+test tests::required_numeric_column_becomes_arrow_array ... ok
+test tests::utf8_and_list_columns_preserve_offsets ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_arrow_ipc-978d21629bcef861)
+
+running 3 tests
+test tests::ipc_stream_enforces_response_cap ... ok
+test tests::ipc_checksum_is_stable ... ok
+test tests::ipc_stream_roundtrips_one_record_batch ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_csv-4bec0aa55d48a2d0)
+
+running 5 tests
+test tests::csv_array_string_cap_checks_every_escape ... ok
+test tests::csv_writer_enforces_cap ... ok
+test tests::csv_writer_rejects_non_finite_numbers ... ok
+test tests::csv_writer_streams_cells_without_csv_crate ... ok
+test tests::csv_array_strings_roundtrip_with_standard_readers ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_json-cd94d946e3c026d4)
+
+running 3 tests
+test tests::json_writer_rejects_non_finite_numbers ... ok
+test tests::json_writer_streams_object_without_serde ... ok
+test tests::json_writer_enforces_cap ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_parquet-b36e9f1afada62d8)
+
+running 3 tests
+test tests::parquet_enforces_response_cap ... ok
+test tests::parquet_checksum_is_stable ... ok
+test tests::parquet_roundtrips_one_record_batch ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_protobuf-7962675b2fff78d7)
+
+running 4 tests
+test tests::protobuf_writer_emits_wire_bytes_without_dto ... ok
+test tests::protobuf_writer_rejects_non_finite_numbers ... ok
+test tests::protobuf_writer_enforces_cap_after_encode ... ok
+test tests::protobuf_writer_emits_utc_string_field ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_benches-d4aebf9a3ad5b807)
+
+running 9 tests
+test tests::test_projection_bench_output::required_projection_labels_and_row_counts_are_bound ... ok
+test tests::test_compression_bench_output::compression_row_counts_are_bound ... ok
+test tests::test_compression_bench_output::sample_compression_report_records_zstd_level_three ... ok
+test tests::test_compression_bench_output::compression_lanes_are_bound ... ok
+test tests::test_telemetry_regression_bench_output::labels_and_fixture_are_bound ... ok
+test tests::test_compression_bench_output::next_compression_run_path_refuses_overwrite ... ok
+test tests::test_compression_bench_output::compression_report_uses_required_fields ... ok
+test tests::test_telemetry_regression_bench_output::report_binds_new_dataset_and_refuses_overwrite ... ok
+test tests::test_projection_bench_output::projection_report_uses_stable_field_order ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running unittests src/bin/mbt_compression_bench.rs (target/debug/deps/mbt_compression_bench-144a059dc885b155)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mbt_projection_bench.rs (target/debug/deps/mbt_projection_bench-62b0a3995b316892)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mbt_telemetry_regression_bench.rs (target/debug/deps/mbt_telemetry_regression_bench-8f25c585a0b1ff7e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_codegen-91e0fa10d2369ee4)
+
+running 45 tests
+test tests::test_cli::cli_rejects_empty_dictionary_source ... ok
+test tests::test_cli::cli_rejects_invalid_argument_shapes ... ok
+test tests::test_cli::cli_accepts_repeated_dictionary_source_flags ... ok
+test tests::test_cli::cli_accepts_projection_surface ... ok
+test tests::test_cli::cli_requires_adapter_for_metamorphose_surface ... ok
+test tests::test_cli::cli_shape_is_explicit ... ok
+test tests::test_descriptor::projection_definitions_are_parsed_from_root_options ... ok
+test tests::test_descriptor::source_file_local_dictionary_behavior_still_works ... ok
+test tests::test_descriptor::derived_utc_fields_are_row_format_only ... ok
+test tests::test_model::module_name_validation_is_strict ... ok
+test tests::test_options::options_file_is_proto2_and_mbt_only ... ok
+test tests::test_descriptor::duplicate_dictionary_names_across_sources_fail ... ok
+test tests::test_descriptor::missing_explicit_dictionary_source_fails ... ok
+test tests::test_descriptor::imported_dictionary_source_satisfies_dictionary_field ... ok
+test tests::test_model::field_kind_mapping_covers_core_scalars_and_arrays ... ok
+test tests::test_descriptor::schema_hash_changes_when_explicit_dictionary_values_change ... ok
+test tests::test_options::extension_lookup_succeeds_through_descriptor_load ... ok
+test tests::test_rust_emit_core::core_surface_ignores_projection_declarations_and_emits_no_projection_symbols ... ok
+test tests::test_descriptor::alias_and_projection_do_not_affect_core_hash_or_fields ... ok
+test tests::test_descriptor::projection_hash_changes_with_projection_shape ... ok
+test tests::test_rust_emit_core::generated_wide_presence_source_has_presence_words ... ok
+test tests::test_cli::check_detects_generated_diff ... ok
+test tests::test_model::hash_changes_only_for_core_included_changes ... ok
+test tests::test_rust_emit_metamorphose::arrow_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_core::projection_surface_emits_projected_schema_and_source_projection_api ... ok
+test tests::test_rust_emit_core::generated_fixture_smoke_crate_compiles ... ok
+test tests::test_rust_emit_metamorphose::arrow_ipc_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_core::generated_core_source_is_deterministic_and_core_only ... ok
+test tests::test_rust_emit_metamorphose::csv_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_metamorphose::csv_adapter_uses_static_header_and_checked_writer ... ok
+test tests::test_descriptor::invalid_projection_definitions_fail_before_emission ... ok
+test tests::test_rust_emit_metamorphose::csv_bitmask_strings_use_nested_array_escaping ... ok
+test tests::test_rust_emit_metamorphose::json_adapter_surface_is_schema_local_and_checked ... ok
+test tests::test_rust_emit_metamorphose::json_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_descriptor::valid_fixture_schemas_load ... ok
+test tests::test_rust_emit_metamorphose::parquet_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_metamorphose::projection_adapter_presence_checks_use_projected_presence_constants ... ok
+test tests::test_rust_emit_metamorphose::transponding_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_metamorphose::protobuf_adapter_emits_source_and_projection_marker_sections ... ok
+test tests::test_rust_emit_metamorphose::protobuf_adapter_uses_proto_numbers_and_no_dto_materialization ... ok
+test tests::test_rust_emit_metamorphose::transponding_adapter_is_hidden_and_schema_specific ... ok
+test tests::test_rust_emit_projection_direct_writer::projection_surface_emits_direct_writer_not_owned_row_copy ... ok
+test tests::test_rust_emit_metamorphose::arrow_family_adapters_keep_dependency_boundaries ... ok
+test tests::test_rust_emit_metamorphose::derived_utc_codegen_is_row_format_only_and_nested_for_protobuf ... ok
+test tests::test_descriptor::invalid_fixture_schemas_fail_before_emission ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running unittests src/main.rs (target/debug/deps/mbt_codegen-a61395bb80f9a35a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_compression-952ed783c3422ab6)
+
+running 9 tests
+test tests::test_runtime::default_config_uses_level_three ... ok
+test tests::test_runtime::decompress_rejects_invalid_zstd_bytes ... ok
+test tests::test_runtime::compress_into_reuses_preallocated_buffer_on_success ... ok
+test tests::test_runtime::compress_into_rejects_compressed_cap_overflow ... ok
+test tests::test_runtime::compress_and_decompress_preserve_bytes ... ok
+test tests::test_runtime::decompress_into_rejects_decompressed_cap_overflow ... ok
+test tests::test_runtime::compress_into_and_decompress_into_preserve_bytes ... ok
+test tests::test_runtime::decompress_rejects_truncated_zstd_bytes ... ok
+test tests::test_runtime::decompress_into_reuses_preallocated_buffer_on_success ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_core-8a8a002225014b79)
+
+running 29 tests
+test tests::test_codec::response_checksum_delegates_to_fnv ... ok
+test tests::test_envelope::checked_validation_accepts_valid_payload ... ok
+test tests::test_envelope::checked_validation_rejects_encoding_kind ... ok
+test tests::test_envelope::checked_validation_rejects_flags ... ok
+test tests::test_envelope::checked_validation_rejects_header_length ... ok
+test tests::test_envelope::checked_validation_rejects_payload_checksum ... ok
+test tests::test_envelope::checked_validation_rejects_payload_length ... ok
+test tests::test_envelope::checked_validation_rejects_schema_hash ... ok
+test tests::test_envelope::checked_validation_rejects_schema_id ... ok
+test tests::test_envelope::checked_validation_rejects_schema_version ... ok
+test tests::test_envelope::checked_validation_rejects_transport_version ... ok
+test tests::test_envelope::decode_rejects_corrupt_magic ... ok
+test tests::test_envelope::decode_rejects_non_zero_reserved_short ... ok
+test tests::test_envelope::decode_rejects_non_zero_reserved_tail ... ok
+test tests::test_envelope::decode_rejects_truncated_payload ... ok
+test tests::test_envelope::default_build_id_is_deterministic ... ok
+test tests::test_envelope::fnv_vectors_match_contract ... ok
+test tests::test_envelope::header_round_trips_without_payload ... ok
+test tests::test_envelope::normalized_proto_hash_treats_lf_and_crlf_equally ... ok
+test tests::test_envelope::trusted_payload_rejects_length_mismatch ... ok
+test tests::test_envelope::trusted_payload_rejects_schema_mismatch ... ok
+test tests::test_envelope::trusted_payload_returns_payload_without_checksum_requirement ... ok
+test tests::test_output::base64_writer_handles_padding ... ok
+test tests::test_output::checked_bytes_enforces_response_cap ... ok
+test tests::test_output::checked_len_add_reports_overflow_and_cap ... ok
+test tests::test_output::protobuf_length_helpers_match_wire_shape ... ok
+test tests::test_output::utc_helpers_format_epoch_without_allocation ... ok
+test tests::test_runtime::runtime_dispatch_propagates_schema_errors ... ok
+test tests::test_runtime::runtime_dispatches_to_schema_implementation ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_metamorphose-7dd4f842d2858c3f)
+
+running 2 tests
+test tests::test_runtime::row_format_decode_dispatches_to_selected_schema_trait ... ok
+test tests::test_runtime::format_specific_helpers_dispatch_to_selected_schema_trait ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_schema_telemetry-3d4c465f71a3bdd1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_projection_metamorphose.rs (target/debug/deps/test_projection_metamorphose-a8604e48db73eef0)
+
+running 4 tests
+test csv_values_and_trusted_parity ... ok
+test protobuf_values_and_trusted_parity ... ok
+test json_values_and_trusted_parity ... ok
+test columnar_values_and_trusted_parity ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_telemetry_failures.rs (target/debug/deps/test_telemetry_failures-3cdaab47507686d7)
+
+running 2 tests
+test invalid_values_fail_before_encoding ... ok
+test corrupt_partial_and_old_identity_fail ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_metamorphose.rs (target/debug/deps/test_telemetry_metamorphose-54d98fac2ce5cc7d)
+
+running 4 tests
+test json_values_and_trusted_parity ... ok
+test protobuf_values_and_trusted_parity ... ok
+test csv_values_and_trusted_parity ... ok
+test columnar_values_and_trusted_parity ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/test_telemetry_projection.rs (target/debug/deps/test_telemetry_projection-4c8ac2081e68d5c5)
+
+running 2 tests
+test direct_projection_helpers_do_not_copy_owned_rows ... ok
+test projection_preserves_values_and_checked_trusted_parity ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_roundtrip.rs (target/debug/deps/test_telemetry_roundtrip-de4133e12b300bb9)
+
+running 1 test
+test every_field_roundtrips_and_replays ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_telemetry_shape.rs (target/debug/deps/test_telemetry_shape-a0fe39c58ecc58ea)
+
+running 1 test
+test generated_dictionary_and_key_shape_matches_fresh_inspection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_schema_test_compatibility-e010ac76487c495c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_determinism.rs (target/debug/deps/test_determinism-0fe9a6a4958ef6c4)
+
+running 1 test
+test encoding_and_inspection_are_deterministic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_failures.rs (target/debug/deps/test_failures-12f9240c13903b73)
+
+running 12 tests
+test invalid_schema_version_fails ... ok
+test invalid_dictionary_ordinal_fails ... ok
+test nonfinite_f32_fails ... ok
+test absent_nullable_array_with_values_fails ... ok
+test invalid_bitmask_fails ... ok
+test absent_optional_scalar_with_value_fails ... ok
+test nonfinite_f64_fails ... ok
+test corrupt_magic_fails ... ok
+test response_cap_fails ... ok
+test truncated_envelope_fails ... ok
+test wrong_schema_id_fails ... ok
+test wrong_schema_hash_fails ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_projection.rs (target/debug/deps/test_projection-2d8b28afae06b3f5)
+
+running 3 tests
+test direct_projection_helpers_do_not_copy_owned_rows ... ok
+test no_optional_projection_checked_and_trusted_match ... ok
+test numeric_only_projection_repacks_presence_bits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_projection_metamorphose.rs (target/debug/deps/test_projection_metamorphose-e90d894793350c3a)
+
+running 2 tests
+test no_optional_projection_metamorphoses_required_field_shapes ... ok
+test numeric_only_projection_metamorphoses_nullable_numeric_arrays ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_roundtrip.rs (target/debug/deps/test_roundtrip-a9f1a723e8d8a2e8)
+
+running 1 test
+test roundtrip_covers_all_fields ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_transponding-b7977c8199bea0c4)
+
+running 5 tests
+test tests::test_runtime::checksum_and_size_helpers_are_deterministic ... ok
+test tests::test_runtime::list_column_preserves_null_versus_empty_array ... ok
+test tests::test_runtime::optional_numeric_column_keeps_defaults_and_validity_separate ... ok
+test tests::test_runtime::validity_bitmap_rejects_out_of_bounds_present_bit ... ok
+test tests::test_runtime::validity_bitmap_tracks_present_rows ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_arrow
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_arrow_ipc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_csv
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_json
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_parquet
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_adapter_protobuf
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_benches
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_codegen
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_compression
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_metamorphose
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_schema_telemetry
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_schema_test_compatibility
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mbt_transponding
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+Exit code: 0
+End UTC: 2026-09-13T12:53:52.804794+00:00

@@ -1,0 +1,8 @@
+Command: cargo build --release -p mbt_schema_measurement --all-features
+Machine: machine.json
+Start UTC: 2026-09-13T13:17:24.685687+00:00
+
+   Compiling mbt_schema_measurement v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/measurement_core)
+    Finished `release` profile [optimized] target(s) in 1.84s
+
+Exit code: 0

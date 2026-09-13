@@ -1,0 +1,8 @@
+Command: cargo check -p mbt_schema_measurement --no-default-features
+Machine: machine.json
+Start UTC: 2026-09-13T13:17:23.563206+00:00
+
+    Checking mbt_schema_measurement v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/measurement_core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.52s
+
+Exit code: 0

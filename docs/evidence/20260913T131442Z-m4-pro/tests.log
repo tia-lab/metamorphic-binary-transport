@@ -1,0 +1,107 @@
+Command: cargo test --workspace --all-features
+Machine: machine.json
+Start UTC: 2026-09-13T13:14:50.121795+00:00
+
+   Compiling mbt_schema_measurement v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/measurement_core)
+   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.11s
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_arrow-14143d543979488c)
+
+running 4 tests
+test tests::required_numeric_column_becomes_arrow_array ... ok
+test tests::optional_numeric_column_preserves_nulls ... ok
+test tests::record_batch_enforces_size_cap_and_has_stable_checksum ... ok
+test tests::utf8_and_list_columns_preserve_offsets ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_arrow_ipc-978d21629bcef861)
+
+running 3 tests
+test tests::ipc_stream_enforces_response_cap ... ok
+test tests::ipc_checksum_is_stable ... ok
+test tests::ipc_stream_roundtrips_one_record_batch ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_csv-4bec0aa55d48a2d0)
+
+running 5 tests
+test tests::csv_writer_enforces_cap ... ok
+test tests::csv_writer_rejects_non_finite_numbers ... ok
+test tests::csv_writer_streams_cells_without_csv_crate ... ok
+test tests::csv_array_string_cap_checks_every_escape ... ok
+test tests::csv_array_strings_roundtrip_with_standard_readers ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_json-cd94d946e3c026d4)
+
+running 3 tests
+test tests::json_writer_enforces_cap ... ok
+test tests::json_writer_rejects_non_finite_numbers ... ok
+test tests::json_writer_streams_object_without_serde ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_parquet-b36e9f1afada62d8)
+
+running 3 tests
+test tests::parquet_enforces_response_cap ... ok
+test tests::parquet_checksum_is_stable ... ok
+test tests::parquet_roundtrips_one_record_batch ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_adapter_protobuf-7962675b2fff78d7)
+
+running 4 tests
+test tests::protobuf_writer_enforces_cap_after_encode ... ok
+test tests::protobuf_writer_rejects_non_finite_numbers ... ok
+test tests::protobuf_writer_emits_wire_bytes_without_dto ... ok
+test tests::protobuf_writer_emits_utc_string_field ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/mbt_benches-34aabbf2d3b7854a)
+
+running 23 tests
+test tests::test_compression_bench_output::sample_compression_report_records_zstd_level_three ... ok
+test tests::test_measurement_compression_bench_output::compression_lanes_are_bound ... ok
+test tests::test_compression_bench_output::compression_row_counts_are_bound ... ok
+test tests::test_measurement_projection_bench_output::required_projection_labels_and_row_counts_are_bound ... ok
+test tests::test_measurement_compression_bench_output::compression_row_counts_are_bound ... ok
+test tests::test_measurement_compression_bench_output::sample_compression_report_records_zstd_level_three ... ok
+test tests::test_compression_bench_output::compression_lanes_are_bound ... ok
+test tests::test_measurement_projection_bench_output::reference_identity_and_rates_are_required ... ok
+test tests::test_measurement_regression_bench_output::required_labels_are_exact ... ok
+test tests::test_measurement_regression_bench_output::serde_rows_preserve_selected_fields ... ok
+test tests::test_projection_bench_output::required_projection_labels_and_row_counts_are_bound ... ok
+test tests::test_telemetry_regression_bench_output::labels_and_fixture_are_bound ... ok
+test tests::test_compression_bench_output::next_compression_run_path_refuses_overwrite ... ok
+test tests::test_measurement_compression_bench_output::next_compression_run_path_refuses_overwrite ... FAILED
+test tests::test_measurement_projection_bench_output::next_run_path_refuses_overwrite ... ok
+test tests::test_measurement_projection_bench_output::projection_report_uses_stable_field_order ... ok
+test tests::test_measurement_regression_bench_output::next_run_path_refuses_overwrite ... ok
+test tests::test_measurement_regression_bench_output::report_contains_required_fields ... ok
+test tests::test_measurement_regression_bench_output::metadata_points_to_reference_parity_evidence ... ok
+test tests::test_measurement_compression_bench_output::compression_report_uses_required_fields ... ok
+test tests::test_compression_bench_output::compression_report_uses_required_fields ... ok
+test tests::test_telemetry_regression_bench_output::report_binds_new_dataset_and_refuses_overwrite ... ok
+test tests::test_projection_bench_output::projection_report_uses_stable_field_order ... ok
+
+failures:
+
+---- tests::test_measurement_compression_bench_output::next_compression_run_path_refuses_overwrite stdout ----
+Error: Os { code: 22, kind: InvalidInput, message: "Invalid argument" }
+
+
+failures:
+    tests::test_measurement_compression_bench_output::next_compression_run_path_refuses_overwrite
+
+test result: FAILED. 22 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p mbt_benches --lib`
+
+Exit code: 101
+End UTC: 2026-09-13T13:14:52.780766+00:00

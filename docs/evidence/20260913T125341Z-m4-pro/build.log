@@ -1,0 +1,8 @@
+Command: cargo build --all-features
+Machine: machine.json
+Start UTC: 2026-09-13T12:53:53.080765+00:00
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+
+Exit code: 0
+End UTC: 2026-09-13T12:53:53.147998+00:00

@@ -1,3 +1,7 @@
 mod test_compression_bench_output;
 mod test_projection_bench_output;
 mod test_telemetry_regression_bench_output;
+
+mod test_measurement_compression_bench_output;
+mod test_measurement_projection_bench_output;
+mod test_measurement_regression_bench_output;

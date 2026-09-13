@@ -14,13 +14,14 @@ members = [
     "crates/adapters/parquet",
     "crates/benches",
     "crates/schemas/telemetry_core",
+    "crates/schemas/measurement_core",
     "crates/schemas/test_compatibility_core",
 ]
 
 [workspace.package]
 version = "0.1.2"
 edition = "2024"
-authors = ["Tia lab: tia@mathilde.dev"]
+authors = ["MBT contributors"]
 
 [workspace.dependencies]
 rkyv = { version = "=0.8.16", features = ["unaligned"] }

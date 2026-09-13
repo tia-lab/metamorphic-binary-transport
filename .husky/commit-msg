@@ -14,4 +14,4 @@ if ! echo "$ORIGINAL_MSG" | grep -qE '^\[[0-9]+\]'; then
 fi
 
 # Run commitlint on the modified message
-/home/tia/.bun/bin/bunx commitlint --edit "$1"
+bunx commitlint --edit "$1"

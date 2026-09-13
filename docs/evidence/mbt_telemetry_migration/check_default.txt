@@ -1,9 +1,0 @@
-    Checking munge v0.4.7
-    Checking thiserror v2.0.17
-    Checking rkyv v0.8.16
-    Checking mbt_core v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/core)
-    Checking mbt_schema_telemetry v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.28s
-real 1.34
-user 0.96
-sys 0.24

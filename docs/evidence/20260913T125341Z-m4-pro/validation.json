@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "source_unchanged": true,
+  "benchmarks": {
+    "regression": {
+      "records": 54,
+      "validation": "passed",
+      "report": "regression/telemetry_regression_run_1.json",
+      "mode": "full"
+    },
+    "projection": {
+      "records": 54,
+      "validation": "passed",
+      "report": "projection/projection_run_1.json",
+      "mode": "full"
+    },
+    "compression": {
+      "records": 12,
+      "validation": "passed",
+      "report": "compression/compression_run_1.json",
+      "mode": "full"
+    }
+  }
+}

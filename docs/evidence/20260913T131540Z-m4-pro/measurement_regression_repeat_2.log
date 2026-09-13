@@ -1,0 +1,9 @@
+Command: cargo run --release -p mbt_benches --bin mbt_measurement_regression_bench -- --report-dir docs/evidence/20260913T131540Z-m4-pro/measurement_regression
+Machine: machine.json
+Start UTC: 2026-09-13T13:17:07.069419+00:00
+
+    Finished `release` profile [optimized] target(s) in 0.21s
+     Running `target/release/mbt_measurement_regression_bench --report-dir docs/evidence/20260913T131540Z-m4-pro/measurement_regression`
+docs/evidence/20260913T131540Z-m4-pro/measurement_regression/measurement_regression_run_2.json
+
+Exit code: 0

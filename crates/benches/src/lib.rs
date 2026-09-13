@@ -10,3 +10,7 @@ pub mod telemetry_regression;
 
 #[cfg(test)]
 mod tests;
+
+pub mod measurement_compression;
+pub mod measurement_projection;
+pub mod measurement_regression;

@@ -47,10 +47,10 @@ fn full_row() -> TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal: TENANT_ALPHA,
         entity_ordinal: ENTITY_ENTITY_A,
-        close_ms: 1_000,
+        recorded_at_ms: 1_000,
         status_ordinal: STATUS_ACTIVE,
         optional_status_ordinal: STATUS_PAUSED,
-        venues_mask: (1 << VENUE_SITE_A_BIT) | (1 << VENUE_SITE_B_BIT),
+        sites_mask: (1 << SITE_SITE_A_BIT) | (1 << SITE_SITE_B_BIT),
         required_i64: -10,
         optional_i64: 20,
         required_i32: -30,
@@ -90,10 +90,10 @@ fn absent_row() -> TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal: TENANT_ALPHA,
         entity_ordinal: ENTITY_ENTITY_B,
-        close_ms: 2_000,
+        recorded_at_ms: 2_000,
         status_ordinal: STATUS_CLOSED,
         optional_status_ordinal: 0,
-        venues_mask: 1 << VENUE_SITE_C_BIT,
+        sites_mask: 1 << SITE_SITE_C_BIT,
         required_i64: -110,
         optional_i64: 0,
         required_i32: -130,
@@ -133,10 +133,10 @@ fn present_empty_array_row() -> TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal: TENANT_BETA,
         entity_ordinal: ENTITY_ENTITY_A,
-        close_ms: 3_000,
+        recorded_at_ms: 3_000,
         status_ordinal: STATUS_PAUSED,
         optional_status_ordinal: 0,
-        venues_mask: 0,
+        sites_mask: 0,
         required_i64: -210,
         optional_i64: 0,
         required_i32: -230,
@@ -184,10 +184,10 @@ fn assert_row(
     assert_eq!(actual.tenant()?, tenant_symbol(expected.tenant_ordinal)?);
     assert_eq!(actual.entity_ordinal(), expected.entity_ordinal);
     assert_eq!(actual.entity()?, entity_symbol(expected.entity_ordinal)?);
-    assert_eq!(actual.close_ms(), expected.close_ms);
+    assert_eq!(actual.recorded_at_ms(), expected.recorded_at_ms);
     assert_eq!(actual.status_ordinal(), expected.status_ordinal);
     assert_eq!(actual.status()?, status_symbol(expected.status_ordinal)?);
-    assert_eq!(actual.venues_mask(), expected.venues_mask);
+    assert_eq!(actual.sites_mask(), expected.sites_mask);
     assert_eq!(actual.required_i64(), expected.required_i64);
     assert_eq!(actual.optional_i64(), expected.optional_i64);
     assert_eq!(actual.required_i32(), expected.required_i32);

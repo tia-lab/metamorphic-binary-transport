@@ -1,0 +1,70 @@
+{
+  "recovered_tests": 21,
+  "preserved_assertions": 76,
+  "files": [
+    {
+      "file": "crates/schemas/measurement_core/tests/test_measurement_shape.rs",
+      "recovered_tests": [
+        "measurement_projection_inspect_binds_expected_shape",
+        "measurement_dictionary_constants_are_generated"
+      ],
+      "preserved_assertions": 16
+    },
+    {
+      "file": "crates/schemas/measurement_core/tests/test_measurement_metamorphose.rs",
+      "recovered_tests": [
+        "measurement_json_csv_emit_derived_utc_outputs",
+        "measurement_protobuf_generated_source_keeps_metadata_nested"
+      ],
+      "preserved_assertions": 9
+    },
+    {
+      "file": "crates/schemas/measurement_core/tests/test_projection_metamorphose.rs",
+      "recovered_tests": [
+        "without_details_projection_metamorphoses_all_enabled_formats"
+      ],
+      "preserved_assertions": 27
+    },
+    {
+      "file": "crates/schemas/measurement_core/tests/test_measurement_projection.rs",
+      "recovered_tests": [
+        "without_details_projection_checked_and_trusted_match",
+        "values_only_projection_checked_and_trusted_match",
+        "direct_projection_helpers_do_not_copy_owned_rows"
+      ],
+      "preserved_assertions": 10
+    },
+    {
+      "file": "crates/benches/src/tests/test_measurement_regression_bench_output.rs",
+      "recovered_tests": [
+        "next_run_path_refuses_overwrite",
+        "required_labels_are_exact",
+        "serde_rows_preserve_selected_fields",
+        "report_contains_required_fields",
+        "metadata_points_to_reference_parity_evidence"
+      ],
+      "preserved_assertions": 0
+    },
+    {
+      "file": "crates/benches/src/tests/test_measurement_projection_bench_output.rs",
+      "recovered_tests": [
+        "projection_report_uses_stable_field_order",
+        "next_run_path_refuses_overwrite",
+        "required_projection_labels_and_row_counts_are_bound"
+      ],
+      "preserved_assertions": 6
+    },
+    {
+      "file": "crates/benches/src/tests/test_measurement_compression_bench_output.rs",
+      "recovered_tests": [
+        "compression_row_counts_are_bound",
+        "compression_lanes_are_bound",
+        "compression_report_uses_required_fields",
+        "next_compression_run_path_refuses_overwrite",
+        "sample_compression_report_records_zstd_level_three"
+      ],
+      "preserved_assertions": 8
+    }
+  ],
+  "method": "Recovered test names and assertion macro bodies compared after the approved identifier mapping and whitespace normalization; new tests excluded from recovered counts."
+}

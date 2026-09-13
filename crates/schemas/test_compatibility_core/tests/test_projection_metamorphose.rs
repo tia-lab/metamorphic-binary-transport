@@ -38,7 +38,7 @@ fn no_optional_projection_metamorphoses_required_field_shapes() -> TestResult {
     };
     assert_eq!(csv, trusted_csv);
     let csv = std::str::from_utf8(&csv)?;
-    assert!(csv.starts_with("schema_version,tenant,entity,close_ms,status"));
+    assert!(csv.starts_with("schema_version,tenant,entity,recorded_at_ms,status"));
     assert!(csv.contains("required-alpha"));
     assert!(!csv.contains("optional_text"));
 
@@ -251,10 +251,10 @@ fn full_row() -> TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal: TENANT_ALPHA,
         entity_ordinal: ENTITY_ENTITY_A,
-        close_ms: 1_000,
+        recorded_at_ms: 1_000,
         status_ordinal: STATUS_ACTIVE,
         optional_status_ordinal: STATUS_PAUSED,
-        venues_mask: (1 << VENUE_SITE_A_BIT) | (1 << VENUE_SITE_B_BIT),
+        sites_mask: (1 << SITE_SITE_A_BIT) | (1 << SITE_SITE_B_BIT),
         required_i64: -10,
         optional_i64: 20,
         required_i32: -30,

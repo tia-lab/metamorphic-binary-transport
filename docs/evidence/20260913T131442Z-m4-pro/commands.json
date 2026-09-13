@@ -1,0 +1,26 @@
+[
+  {
+    "name": "generation",
+    "command": "python3 scripts/schema_codegen.py --check",
+    "cwd": "repository root",
+    "profile": "dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T13:14:42.489108+00:00",
+    "log": "generation.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T13:14:50.121193+00:00",
+    "wall_seconds": 7.632107166573405
+  },
+  {
+    "name": "tests",
+    "command": "cargo test --workspace --all-features",
+    "cwd": "repository root",
+    "profile": "test/dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T13:14:50.121795+00:00",
+    "log": "tests.log",
+    "exit_code": 101,
+    "end_utc": "2026-09-13T13:14:52.780766+00:00",
+    "wall_seconds": 2.6589820850640535
+  }
+]

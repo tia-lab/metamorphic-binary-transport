@@ -72,15 +72,15 @@ pub fn test_compatibility_rows(row_count: usize) -> Vec<TestCompatibilityRowV1> 
     for idx in 0..row_count {
         let entity = tc::ENTITY_ENTITY_A;
         let tenant = tc::TENANT_ALPHA;
-        let close_ms = 1_800_000_000_000_i64 + idx as i64;
+        let recorded_at_ms = 1_800_000_000_000_i64 + idx as i64;
         rows.push(TestCompatibilityRowV1 {
             schema_version: tc::SCHEMA_VERSION_VALUE,
             tenant_ordinal: tenant,
             entity_ordinal: entity,
-            close_ms,
+            recorded_at_ms,
             status_ordinal: tc::STATUS_ACTIVE,
             optional_status_ordinal: tc::STATUS_PAUSED,
-            venues_mask: (1_u64 << tc::VENUE_SITE_A_BIT) | (1_u64 << tc::VENUE_SITE_B_BIT),
+            sites_mask: (1_u64 << tc::SITE_SITE_A_BIT) | (1_u64 << tc::SITE_SITE_B_BIT),
             required_i64: idx as i64,
             optional_i64: idx as i64 + 1,
             required_i32: idx as i32,
@@ -156,7 +156,7 @@ pub fn write_report(path: &Path, rows: &[BenchRow]) -> BenchResult<()> {
         file,
         &Report {
             metadata,
-            compatibility_dataset_identity: "synthetic_all_fields_existing_fixture_v1_neutral_dictionary",
+            compatibility_dataset_identity: "synthetic_all_fields_v2",
             rows,
         },
     )?;

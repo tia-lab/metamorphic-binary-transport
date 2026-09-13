@@ -21,7 +21,13 @@ fn encoding_and_inspection_are_deterministic() -> TestResult {
     let view = TestCompatibilityV1::access(&first)?;
     let keys = view
         .rows()
-        .map(|row| (row.tenant_ordinal(), row.entity_ordinal(), row.close_ms()))
+        .map(|row| {
+            (
+                row.tenant_ordinal(),
+                row.entity_ordinal(),
+                row.recorded_at_ms(),
+            )
+        })
         .collect::<Vec<_>>();
     assert_eq!(
         keys,
@@ -46,18 +52,18 @@ fn deterministic_rows() -> Vec<TestCompatibilityRowV1> {
 fn row(
     tenant_ordinal: u16,
     entity_ordinal: u16,
-    close_ms: i64,
+    recorded_at_ms: i64,
     status_ordinal: u16,
 ) -> TestCompatibilityRowV1 {
     TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal,
         entity_ordinal,
-        close_ms,
+        recorded_at_ms,
         status_ordinal,
         optional_status_ordinal: 0,
-        venues_mask: 1 << VENUE_SITE_A_BIT,
-        required_i64: close_ms,
+        sites_mask: 1 << SITE_SITE_A_BIT,
+        required_i64: recorded_at_ms,
         optional_i64: 0,
         required_i32: 1,
         optional_i32: 0,

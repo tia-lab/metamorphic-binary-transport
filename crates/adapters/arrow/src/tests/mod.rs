@@ -55,7 +55,7 @@ fn optional_numeric_column_preserves_nulls() {
 fn utf8_and_list_columns_preserve_offsets() {
     let mut names = Utf8Column::required(2);
     names
-        .push_required("btc")
+        .push_required("sensor_a")
         .unwrap_or_else(|err| panic!("{err}"));
     names
         .push_required("eth")
@@ -64,7 +64,7 @@ fn utf8_and_list_columns_preserve_offsets() {
     let Some(names) = names.as_any().downcast_ref::<StringArray>() else {
         panic!("expected StringArray");
     };
-    assert_eq!(names.value(0), "btc");
+    assert_eq!(names.value(0), "sensor_a");
     assert_eq!(names.value(1), "eth");
 
     let mut lists = I32ListColumn::required(2);

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "source_manifest_matches_final_source": true,
+  "dependency_lock_matches": true,
+  "all_benchmarks_full_six_row_counts": true,
+  "machine_attached_to_every_benchmark": true,
+  "native_benchmark_fields_unchanged": true,
+  "public_and_private_links_resolve": true,
+  "docs_contains_only_evidence": true,
+  "private_docs_git_ignored": true,
+  "targeted_retired_reference_matches": 0
+}

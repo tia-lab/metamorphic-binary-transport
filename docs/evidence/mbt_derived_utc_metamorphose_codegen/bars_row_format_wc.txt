@@ -1,4 +1,0 @@
-  363 crates/schemas/bars_core/src/bars_v1_json.rs
-  611 crates/schemas/bars_core/src/bars_v1_protobuf.rs
-  268 crates/schemas/bars_core/src/bars_v1_csv.rs
- 1242 total

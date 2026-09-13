@@ -40,12 +40,12 @@ fn invalid_dictionary_ordinal_fails() -> TestResult {
 #[test]
 fn invalid_bitmask_fails() -> TestResult {
     let mut row = valid_row();
-    row.venues_mask = VALID_VENUE_MASK | (1 << 63);
+    row.sites_mask = VALID_SITE_MASK | (1 << 63);
     expect_encode_error(
         vec![row],
         TransportError::InvalidBitmask {
-            field: "venues",
-            value: VALID_VENUE_MASK | (1 << 63),
+            field: "sites",
+            value: VALID_SITE_MASK | (1 << 63),
         },
     )
 }
@@ -115,8 +115,12 @@ fn wrong_schema_id_fails() -> TestResult {
 
 #[test]
 fn wrong_schema_hash_fails() -> TestResult {
-    // The prior fixture identity must not be accepted after the namespace migration.
-    for observed in [GENERATED_SCHEMA_HASH + 1, 3233278346470496550] {
+    // Previous fixture identities must not be accepted after source-schema changes.
+    for observed in [
+        GENERATED_SCHEMA_HASH + 1,
+        3233278346470496550,
+        11212189734853739241,
+    ] {
         assert_ne!(observed, GENERATED_SCHEMA_HASH);
         let mut bytes = valid_bytes()?;
         write_u64_le(&mut bytes, SCHEMA_HASH_OFFSET, observed)?;
@@ -136,10 +140,10 @@ fn valid_row() -> TestCompatibilityRowV1 {
         schema_version: SCHEMA_VERSION_VALUE,
         tenant_ordinal: TENANT_ALPHA,
         entity_ordinal: ENTITY_ENTITY_A,
-        close_ms: 1_000,
+        recorded_at_ms: 1_000,
         status_ordinal: STATUS_ACTIVE,
         optional_status_ordinal: 0,
-        venues_mask: 1 << VENUE_SITE_A_BIT,
+        sites_mask: 1 << SITE_SITE_A_BIT,
         required_i64: 1,
         optional_i64: 0,
         required_i32: 2,

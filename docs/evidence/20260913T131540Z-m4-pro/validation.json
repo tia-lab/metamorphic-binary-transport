@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "source_unchanged": true,
+  "benchmarks": {
+    "regression": {
+      "records": 54,
+      "validation": "passed",
+      "report": "regression/telemetry_regression_run_1.json",
+      "mode": "full"
+    },
+    "projection": {
+      "records": 54,
+      "validation": "passed",
+      "report": "projection/projection_run_1.json",
+      "mode": "full"
+    },
+    "compression": {
+      "records": 12,
+      "validation": "passed",
+      "report": "compression/compression_run_1.json",
+      "mode": "full"
+    },
+    "measurement_regression": {
+      "records": 60,
+      "validation": "passed",
+      "report": "measurement_regression/measurement_regression_run_1.json",
+      "mode": "full"
+    },
+    "measurement_projection": {
+      "records": 72,
+      "validation": "passed",
+      "report": "measurement_projection/projection_run_1.json",
+      "mode": "full"
+    },
+    "measurement_compression": {
+      "records": 18,
+      "validation": "passed",
+      "report": "measurement_compression/compression_run_1.json",
+      "mode": "full"
+    }
+  },
+  "recovered_suite_runs": 3,
+  "generation_replay_identical": true,
+  "no_performance_claim": "Timing stability is recorded separately; no speed improvement or external parity claim."
+}

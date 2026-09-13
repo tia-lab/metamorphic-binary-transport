@@ -1,0 +1,54 @@
+Command: python3 scripts/schema_codegen.py --write
+Machine: machine.json
+Start UTC: 2026-09-13T13:17:34.150963+00:00
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface projection --out crates/schemas/measurement_core/src/measurement_v1.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter json --out crates/schemas/measurement_core/src/measurement_v1_json.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter protobuf --out crates/schemas/measurement_core/src/measurement_v1_protobuf.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter csv --out crates/schemas/measurement_core/src/measurement_v1_csv.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter transponding --out crates/schemas/measurement_core/src/measurement_v1_transponding.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter arrow --out crates/schemas/measurement_core/src/measurement_v1_arrow.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter arrow-ipc --out crates/schemas/measurement_core/src/measurement_v1_arrow_ipc.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/measurement_core/proto --proto-root proto --schema mbt/example/measurement/v1/measurement.proto --root mbt.example.measurement.v1.MeasurementResponseV1 --module measurement_v1 --surface metamorphose --adapter parquet --out crates/schemas/measurement_core/src/measurement_v1_parquet.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface projection --out crates/schemas/telemetry_core/src/telemetry_v1.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter json --out crates/schemas/telemetry_core/src/telemetry_v1_json.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter protobuf --out crates/schemas/telemetry_core/src/telemetry_v1_protobuf.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter csv --out crates/schemas/telemetry_core/src/telemetry_v1_csv.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter transponding --out crates/schemas/telemetry_core/src/telemetry_v1_transponding.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter arrow --out crates/schemas/telemetry_core/src/telemetry_v1_arrow.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter arrow-ipc --out crates/schemas/telemetry_core/src/telemetry_v1_arrow_ipc.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/telemetry_core/proto --proto-root proto --schema mbt/example/telemetry/v1/telemetry.proto --root mbt.example.telemetry.v1.TelemetryResponseV1 --module telemetry_v1 --surface metamorphose --adapter parquet --out crates/schemas/telemetry_core/src/telemetry_v1_parquet.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface projection --out crates/schemas/test_compatibility_core/src/test_compatibility_v1.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter json --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_json.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter protobuf --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_protobuf.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter csv --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_csv.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter transponding --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_transponding.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter arrow --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_arrow.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter arrow-ipc --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_arrow_ipc.rs`
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/mbt_codegen --write --proto-root crates/schemas/test_compatibility_core/proto --proto-root proto --schema mbt/test_compatibility/v1/all_fields.proto --root mbt.test_compatibility.v1.TestCompatibilityResponseV1 --module test_compatibility_v1 --surface metamorphose --adapter parquet --out crates/schemas/test_compatibility_core/src/test_compatibility_v1_parquet.rs`
+
+Exit code: 0

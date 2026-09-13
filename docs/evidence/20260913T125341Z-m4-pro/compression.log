@@ -1,0 +1,10 @@
+Command: cargo run --release -p mbt_benches --bin mbt_compression_bench -- --report-dir docs/evidence/20260913T125341Z-m4-pro/compression
+Machine: machine.json
+Start UTC: 2026-09-13T12:53:56.261007+00:00
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+     Running `target/release/mbt_compression_bench --report-dir docs/evidence/20260913T125341Z-m4-pro/compression`
+docs/evidence/20260913T125341Z-m4-pro/compression/compression_run_1.json
+
+Exit code: 0
+End UTC: 2026-09-13T12:53:56.761784+00:00

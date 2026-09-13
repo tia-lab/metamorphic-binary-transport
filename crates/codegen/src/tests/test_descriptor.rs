@@ -47,12 +47,12 @@ fn invalid_fixture_schemas_fail_before_emission() -> Result<()> {
 
 #[test]
 fn imported_dictionary_source_satisfies_dictionary_field() -> Result<()> {
-    let model = imported_dictionary_model(&["BTCUSDT", "ETHUSDT"])?;
+    let model = imported_dictionary_model(&["sensor_a", "sensor_b"])?;
     assert_eq!(model.dictionaries.len(), 1);
-    assert_eq!(model.dictionaries[0].name, "instrument");
+    assert_eq!(model.dictionaries[0].name, "device");
     assert_eq!(
         model.dictionaries[0].values,
-        vec!["BTCUSDT".to_string(), "ETHUSDT".to_string()]
+        vec!["sensor_a".to_string(), "sensor_b".to_string()]
     );
     assert!(model.fields.iter().any(|field| {
         matches!(
@@ -60,7 +60,7 @@ fn imported_dictionary_source_satisfies_dictionary_field() -> Result<()> {
             FieldKind::U16Dictionary {
                 dictionary,
                 optional: false
-            } if dictionary == "instrument"
+            } if dictionary == "device"
         )
     }));
     Ok(())
@@ -72,8 +72,8 @@ fn missing_explicit_dictionary_source_fails() -> Result<()> {
     write_options_proto(&root)?;
     write_proto(
         &root,
-        "shared/instruments.proto",
-        &shared_instrument_dictionary_proto(&["BTCUSDT"]),
+        "shared/devices.proto",
+        &shared_device_dictionary_proto(&["sensor_a"]),
     )?;
     write_proto(
         &root,
@@ -105,20 +105,20 @@ fn duplicate_dictionary_names_across_sources_fail() -> Result<()> {
     )?;
     write_proto(
         &root,
-        "shared/instruments.proto",
-        &shared_instrument_dictionary_proto(&["BTCUSDT"]),
+        "shared/devices.proto",
+        &shared_device_dictionary_proto(&["sensor_a"]),
     )?;
     write_proto(
         &root,
-        "shared/instruments_copy.proto",
-        &shared_instrument_dictionary_proto(&["ETHUSDT"]),
+        "shared/devices_copy.proto",
+        &shared_device_dictionary_proto(&["sensor_b"]),
     )?;
 
     let cfg = config_with_dictionary_sources(
         &root,
         "test/fixture/v1/test.proto",
         "fixture_v1",
-        vec!["shared/instruments.proto", "shared/instruments_copy.proto"],
+        vec!["shared/devices.proto", "shared/devices_copy.proto"],
     );
     let result = load_schema_model(&cfg.schema_request());
     assert!(matches!(
@@ -133,8 +133,8 @@ fn duplicate_dictionary_names_across_sources_fail() -> Result<()> {
 
 #[test]
 fn schema_hash_changes_when_explicit_dictionary_values_change() -> Result<()> {
-    let first = imported_dictionary_model(&["BTCUSDT", "ETHUSDT"])?;
-    let second = imported_dictionary_model(&["BTCUSDT", "ETHUSDT", "ADAUSDT"])?;
+    let first = imported_dictionary_model(&["sensor_a", "sensor_b"])?;
+    let second = imported_dictionary_model(&["sensor_a", "sensor_b", "sensor_c"])?;
     assert_ne!(first.normalized_schema_hash, second.normalized_schema_hash);
     Ok(())
 }
@@ -164,7 +164,7 @@ fn derived_utc_fields_are_row_format_only() -> Result<()> {
         model
             .fields
             .iter()
-            .all(|field| field.proto_name != "close_utc")
+            .all(|field| field.proto_name != "recorded_at_utc")
     );
     assert!(
         model
@@ -174,8 +174,11 @@ fn derived_utc_fields_are_row_format_only() -> Result<()> {
     );
 
     assert_eq!(model.derived_utc_fields.len(), 2);
-    assert_eq!(model.derived_utc_fields[0].logical_path, "close_utc");
-    assert_eq!(model.derived_utc_fields[0].source_logical_path, "close_ms");
+    assert_eq!(model.derived_utc_fields[0].logical_path, "recorded_at_utc");
+    assert_eq!(
+        model.derived_utc_fields[0].source_logical_path,
+        "recorded_at_ms"
+    );
     assert_eq!(
         model.derived_utc_fields[1].logical_path,
         "metadata.ingested_at_utc"
@@ -216,10 +219,10 @@ fn derived_utc_fields_are_row_format_only() -> Result<()> {
 #[test]
 fn alias_and_projection_do_not_affect_core_hash_or_fields() -> Result<()> {
     let with_alias = model_for(valid_alias_and_projection_ignored_proto())?;
-    let without_alias = model_for(
-        &valid_alias_and_projection_ignored_proto()
-            .replace("  alias: { value: \"btc\" alias: \"xbt\" }\n", ""),
-    )?;
+    let without_alias = model_for(&valid_alias_and_projection_ignored_proto().replace(
+        "  alias: { value: \"sensor_a\" alias: \"primary_sensor\" }\n",
+        "",
+    ))?;
     let without_projection = model_for(&valid_alias_and_projection_ignored_proto().replace(
         r#"  option (mbt.projection) = {
     name: "small"
@@ -329,9 +332,9 @@ fn invalid_projection_definitions_fail_before_emission() {
 fn projection_hash_changes_with_projection_shape() -> Result<()> {
     let base = model_for(valid_alias_and_projection_ignored_proto())?;
     let with_extra_selected = model_for(&valid_alias_and_projection_ignored_proto().replace(
-        r#"  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];"#,
+        r#"  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "recorded_at_ms"];"#,
         r#"  double extra = 4 [(mbt.projection_group) = "core"];
-  string ignored_utc = 5 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];"#,
+  string ignored_utc = 5 [(mbt.ignored) = true, (mbt.derived_utc_from) = "recorded_at_ms"];"#,
     ))?;
     let renamed = model_for(
         &valid_alias_and_projection_ignored_proto().replace("name: \"small\"", "name: \"smaller\""),

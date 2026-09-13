@@ -1,5 +1,0 @@
-docs/evidence/mbt_telemetry_migration/regression/telemetry_regression_run_1.json: 54 records, expected lanes/counts, finite metrics; compression byte equality/determinism or projection checksum parity passed.
-docs/evidence/mbt_telemetry_migration/projection/projection_run_1.json: 54 records, expected lanes/counts, finite metrics; compression byte equality/determinism or projection checksum parity passed.
-docs/evidence/mbt_telemetry_migration/compression/compression_run_1.json: 6 records, expected lanes/counts, finite metrics; compression byte equality/determinism or projection checksum parity passed.
-Independent PyArrow 24.0.0 full/projected values and nullability passed after final workspace tests.
-All 16 generated files still match deterministic generation SHA-256 manifest.

@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package mbt.example.measurement.v1;
+
+import "mbt/options.proto";
+
+option (mbt.dictionary_values) = {
+  name: "device"
+  value: "SENSOR_A"
+  value: "SENSOR_B"
+  value: "SENSOR_C"
+  value: "SENSOR_D"
+  value: "SENSOR_E"
+  alias {
+    value: "SENSOR_A"
+    alias: "A"
+  }
+  alias {
+    value: "SENSOR_B"
+    alias: "B"
+  }
+  alias {
+    value: "SENSOR_C"
+    alias: "C"
+  }
+  alias {
+    value: "SENSOR_D"
+    alias: "D"
+  }
+  alias {
+    value: "SENSOR_E"
+    alias: "E"
+  }
+};
+
+option (mbt.dictionary_values) = {
+  name: "interval"
+  value: "60s"
+};
+
+option (mbt.dictionary_values) = {
+  name: "source"
+  value: "sensor"
+  value: "api"
+  value: "synthetic"
+  value: "corrected"
+};
+
+option (mbt.dictionary_values) = {
+  name: "process"
+  value: "sensor"
+  value: "derived"
+  value: "repair"
+};
+
+option (mbt.dictionary_values) = {
+  name: "recomputed_reason"
+  value: "canonical_repair"
+};
+
+option (mbt.dictionary_values) = {
+  name: "site"
+  value: "site_a"
+  value: "site_b"
+  value: "site_c"
+};
+
+message MeasurementResponseV1 {
+  option (mbt.schema_id) = 50002;
+  option (mbt.schema_version) = 1;
+  option (mbt.transport_name) = "mbt.example.measurement.v1";
+  option (mbt.payload_root) = true;
+  option (mbt.projection) = {
+    name: "without_details"
+    rust_marker: "MeasurementV1WithoutDetails"
+    exclude_group: "metadata"
+  };
+  option (mbt.projection) = {
+    name: "values_only"
+    rust_marker: "MeasurementV1ValuesOnly"
+    include_field: "started_at_ms"
+    include_field: "value_a"
+    include_field: "value_b"
+    include_field: "value_c"
+    include_field: "value_d"
+    include_field: "value_e"
+  };
+
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  repeated MeasurementRowV1 rows = 2 [(mbt.repeated_payload) = true];
+}
+
+message MeasurementRowV1 {
+  uint32 schema_version = 1 [(mbt.const_u16) = 1];
+  string device = 2 [
+    (mbt.dictionary) = "device",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 1
+  ];
+  string interval = 3 [
+    (mbt.dictionary) = "interval",
+    (mbt.key_part) = true,
+    (mbt.key_order) = 2
+  ];
+  int64 started_at_ms = 4;
+  int64 recorded_at_ms = 5 [
+    (mbt.key_part) = true,
+    (mbt.key_order) = 3
+  ];
+  string started_at_utc = 6 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "started_at_ms"
+  ];
+  string recorded_at_utc = 7 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "recorded_at_ms"
+  ];
+  double value_a = 8;
+  double value_b = 9;
+  double value_c = 10;
+  double value_d = 11;
+  double value_e = 12;
+  double value_f = 13;
+  double value_g = 14;
+  double value_h = 15;
+  double value_i = 16;
+  double value_j = 17;
+  int64 count_a = 18;
+  int64 count_b = 19;
+  optional double average_value = 20 [(mbt.presence_bit) = 0];
+  optional int64 sample_count = 21 [(mbt.presence_bit) = 1];
+  MeasurementMetadataV1 metadata = 22 [(mbt.projection_group) = "metadata"];
+  optional int64 age_ms = 23 [(mbt.presence_bit) = 23];
+}
+
+message MeasurementMetadataV1 {
+  string source = 1 [(mbt.dictionary) = "source"];
+  optional string process = 2 [
+    (mbt.dictionary) = "process",
+    (mbt.presence_bit) = 2
+  ];
+  repeated string sites_expected = 3 [(mbt.bitmask_dictionary) = "site"];
+  repeated string sites_observed = 4 [(mbt.bitmask_dictionary) = "site"];
+  optional int64 ingested_at_ms = 5 [(mbt.presence_bit) = 3];
+  optional string ingested_at_utc = 6 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "ingested_at_ms"
+  ];
+  optional int64 target_ingested_at_ms = 7 [(mbt.presence_bit) = 4];
+  optional string target_ingested_at_utc = 8 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "target_ingested_at_ms"
+  ];
+  optional int64 built_at_ms = 9 [(mbt.presence_bit) = 5];
+  optional string built_at_utc = 10 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "built_at_ms"
+  ];
+  optional int64 committed_at_ms = 11 [(mbt.presence_bit) = 6];
+  optional string committed_at_utc = 12 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "committed_at_ms"
+  ];
+  optional int64 harmonized_at_ms = 13 [(mbt.presence_bit) = 7];
+  optional string harmonized_at_utc = 14 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "harmonized_at_ms"
+  ];
+  optional int64 recomputed_at_ms = 15 [(mbt.presence_bit) = 8];
+  optional string recomputed_at_utc = 16 [
+    (mbt.ignored) = true,
+    (mbt.derived_utc_from) = "recomputed_at_ms"
+  ];
+  optional string recomputed_reason = 17 [
+    (mbt.dictionary) = "recomputed_reason",
+    (mbt.presence_bit) = 9
+  ];
+  optional int64 covered_interval_count = 18 [(mbt.presence_bit) = 10];
+  optional int64 expected_interval_count = 19 [(mbt.presence_bit) = 11];
+  optional double coverage_ratio = 20 [(mbt.presence_bit) = 12];
+  optional int64 inputs_source_counts_sensor = 21 [(mbt.presence_bit) = 13];
+  optional int64 inputs_source_counts_api = 22 [(mbt.presence_bit) = 14];
+  optional int64 inputs_source_counts_synthetic = 23 [(mbt.presence_bit) = 15];
+  optional int64 inputs_source_counts_corrected = 24 [(mbt.presence_bit) = 16];
+  optional double sensor_window_inputs_coverage_ratio = 25 [(mbt.presence_bit) = 17];
+  optional int64 sensor_window_expected = 26 [(mbt.presence_bit) = 18];
+  optional int64 sensor_window_synthetic_count = 27 [(mbt.presence_bit) = 19];
+  optional double sensor_window_synthetic_ratio = 28 [(mbt.presence_bit) = 20];
+  optional int64 sensor_window_observed_count = 29 [(mbt.presence_bit) = 21];
+  optional double sensor_window_observed_ratio = 30 [(mbt.presence_bit) = 22];
+}

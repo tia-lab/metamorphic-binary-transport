@@ -91,14 +91,14 @@ fn imported_dictionary_model(values: &[&str]) -> Result<crate::model::SchemaMode
     )?;
     write_proto(
         &root,
-        "shared/instruments.proto",
-        &shared_instrument_dictionary_proto(values),
+        "shared/devices.proto",
+        &shared_device_dictionary_proto(values),
     )?;
     let cfg = config_with_dictionary_sources(
         &root,
         "test/fixture/v1/test.proto",
         "fixture_v1",
-        vec!["shared/instruments.proto"],
+        vec!["shared/devices.proto"],
     );
     load_schema_model(&cfg.schema_request())
 }
@@ -161,7 +161,7 @@ import "mbt/options.proto";
 
 option (mbt.dictionary_values) = {
   name: "entity"
-  value: "btc"
+  value: "sensor_a"
   value: "eth"
 };
 
@@ -182,7 +182,7 @@ message TestRowV1 {
     (mbt.key_part) = true,
     (mbt.key_order) = 1
   ];
-  int64 close_ms = 3 [
+  int64 recorded_at_ms = 3 [
     (mbt.key_part) = true,
     (mbt.key_order) = 2
   ];
@@ -213,7 +213,7 @@ message TestPayloadV1 {
 
 message TestRowV1 {
   uint32 schema_version = 1 [(mbt.const_u16) = 1];
-  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
+  int64 recorded_at_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   optional string text = 3 [(mbt.raw_string) = true, (mbt.presence_bit) = 0];
   optional bytes raw = 4 [(mbt.presence_bit) = 1];
 }
@@ -238,7 +238,7 @@ message TestPayloadV1 {
 
 message TestRowV1 {
   uint32 schema_version = 1 [(mbt.const_u16) = 1];
-  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
+  int64 recorded_at_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   repeated int64 xs_i64 = 3;
   repeated int32 xs_i32 = 4;
   repeated uint32 xs_u32 = 5;
@@ -274,7 +274,7 @@ message TestPayloadV1 {{
 
 message TestRowV1 {{
   uint32 schema_version = 1 [(mbt.const_u16) = 1];
-  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
+  int64 recorded_at_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
 {fields}}}
 "#
     )
@@ -288,8 +288,8 @@ import "mbt/options.proto";
 
 option (mbt.dictionary_values) = {
   name: "entity"
-  value: "btc"
-  alias: { value: "btc" alias: "xbt" }
+  value: "sensor_a"
+  alias: { value: "sensor_a" alias: "primary_sensor" }
 };
 
 message TestPayloadV1 {
@@ -315,8 +315,8 @@ message TestRowV1 {
     (mbt.key_order) = 1,
     (mbt.projection_group) = "core"
   ];
-  int64 close_ms = 3 [(mbt.key_part) = true, (mbt.key_order) = 2];
-  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "close_ms"];
+  int64 recorded_at_ms = 3 [(mbt.key_part) = true, (mbt.key_order) = 2];
+  string ignored_utc = 4 [(mbt.ignored) = true, (mbt.derived_utc_from) = "recorded_at_ms"];
 }
 "#
 }
@@ -329,7 +329,7 @@ import "mbt/options.proto";
 
 option (mbt.dictionary_values) = {
   name: "entity"
-  value: "btc"
+  value: "sensor_a"
   value: "eth"
 };
 
@@ -350,13 +350,13 @@ message TestRowV1 {
     (mbt.key_part) = true,
     (mbt.key_order) = 1
   ];
-  int64 close_ms = 3 [
+  int64 recorded_at_ms = 3 [
     (mbt.key_part) = true,
     (mbt.key_order) = 2
   ];
-  string close_utc = 4 [
+  string recorded_at_utc = 4 [
     (mbt.ignored) = true,
-    (mbt.derived_utc_from) = "close_ms"
+    (mbt.derived_utc_from) = "recorded_at_ms"
   ];
   TestMetadataV1 metadata = 5;
 }
@@ -376,7 +376,7 @@ fn imported_dictionary_root_proto() -> &'static str {
 syntax = "proto3";
 package test.fixture.v1;
 import "mbt/options.proto";
-import "shared/instruments.proto";
+import "shared/devices.proto";
 
 message TestPayloadV1 {
   option (mbt.schema_id) = 21;
@@ -390,12 +390,12 @@ message TestPayloadV1 {
 
 message TestRowV1 {
   uint32 schema_version = 1 [(mbt.const_u16) = 1];
-  string instrument = 2 [
-    (mbt.dictionary) = "instrument",
+  string device = 2 [
+    (mbt.dictionary) = "device",
     (mbt.key_part) = true,
     (mbt.key_order) = 1
   ];
-  int64 close_ms = 3 [
+  int64 recorded_at_ms = 3 [
     (mbt.key_part) = true,
     (mbt.key_order) = 2
   ];
@@ -403,7 +403,7 @@ message TestRowV1 {
 "#
 }
 
-fn shared_instrument_dictionary_proto(values: &[&str]) -> String {
+fn shared_device_dictionary_proto(values: &[&str]) -> String {
     let mut proto = String::from(
         r#"
 syntax = "proto3";
@@ -411,7 +411,7 @@ package test.shared.v1;
 import "mbt/options.proto";
 
 option (mbt.dictionary_values) = {
-  name: "instrument"
+  name: "device"
 "#,
     );
     for value in values {
@@ -425,12 +425,12 @@ option (mbt.dictionary_values) = {
 fn invalid_derived_utc_without_ignored_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
-            r#"  string close_utc = 4 [
+            r#"  string recorded_at_utc = 4 [
     (mbt.ignored) = true,
-    (mbt.derived_utc_from) = "close_ms"
+    (mbt.derived_utc_from) = "recorded_at_ms"
   ];"#,
-            r#"  string close_utc = 4 [
-    (mbt.derived_utc_from) = "close_ms"
+            r#"  string recorded_at_utc = 4 [
+    (mbt.derived_utc_from) = "recorded_at_ms"
   ];"#,
         )
         .leak()
@@ -439,7 +439,7 @@ fn invalid_derived_utc_without_ignored_proto() -> &'static str {
 fn invalid_derived_utc_unknown_source_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
-            r#"(mbt.derived_utc_from) = "close_ms""#,
+            r#"(mbt.derived_utc_from) = "recorded_at_ms""#,
             r#"(mbt.derived_utc_from) = "missing_ms""#,
         )
         .leak()
@@ -448,7 +448,7 @@ fn invalid_derived_utc_unknown_source_proto() -> &'static str {
 fn invalid_derived_utc_non_i64_source_proto() -> &'static str {
     valid_nested_derived_utc_proto()
         .replace(
-            r#"(mbt.derived_utc_from) = "close_ms""#,
+            r#"(mbt.derived_utc_from) = "recorded_at_ms""#,
             r#"(mbt.derived_utc_from) = "entity""#,
         )
         .leak()
@@ -456,13 +456,16 @@ fn invalid_derived_utc_non_i64_source_proto() -> &'static str {
 
 fn invalid_derived_utc_non_string_field_proto() -> &'static str {
     valid_nested_derived_utc_proto()
-        .replace("string close_utc = 4", "int64 close_utc = 4")
+        .replace("string recorded_at_utc = 4", "int64 recorded_at_utc = 4")
         .leak()
 }
 
 fn invalid_repeated_derived_utc_proto() -> &'static str {
     valid_nested_derived_utc_proto()
-        .replace("string close_utc = 4", "repeated string close_utc = 4")
+        .replace(
+            "string recorded_at_utc = 4",
+            "repeated string recorded_at_utc = 4",
+        )
         .leak()
 }
 
@@ -493,20 +496,20 @@ message TestPayloadV1 {
 
 message TestRowV1 {
   uint32 schema_version = 1 [(mbt.const_u16) = 1];
-  int64 close_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
+  int64 recorded_at_ms = 2 [(mbt.key_part) = true, (mbt.key_order) = 1];
   Foo foo = 3;
-  FooBar foo_bar = 4;
+  FooNode foo_node = 4;
 }
 
 message Foo {
-  Bar bar = 1;
+  Node node = 1;
 }
 
-message Bar {
+message Node {
   int64 first_ms = 1;
 }
 
-message FooBar {
+message FooNode {
   int64 second_ms = 1;
 }
 "#
@@ -601,7 +604,7 @@ fn invalid_duplicate_rust_field_proto() -> &'static str {
 syntax = "proto3";
 package test.fixture.v1;
 import "mbt/options.proto";
-option (mbt.dictionary_values) = { name: "entity" value: "btc" };
+option (mbt.dictionary_values) = { name: "entity" value: "sensor_a" };
 message TestPayloadV1 {
   option (mbt.schema_id) = 17;
   option (mbt.schema_version) = 1;

@@ -40,15 +40,15 @@ fn cli_accepts_repeated_dictionary_source_flags() -> Result<()> {
         "--surface".to_string(),
         "core".to_string(),
         "--dictionary-source".to_string(),
-        "shared/instruments.proto".to_string(),
+        "shared/devices.proto".to_string(),
         "--dictionary-source".to_string(),
-        "shared/venues.proto".to_string(),
+        "shared/sites.proto".to_string(),
     ])?;
     assert_eq!(
         parsed.dictionary_sources,
         vec![
-            PathBuf::from("shared/instruments.proto"),
-            PathBuf::from("shared/venues.proto")
+            PathBuf::from("shared/devices.proto"),
+            PathBuf::from("shared/sites.proto")
         ]
     );
     Ok(())

@@ -1,0 +1,110 @@
+[
+  {
+    "name": "generation",
+    "command": "python3 scripts/schema_codegen.py --check",
+    "cwd": "repository root",
+    "profile": "dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:42.621413+00:00",
+    "log": "generation.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:48.374419+00:00",
+    "wall_seconds": 5.753035498782992
+  },
+  {
+    "name": "tests",
+    "command": "cargo test --workspace --all-features",
+    "cwd": "repository root",
+    "profile": "test/dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:48.375129+00:00",
+    "log": "tests.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:52.804794+00:00",
+    "wall_seconds": 4.429702749475837
+  },
+  {
+    "name": "check",
+    "command": "cargo check --all-targets --all-features",
+    "cwd": "repository root",
+    "profile": "dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:52.805485+00:00",
+    "log": "check.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:53.080434+00:00",
+    "wall_seconds": 0.274959210306406
+  },
+  {
+    "name": "build",
+    "command": "cargo build --all-features",
+    "cwd": "repository root",
+    "profile": "dev",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:53.080765+00:00",
+    "log": "build.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:53.147998+00:00",
+    "wall_seconds": 0.06724308244884014
+  },
+  {
+    "name": "format",
+    "command": "cargo fmt --all -- --check",
+    "cwd": "repository root",
+    "profile": "n/a",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:53.148334+00:00",
+    "log": "format.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:53.358731+00:00",
+    "wall_seconds": 0.2104132492095232
+  },
+  {
+    "name": "diff",
+    "command": "git diff --check",
+    "cwd": "repository root",
+    "profile": "n/a",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:53.359113+00:00",
+    "log": "diff.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:53.404295+00:00",
+    "wall_seconds": 0.04519500024616718
+  },
+  {
+    "name": "regression",
+    "command": "cargo run --release -p mbt_benches --bin mbt_telemetry_regression_bench -- --report-dir docs/evidence/20260913T125341Z-m4-pro/regression",
+    "cwd": "repository root",
+    "profile": "release",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:53.404812+00:00",
+    "log": "regression.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:54.299218+00:00",
+    "wall_seconds": 0.8944157101213932
+  },
+  {
+    "name": "projection",
+    "command": "cargo run --release -p mbt_benches --bin mbt_projection_bench -- --report-dir docs/evidence/20260913T125341Z-m4-pro/projection",
+    "cwd": "repository root",
+    "profile": "release",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:54.300710+00:00",
+    "log": "projection.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:56.259673+00:00",
+    "wall_seconds": 1.9589845854789019
+  },
+  {
+    "name": "compression",
+    "command": "cargo run --release -p mbt_benches --bin mbt_compression_bench -- --report-dir docs/evidence/20260913T125341Z-m4-pro/compression",
+    "cwd": "repository root",
+    "profile": "release",
+    "machine": "machine.json",
+    "start_utc": "2026-09-13T12:53:56.261007+00:00",
+    "log": "compression.log",
+    "exit_code": 0,
+    "end_utc": "2026-09-13T12:53:56.761784+00:00",
+    "wall_seconds": 0.5007878337055445
+  }
+]

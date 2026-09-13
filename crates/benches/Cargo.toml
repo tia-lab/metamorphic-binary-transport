@@ -12,3 +12,5 @@ mbt_schema_telemetry = { path = "../schemas/telemetry_core", features = ["json",
 mbt_schema_test_compatibility = { path = "../schemas/test_compatibility_core" }
 serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = "=1.0.145"
+
+mbt_schema_measurement = { path = "../schemas/measurement_core", features = ["json", "protobuf", "csv", "arrow_ipc", "parquet"] }

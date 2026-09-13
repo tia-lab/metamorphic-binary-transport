@@ -1,4 +1,0 @@
-   Compiling mbt_benches v0.1.2 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
-    Finished `release` profile [optimized] target(s) in 1.23s
-     Running `target/release/mbt_compression_bench --smoke --report-dir docs/evidence/mbt_telemetry_migration/compression`
-docs/evidence/mbt_telemetry_migration/compression/compression_run_1.json

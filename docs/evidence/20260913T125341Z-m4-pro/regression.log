@@ -1,0 +1,10 @@
+Command: cargo run --release -p mbt_benches --bin mbt_telemetry_regression_bench -- --report-dir docs/evidence/20260913T125341Z-m4-pro/regression
+Machine: machine.json
+Start UTC: 2026-09-13T12:53:53.404812+00:00
+
+    Finished `release` profile [optimized] target(s) in 0.08s
+     Running `target/release/mbt_telemetry_regression_bench --report-dir docs/evidence/20260913T125341Z-m4-pro/regression`
+docs/evidence/20260913T125341Z-m4-pro/regression/telemetry_regression_run_1.json
+
+Exit code: 0
+End UTC: 2026-09-13T12:53:54.299218+00:00

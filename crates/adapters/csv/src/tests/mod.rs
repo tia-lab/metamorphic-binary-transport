@@ -5,8 +5,8 @@ use crate::CsvWriter;
 #[test]
 fn csv_writer_streams_cells_without_csv_crate() -> Result<()> {
     let mut writer = CsvWriter::with_capacity(256, 64);
-    writer.raw_static(b"symbol,value,bytes,array\n")?;
-    writer.string_cell("BTC\"USDT")?;
+    writer.raw_static(b"device,value,bytes,array\n")?;
+    writer.string_cell("sensor\"a")?;
     writer.comma()?;
     writer.f64_cell("value", 12.5)?;
     writer.comma()?;
@@ -17,8 +17,8 @@ fn csv_writer_streams_cells_without_csv_crate() -> Result<()> {
 
     assert_eq!(
         writer.finish(),
-        br#"symbol,value,bytes,array
-"BTC""USDT",12.5,"TWFu","[1,2,3]"
+        br#"device,value,bytes,array
+"sensor""a",12.5,"TWFu","[1,2,3]"
 "#
     );
     Ok(())

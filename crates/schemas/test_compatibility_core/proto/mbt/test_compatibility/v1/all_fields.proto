@@ -25,7 +25,7 @@ option (mbt.dictionary_values) = {
 };
 
 option (mbt.dictionary_values) = {
-  name: "venue"
+  name: "site"
   value: "site_a"
   value: "site_b"
   value: "site_c"
@@ -47,7 +47,7 @@ message TestCompatibilityResponseV1 {
     include_field: "schema_version"
     include_field: "tenant"
     include_field: "entity"
-    include_field: "close_ms"
+    include_field: "recorded_at_ms"
     include_field: "required_i64"
     include_field: "optional_i64"
     include_field: "required_i32"
@@ -88,7 +88,7 @@ message TestCompatibilityRowV1 {
     (mbt.key_order) = 2,
     (mbt.projection_group) = "key"
   ];
-  int64 close_ms = 4 [
+  int64 recorded_at_ms = 4 [
     (mbt.key_part) = true,
     (mbt.key_order) = 3,
     (mbt.projection_group) = "key"
@@ -99,7 +99,7 @@ message TestCompatibilityRowV1 {
     (mbt.presence_bit) = 0,
     (mbt.projection_group) = "optional"
   ];
-  repeated string venues = 7 [(mbt.bitmask_dictionary) = "venue"];
+  repeated string sites = 7 [(mbt.bitmask_dictionary) = "site"];
   int64 required_i64 = 8;
   optional int64 optional_i64 = 9 [
     (mbt.presence_bit) = 1,

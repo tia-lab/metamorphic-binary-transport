@@ -9,6 +9,12 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMAS = (
     (
+        "crates/schemas/measurement_core",
+        "mbt/example/measurement/v1/measurement.proto",
+        "mbt.example.measurement.v1.MeasurementResponseV1",
+        "measurement_v1",
+    ),
+    (
         "crates/schemas/telemetry_core",
         "mbt/example/telemetry/v1/telemetry.proto",
         "mbt.example.telemetry.v1.TelemetryResponseV1",
