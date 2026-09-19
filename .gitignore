@@ -9,3 +9,4 @@ Cargo.lock
 .dataset
 tests/**.sqlite
 .dev/
+.mcp.json
