@@ -25,10 +25,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install schema tools
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler python3
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
 
       - name: Check generated schemas
-        run: python3 scripts/schema_codegen.py --check
+        run: cargo run -p mbt_codegen --bin schema_codegen -- --check
 
       - name: Test
         run: cargo test --workspace --all-features

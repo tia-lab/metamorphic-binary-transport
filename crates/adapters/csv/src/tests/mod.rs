@@ -48,8 +48,6 @@ fn csv_writer_enforces_cap() {
 #[test]
 fn csv_array_strings_roundtrip_with_standard_readers()
 -> std::result::Result<(), Box<dyn std::error::Error>> {
-    use std::io::Write;
-    use std::process::{Command, Stdio};
     let controls: String = (0_u8..32).map(char::from).collect();
     let values = [
         "indoor",
@@ -70,16 +68,15 @@ fn csv_array_strings_roundtrip_with_standard_readers()
     writer.end_array_cell()?;
     let bytes = writer.finish();
     assert!(bytes.starts_with(b"\"[\"\"indoor\"\",\"\"test\"\""));
-    let mut child = Command::new("python3").args(["-c", r#"
-import csv, io, json, sys
-rows = list(csv.reader(io.StringIO(sys.stdin.read()), strict=True))
-assert len(rows) == 1 and len(rows[0]) == 1, rows
-assert json.loads(rows[0][0]) == ['indoor', 'test', '', 'quote"slash\\', ''.join(map(chr, range(32))), 'café 雪']
-"#]).stdin(Stdio::piped()).spawn()?;
-    let mut stdin = child.stdin.take().ok_or("missing child stdin")?;
-    stdin.write_all(&bytes)?;
-    drop(stdin);
-    assert!(child.wait()?.success());
+    let records = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(bytes.as_slice())
+        .records()
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0].len(), 1);
+    let decoded: Vec<String> = serde_json::from_str(&records[0][0])?;
+    assert_eq!(decoded, values);
     Ok(())
 }
 

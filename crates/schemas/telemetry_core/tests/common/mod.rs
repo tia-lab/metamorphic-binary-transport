@@ -40,77 +40,105 @@ pub fn rows() -> Vec<TelemetryRowV1> {
 
 #[cfg(any(feature = "json", feature = "csv", feature = "protobuf"))]
 pub fn check_row_format(format: &str, projected: bool, bytes: &[u8]) -> TestResult {
-    use std::io::Write;
-    use std::process::{Command, Stdio};
-    // Independent standard-library decoders compare logical values, including absence.
-    let script = r#"
-import sys,json,csv,io,struct
-fmt,projected=sys.argv[1],sys.argv[2]=='true'
-data=sys.stdin.buffer.read()
-expected=[dict(schema_version=1,device='sensor_a',recorded_at_ms=0,recorded_at_utc='1970-01-01T00:00:00Z',temperature_c=21.5,status='active',tags=['indoor','test']),dict(schema_version=1,device='sensor_a',recorded_at_ms=1000,recorded_at_utc='1970-01-01T00:00:01Z',temperature_c=0.,battery_percent=0.,status='idle',tags=['outdoor','test']),dict(schema_version=1,device='sensor_b',recorded_at_ms=-1000,recorded_at_utc='1969-12-31T23:59:59Z',temperature_c=-4.25,battery_percent=50.,status='offline',tags=[])]
-if projected:
- expected=[{k:r[k] for k in ('schema_version','device','recorded_at_ms','recorded_at_utc','temperature_c')} for r in expected]
-def varint(data,i):
- value=0
- for shift in range(0,70,7):
-  b=data[i];i+=1;value|=(b&127)<<shift
-  if b<128:return value,i
- raise ValueError('invalid varint')
-def fields(data):
- out=[];i=0
- while i<len(data):
-  key,i=varint(data,i);wire=key&7
-  if wire==0:value,i=varint(data,i)
-  elif wire==1:value=struct.unpack('<d',data[i:i+8])[0];i+=8
-  elif wire==2:
-   size,i=varint(data,i);value=data[i:i+size];i+=size
-  else:raise ValueError('unexpected wire type')
-  out.append((key>>3,value))
- assert i==len(data)
- return out
-if fmt=='json':
- response=json.loads(data);assert response['schema_version']==1;actual=response['rows']
-elif fmt=='csv':
- actual=list(csv.DictReader(io.StringIO(data.decode())))
- for row in actual:
-  for k in ('schema_version','recorded_at_ms'):row[k]=int(row[k])
-  row['temperature_c']=float(row['temperature_c'])
-  if 'battery_percent' in row:
-   if row['battery_percent']=='':del row['battery_percent']
-   else:row['battery_percent']=float(row['battery_percent'])
-  if 'tags' in row:row['tags']=json.loads(row['tags'])
-else:
- root=fields(data);assert root[0]==(1,1);actual=[]
- names={1:'schema_version',2:'device',3:'recorded_at_ms',4:'recorded_at_utc',5:'temperature_c',6:'battery_percent',7:'status',8:'tags'}
- for tag,payload in root[1:]:
-  assert tag==2;row={} if projected else {'tags':[]}
-  for tag,value in fields(payload):
-   name=names[tag]
-   if isinstance(value,bytes):value=value.decode()
-   if name=='recorded_at_ms' and value>=2**63:value-=2**64
-   if name=='tags':row['tags'].append(value)
-   else:row[name]=value
-  actual.append(row)
-assert actual==expected,(fmt,actual,expected)
-"#;
-    let mut child = Command::new("python3")
-        .args([
-            "-c",
-            script,
-            format,
-            if projected { "true" } else { "false" },
-        ])
-        .stdin(Stdio::piped())
-        .spawn()?;
-    child
-        .stdin
-        .take()
-        .ok_or("missing oracle stdin")?
-        .write_all(bytes)?;
-    if !child.wait()?.success() {
-        return Err("row-format oracle failed".into());
+    use serde_json::{Value, json};
+    let mut expected = vec![
+        json!({"schema_version":1,"device":"sensor_a","recorded_at_ms":0,"recorded_at_utc":"1970-01-01T00:00:00Z","temperature_c":21.5,"status":"active","tags":["indoor","test"]}),
+        json!({"schema_version":1,"device":"sensor_a","recorded_at_ms":1000,"recorded_at_utc":"1970-01-01T00:00:01Z","temperature_c":0.0,"battery_percent":0.0,"status":"idle","tags":["outdoor","test"]}),
+        json!({"schema_version":1,"device":"sensor_b","recorded_at_ms":-1000,"recorded_at_utc":"1969-12-31T23:59:59Z","temperature_c":-4.25,"battery_percent":50.0,"status":"offline","tags":[]}),
+    ];
+    if projected {
+        for row in &mut expected {
+            let object = row.as_object_mut().ok_or("expected object")?;
+            object.remove("battery_percent");
+            object.remove("status");
+            object.remove("tags");
+        }
     }
+    let mut actual: Vec<Value> = match format {
+        "json" => {
+            let root: Value = serde_json::from_slice(bytes)?;
+            assert_eq!(root["schema_version"], 1);
+            root["rows"].as_array().ok_or("missing rows")?.clone()
+        }
+        "csv" => {
+            let mut reader = csv::Reader::from_reader(bytes);
+            let headers = reader.headers()?.clone();
+            let mut rows = Vec::new();
+            for record in reader.records() {
+                let record = record?;
+                let mut row = serde_json::Map::new();
+                for (name, value) in headers.iter().zip(record.iter()) {
+                    let decoded = match name {
+                        "schema_version" | "recorded_at_ms" => json!(value.parse::<i64>()?),
+                        "temperature_c" | "battery_percent" => {
+                            if name == "battery_percent" && value.is_empty() {
+                                continue;
+                            }
+                            json!(value.parse::<f64>()?)
+                        }
+                        "tags" => serde_json::from_str(value)?,
+                        _ => json!(value),
+                    };
+                    row.insert(name.to_string(), decoded);
+                }
+                rows.push(Value::Object(row));
+            }
+            rows
+        }
+        "protobuf" => {
+            use prost::Message;
+            let response = OracleResponse::decode(bytes)?;
+            assert_eq!(response.schema_version, 1);
+            response.rows.into_iter().map(|row| {
+                let mut result = json!({"schema_version":row.schema_version,"device":row.device,"recorded_at_ms":row.recorded_at_ms,"recorded_at_utc":row.recorded_at_utc,"temperature_c":row.temperature_c});
+                if let Some(battery) = row.battery_percent { result["battery_percent"] = json!(battery); }
+                if !projected || !row.status.is_empty() { result["status"] = json!(row.status); }
+                if !projected || !row.tags.is_empty() { result["tags"] = json!(row.tags); }
+                result
+            }).collect()
+        }
+        _ => return Err("unknown row format".into()),
+    };
+    // JSON permits 0 and 0.0 for the same schema double; compare both as f64.
+    for row in &mut actual {
+        for field in ["temperature_c", "battery_percent"] {
+            if let Some(value) = row.get_mut(field) {
+                *value = json!(value.as_f64().ok_or("expected schema double")?);
+            }
+        }
+    }
+    assert_eq!(actual, expected, "{format}, projected={projected}");
+
     Ok(())
+}
+
+// Independent test-only protobuf contract, decoded with prost rather than the writer.
+#[derive(Clone, PartialEq, prost::Message)]
+struct OracleResponse {
+    #[prost(uint32, tag = "1")]
+    schema_version: u32,
+    #[prost(message, repeated, tag = "2")]
+    rows: Vec<OracleRow>,
+}
+
+#[derive(Clone, PartialEq, prost::Message)]
+struct OracleRow {
+    #[prost(uint32, tag = "1")]
+    schema_version: u32,
+    #[prost(string, tag = "2")]
+    device: String,
+    #[prost(int64, tag = "3")]
+    recorded_at_ms: i64,
+    #[prost(string, tag = "4")]
+    recorded_at_utc: String,
+    #[prost(double, tag = "5")]
+    temperature_c: f64,
+    #[prost(double, optional, tag = "6")]
+    battery_percent: Option<f64>,
+    #[prost(string, tag = "7")]
+    status: String,
+    #[prost(string, repeated, tag = "8")]
+    tags: Vec<String>,
 }
 
 #[cfg(feature = "arrow")]

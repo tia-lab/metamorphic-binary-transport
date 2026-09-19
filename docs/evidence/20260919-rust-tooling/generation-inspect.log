@@ -1,0 +1,1143 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `target/debug/schema_codegen --inspect`
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=1516
+projection=without_details marker=MeasurementV1WithoutDetails
+projection=values_only marker=MeasurementV1ValuesOnly
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=522
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=469
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=385
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=368
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=263
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=267
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=measurement_v1
+proto=mbt/example/measurement/v1/measurement.proto
+root=mbt.example.measurement.v1.MeasurementResponseV1
+schema_id=50002
+schema_version=1
+transport_name=mbt.example.measurement.v1
+payload_root=true
+schema_hash=9409304714461393349
+payload_type=MeasurementResponseV1Payload
+row_type=MeasurementRowV1
+generated_lines=267
+dictionary=device values=SENSOR_A,SENSOR_B,SENSOR_C,SENSOR_D,SENSOR_E
+dictionary=interval values=60s
+dictionary=source values=sensor,api,synthetic,corrected
+dictionary=process values=sensor,derived,repair
+dictionary=recomputed_reason values=canonical_repair
+dictionary=site values=site_a,site_b,site_c
+field=mbt.example.measurement.v1.MeasurementRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.measurement.v1.MeasurementRowV1.interval rust_name=interval_ordinal kind=U16Dictionary { dictionary: "interval", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.example.measurement.v1.MeasurementRowV1.started_at_ms rust_name=started_at_ms kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.example.measurement.v1.MeasurementRowV1.value_a rust_name=value_a kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_b rust_name=value_b kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_c rust_name=value_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_d rust_name=value_d kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_e rust_name=value_e kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_f rust_name=value_f kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_g rust_name=value_g kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_h rust_name=value_h kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_i rust_name=value_i kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.value_j rust_name=value_j kind=F64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_a rust_name=count_a kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.count_b rust_name=count_b kind=I64 presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.average_value rust_name=average_value kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.sample_count rust_name=sample_count kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.source rust_name=source_ordinal kind=U16Dictionary { dictionary: "source", optional: false } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.process rust_name=process_ordinal kind=U16Dictionary { dictionary: "process", optional: true } presence_bit=Some(2) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_expected rust_name=sites_expected_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sites_observed rust_name=sites_observed_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.ingested_at_ms rust_name=ingested_at_ms kind=I64 presence_bit=Some(3) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.target_ingested_at_ms rust_name=target_ingested_at_ms kind=I64 presence_bit=Some(4) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.built_at_ms rust_name=built_at_ms kind=I64 presence_bit=Some(5) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.committed_at_ms rust_name=committed_at_ms kind=I64 presence_bit=Some(6) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.harmonized_at_ms rust_name=harmonized_at_ms kind=I64 presence_bit=Some(7) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_at_ms rust_name=recomputed_at_ms kind=I64 presence_bit=Some(8) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.recomputed_reason rust_name=recomputed_reason_ordinal kind=U16Dictionary { dictionary: "recomputed_reason", optional: true } presence_bit=Some(9) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.covered_interval_count rust_name=covered_interval_count kind=I64 presence_bit=Some(10) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.expected_interval_count rust_name=expected_interval_count kind=I64 presence_bit=Some(11) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.coverage_ratio rust_name=coverage_ratio kind=F64 presence_bit=Some(12) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_sensor rust_name=inputs_source_counts_sensor kind=I64 presence_bit=Some(13) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_api rust_name=inputs_source_counts_api kind=I64 presence_bit=Some(14) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_synthetic rust_name=inputs_source_counts_synthetic kind=I64 presence_bit=Some(15) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.inputs_source_counts_corrected rust_name=inputs_source_counts_corrected kind=I64 presence_bit=Some(16) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_inputs_coverage_ratio rust_name=sensor_window_inputs_coverage_ratio kind=F64 presence_bit=Some(17) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_expected rust_name=sensor_window_expected kind=I64 presence_bit=Some(18) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_count rust_name=sensor_window_synthetic_count kind=I64 presence_bit=Some(19) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_synthetic_ratio rust_name=sensor_window_synthetic_ratio kind=F64 presence_bit=Some(20) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_count rust_name=sensor_window_observed_count kind=I64 presence_bit=Some(21) key_order=None
+field=mbt.example.measurement.v1.MeasurementMetadataV1.sensor_window_observed_ratio rust_name=sensor_window_observed_ratio kind=F64 presence_bit=Some(22) key_order=None
+field=mbt.example.measurement.v1.MeasurementRowV1.age_ms rust_name=age_ms kind=I64 presence_bit=Some(23) key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=interval_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=680
+projection=temperature_only marker=TelemetryV1TemperatureOnly
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=180
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=131
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=133
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=92
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=103
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=106
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=telemetry_v1
+proto=mbt/example/telemetry/v1/telemetry.proto
+root=mbt.example.telemetry.v1.TelemetryResponseV1
+schema_id=50001
+schema_version=1
+transport_name=mbt.example.telemetry.v1
+payload_root=true
+schema_hash=232196938863914698
+payload_type=TelemetryResponseV1Payload
+row_type=TelemetryRowV1
+generated_lines=106
+dictionary=device values=sensor_a,sensor_b,sensor_c
+dictionary=status values=active,idle,offline
+dictionary=tag values=indoor,outdoor,test
+field=mbt.example.telemetry.v1.TelemetryRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.device rust_name=device_ordinal kind=U16Dictionary { dictionary: "device", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.example.telemetry.v1.TelemetryRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(2)
+field=mbt.example.telemetry.v1.TelemetryRowV1.temperature_c rust_name=temperature_c kind=F64 presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.battery_percent rust_name=battery_percent kind=F64 presence_bit=Some(0) key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.example.telemetry.v1.TelemetryRowV1.tags rust_name=tags_mask kind=U64BitmaskDictionary { dictionary: "tag" } presence_bit=None key_order=None
+key_part=1 rust_name=device_ordinal
+key_part=2 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=1767
+projection=no_optional marker=TestCompatibilityV1NoOptional
+projection=numeric_only marker=TestCompatibilityV1NumericOnly
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=524
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=423
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=389
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=415
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=283
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=287
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms
+module=test_compatibility_v1
+proto=mbt/test_compatibility/v1/all_fields.proto
+root=mbt.test_compatibility.v1.TestCompatibilityResponseV1
+schema_id=40001
+schema_version=1
+transport_name=mbt.test_compatibility.v1
+payload_root=true
+schema_hash=3345754805576751033
+payload_type=TestCompatibilityResponseV1Payload
+row_type=TestCompatibilityRowV1
+generated_lines=287
+dictionary=tenant values=alpha,beta
+dictionary=entity values=entity_a,entity_b,entity_c
+dictionary=status values=active,paused,closed
+dictionary=site values=site_a,site_b,site_c
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.schema_version rust_name=schema_version kind=ConstU16 { value: 1 } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.tenant rust_name=tenant_ordinal kind=U16Dictionary { dictionary: "tenant", optional: false } presence_bit=None key_order=Some(1)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.entity rust_name=entity_ordinal kind=U16Dictionary { dictionary: "entity", optional: false } presence_bit=None key_order=Some(2)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.recorded_at_ms rust_name=recorded_at_ms kind=I64 presence_bit=None key_order=Some(3)
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.status rust_name=status_ordinal kind=U16Dictionary { dictionary: "status", optional: false } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_status rust_name=optional_status_ordinal kind=U16Dictionary { dictionary: "status", optional: true } presence_bit=Some(0) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.sites rust_name=sites_mask kind=U64BitmaskDictionary { dictionary: "site" } presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64 rust_name=required_i64 kind=I64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i64 rust_name=optional_i64 kind=I64 presence_bit=Some(1) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32 rust_name=required_i32 kind=I32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_i32 rust_name=optional_i32 kind=I32 presence_bit=Some(2) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32 rust_name=required_u32 kind=U32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_u32 rust_name=optional_u32 kind=U32 presence_bit=Some(3) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64 rust_name=required_f64 kind=F64 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f64 rust_name=optional_f64 kind=F64 presence_bit=Some(4) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32 rust_name=required_f32 kind=F32 presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_f32 rust_name=optional_f32 kind=F32 presence_bit=Some(5) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bool rust_name=required_bool kind=Bool presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bool rust_name=optional_bool kind=Bool presence_bit=Some(6) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_text rust_name=required_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_text rust_name=optional_text kind=RawString presence_bit=Some(7) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_bytes rust_name=required_bytes kind=Bytes presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.optional_bytes rust_name=optional_bytes kind=Bytes presence_bit=Some(8) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.uuid_text rust_name=uuid_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.jsonb_text rust_name=jsonb_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.timestamptz_text rust_name=timestamptz_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.numeric_text rust_name=numeric_text kind=RawString presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i64_array rust_name=required_i64_array kind=I64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i64_array rust_name=nullable_i64_array kind=I64Array presence_bit=Some(9) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_i32_array rust_name=required_i32_array kind=I32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_i32_array rust_name=nullable_i32_array kind=I32Array presence_bit=Some(10) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_u32_array rust_name=required_u32_array kind=U32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_u32_array rust_name=nullable_u32_array kind=U32Array presence_bit=Some(11) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f64_array rust_name=required_f64_array kind=F64Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f64_array rust_name=nullable_f64_array kind=F64Array presence_bit=Some(12) key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.required_f32_array rust_name=required_f32_array kind=F32Array presence_bit=None key_order=None
+field=mbt.test_compatibility.v1.TestCompatibilityRowV1.nullable_f32_array rust_name=nullable_f32_array kind=F32Array presence_bit=Some(13) key_order=None
+key_part=1 rust_name=tenant_ordinal
+key_part=2 rust_name=entity_ordinal
+key_part=3 rust_name=recorded_at_ms

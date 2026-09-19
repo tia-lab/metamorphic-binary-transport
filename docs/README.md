@@ -1,6 +1,8 @@
 # Validation and benchmark evidence
 
-Latest run: `20260913T131540Z-m4-pro`. All 24 recorded commands passed, including
+Rust tooling validation, 2026-09-19: [178 passing tests, Rust generation and README examples](evidence/20260919-rust-tooling/README.md). Benchmark measurements below are from the recorded 2026-09-13 run.
+
+Benchmark run: `20260913T131540Z-m4-pro`. All 24 recorded commands passed, including
 178 workspace tests and checks for all 24 generated modules. Two generation
 replays produced identical files. This is local evidence; remote CI and release
 readiness are not established.

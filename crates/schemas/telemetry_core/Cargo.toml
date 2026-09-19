@@ -46,3 +46,8 @@ parquet = [
     "dep:mbt_transponding",
     "dep:mbt_adapter_parquet",
 ]
+
+[dev-dependencies]
+csv = "=1.4.0"
+serde_json = "=1.0.145"
+prost = "=0.14.4"

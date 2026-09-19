@@ -1,0 +1,5 @@
+    Checking mbt_schema_telemetry v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/telemetry_core)
+    Checking mbt_schema_test_compatibility v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/test_compatibility_core)
+    Checking mbt_schema_measurement v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/schemas/measurement_core)
+    Checking mbt_benches v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.35s

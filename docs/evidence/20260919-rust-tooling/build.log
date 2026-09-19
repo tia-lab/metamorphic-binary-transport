@@ -1,0 +1,3 @@
+   Compiling mbt_codegen v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/codegen)
+   Compiling mbt_benches v0.2.0 (/Users/tia/DEV/RUST/metamorphic-binary-transport/crates/benches)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.49s

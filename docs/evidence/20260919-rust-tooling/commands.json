@@ -1,0 +1,68 @@
+[
+  {
+    "name": "generation-write",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "mbt_codegen",
+      "--bin",
+      "schema_codegen",
+      "--",
+      "--write"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 2.250343
+  },
+  {
+    "name": "generation-check",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "mbt_codegen",
+      "--bin",
+      "schema_codegen",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 1.98534
+  },
+  {
+    "name": "generation-inspect",
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "mbt_codegen",
+      "--bin",
+      "schema_codegen",
+      "--",
+      "--inspect"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 1.104502
+  },
+  {
+    "name": "build",
+    "command": [
+      "cargo",
+      "build",
+      "--workspace",
+      "--all-features"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 1.523116
+  },
+  {
+    "name": "diff",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 0.013955
+  }
+]

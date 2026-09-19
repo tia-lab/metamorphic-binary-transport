@@ -1,5 +1,6 @@
 [package]
 name = "mbt_codegen"
+default-run = "mbt_codegen"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
